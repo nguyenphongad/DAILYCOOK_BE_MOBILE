@@ -1,0 +1,150 @@
+.menus-container {
+  display: flex;
+  height: 100vh;
+  
+  .content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background-color: #f5f5f5;
+      
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        
+        h1 {
+          color: #333;
+          margin: 0;
+        }
+        
+        .add-button {
+          background-color: #35A55E;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          padding: 10px 16px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+          
+          &:hover {
+            background-color: darken(#35A55E, 10%);
+          }
+        }
+      }
+      
+      .menus-grid-container {
+        .loading {
+          padding: 30px;
+          text-align: center;
+          color: #666;
+          background-color: white;
+          border-radius: 8px;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .menus-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 20px;
+          
+          .menu-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            
+            &:hover {
+              transform: translateY(-5px);
+              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+            
+            .menu-content {
+              padding: 20px;
+              
+              h3 {
+                margin: 0 0 10px;
+                color: #333;
+                font-size: 18px;
+              }
+              
+              .description {
+                color: #666;
+                margin-bottom: 15px;
+                min-height: 40px;
+                font-size: 14px;
+              }
+              
+              .menu-info {
+                display: flex;
+                justify-content: space-between;
+                color: #888;
+                font-size: 13px;
+                
+                .dishes-count {
+                  background-color: rgba(52, 168, 83, 0.1);
+                  color: #34A853;
+                  padding: 3px 8px;
+                  border-radius: 12px;
+                }
+              }
+            }
+            
+            .menu-actions {
+              display: flex;
+              background-color: #f8f8f8;
+              padding: 10px 20px;
+              
+              button {
+                flex: 1;
+                padding: 8px;
+                margin: 0 5px;
+                border: none;
+                border-radius: 4px;
+                font-size: 13px;
+                cursor: pointer;
+                transition: all 0.2s;
+              }
+              
+              .view-btn {
+                background-color: #FBBC05;
+                color: white;
+                
+                &:hover {
+                  background-color: darken(#FBBC05, 10%);
+                }
+              }
+              
+              .edit-btn {
+                background-color: #4285F4;
+                color: white;
+                
+                &:hover {
+                  background-color: darken(#4285F4, 10%);
+                }
+              }
+              
+              .delete-btn {
+                background-color: #EA4335;
+                color: white;
+                
+                &:hover {
+                  background-color: darken(#EA4335, 10%);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

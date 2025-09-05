@@ -1,0 +1,237 @@
+.dishes-container {
+  display: flex;
+  height: 100vh;
+  
+  .content-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background-color: #f5f5f5;
+      
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        
+        h1 {
+          color: #333;
+          margin: 0;
+        }
+        
+        .add-button {
+          background-color: #35A55E;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          padding: 10px 16px;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+          
+          &:hover {
+            background-color: darken(#35A55E, 10%);
+          }
+        }
+      }
+      
+      .dishes-filter {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 10px;
+        
+        .search-bar {
+          display: flex;
+          
+          input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            width: 250px;
+            font-size: 14px;
+            
+            &:focus {
+              outline: none;
+              border-color: #35A55E;
+            }
+          }
+          
+          button {
+            padding: 8px 16px;
+            background-color: #35A55E;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            
+            &:hover {
+              background-color: darken(#35A55E, 10%);
+            }
+          }
+        }
+        
+        .filters {
+          display: flex;
+          gap: 10px;
+          
+          select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 14px;
+            min-width: 150px;
+            
+            &:focus {
+              outline: none;
+              border-color: #35A55E;
+            }
+          }
+        }
+      }
+      
+      .dishes-grid-container {
+        .loading {
+          padding: 30px;
+          text-align: center;
+          color: #666;
+          background-color: white;
+          border-radius: 8px;
+          box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .dishes-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 20px;
+          
+          .dish-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            
+            &:hover {
+              transform: translateY(-5px);
+              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+            
+            .dish-image {
+              position: relative;
+              height: 160px;
+              overflow: hidden;
+              
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s;
+              }
+              
+              .category-badge {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background-color: rgba(0, 0, 0, 0.7);
+                color: white;
+                padding: 5px 10px;
+                border-radius: 20px;
+                font-size: 12px;
+              }
+              
+              &:hover img {
+                transform: scale(1.05);
+              }
+            }
+            
+            .dish-content {
+              padding: 15px;
+              
+              h3 {
+                margin: 0 0 10px;
+                color: #333;
+                font-size: 18px;
+              }
+              
+              .description {
+                color: #666;
+                margin-bottom: 15px;
+                min-height: 40px;
+                font-size: 14px;
+              }
+              
+              .dish-info {
+                display: flex;
+                justify-content: space-between;
+                color: #888;
+                font-size: 13px;
+                
+                .ingredients-count {
+                  color: #4285F4;
+                }
+                
+                .cooking-time {
+                  color: #EA4335;
+                }
+              }
+            }
+            
+            .dish-actions {
+              display: flex;
+              background-color: #f8f8f8;
+              padding: 10px;
+              
+              button {
+                flex: 1;
+                padding: 8px;
+                margin: 0 5px;
+                border: none;
+                border-radius: 4px;
+                font-size: 13px;
+                cursor: pointer;
+                transition: all 0.2s;
+              }
+              
+              .view-btn {
+                background-color: #FBBC05;
+                color: white;
+                
+                &:hover {
+                  background-color: darken(#FBBC05, 10%);
+                }
+              }
+              
+              .edit-btn {
+                background-color: #4285F4;
+                color: white;
+                
+                &:hover {
+                  background-color: darken(#4285F4, 10%);
+                }
+              }
+              
+              .delete-btn {
+                background-color: #EA4335;
+                color: white;
+                
+                &:hover {
+                  background-color: darken(#EA4335, 10%);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
