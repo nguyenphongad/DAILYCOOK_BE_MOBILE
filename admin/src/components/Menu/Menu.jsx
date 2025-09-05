@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { logout } from '../../redux/slices/authSlice'
-import './Menu.scss'
 
 const Menu = () => {
   const location = useLocation()
@@ -10,7 +9,6 @@ const Menu = () => {
   const [menuItems] = useState([
     { path: '/', label: 'Trang chủ', icon: '📊' },
     { path: '/users', label: 'Quản lý người dùng', icon: '👥' },
-    { path: '/menus', label: 'Quản lý thực đơn', icon: '📋' },
     { path: '/dishes', label: 'Quản lý món ăn', icon: '🍲' },
     { path: '/ingredients', label: 'Quản lý thành phần', icon: '🥕' },
     { path: '/products', label: 'Quản lý sản phẩm', icon: '📦' },

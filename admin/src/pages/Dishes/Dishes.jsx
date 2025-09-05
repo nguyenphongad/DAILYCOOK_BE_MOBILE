@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import Header from '../../components/Header/Header'
 import Menu from '../../components/Menu/Menu'
-import './Dishes.scss'
 
 const Dishes = () => {
   const [dishes, setDishes] = useState([])
@@ -130,7 +129,7 @@ const Dishes = () => {
                         <span className="cooking-time">{dish.cooking_time}</span>
                       </div>
                     </div>
-                    <div className="dish-actions">
+                    <div className="btn-actions">
                       <button className="view-btn">Xem</button>
                       <button className="edit-btn">Sửa</button>
                       <button className="delete-btn">Xóa</button>

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import Header from '../../components/Header/Header'
 import Menu from '../../components/Menu/Menu'
-import './Users.scss'
 
 const Users = () => {
   const [users, setUsers] = useState([])
@@ -69,7 +68,7 @@ const Users = () => {
                           {user.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
                         </span>
                       </td>
-                      <td className="actions">
+                      <td className="btn-actions">
                         <button className="edit-btn">Sửa</button>
                         <button className="delete-btn">Xóa</button>
                       </td>

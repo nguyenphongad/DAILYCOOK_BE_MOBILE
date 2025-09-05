@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react'
 import Header from '../../components/Header/Header'
 import Menu from '../../components/Menu/Menu'
-import './Ingredients.scss'
 
 const Ingredients = () => {
   const [ingredients, setIngredients] = useState([])
   const [loading, setLoading] = useState(true)
-  
+
   useEffect(() => {
     // Giả lập việc lấy danh sách thành phần
     const fetchIngredients = () => {
       setLoading(true)
-      
+
       // Giả lập API call
       setTimeout(() => {
         const mockIngredients = [
@@ -30,10 +29,10 @@ const Ingredients = () => {
         setLoading(false)
       }, 1000)
     }
-    
+
     fetchIngredients()
   }, [])
-  
+
   return (
     <div className="ingredients-container">
       <Menu />
@@ -44,7 +43,7 @@ const Ingredients = () => {
             <h1>Quản lý thành phần</h1>
             <button className="add-button">+ Thêm thành phần</button>
           </div>
-          
+
           <div className="ingredients-filter">
             <div className="search-bar">
               <input type="text" placeholder="Tìm kiếm thành phần..." />
@@ -59,9 +58,16 @@ const Ingredients = () => {
                 <option value="cereals">Ngũ cốc</option>
                 <option value="other">Khác</option>
               </select>
+              <select>
+                <option value="">Sắp xếp theo</option>
+                <option value="name_asc">Tên (A-Z)</option>
+                <option value="name_desc">Tên (Z-A)</option>
+                <option value="time_asc">Thời gian nấu (Tăng dần)</option>
+                <option value="time_desc">Thời gian nấu (Giảm dần)</option>
+              </select>
             </div>
           </div>
-          
+
           <div className="ingredients-table-container">
             {loading ? (
               <div className="loading">Đang tải dữ liệu...</div>
@@ -91,7 +97,7 @@ const Ingredients = () => {
                       <td>{ingredient.unit}</td>
                       <td>{ingredient.nutrition}</td>
                       <td>{ingredient.price.toLocaleString()}</td>
-                      <td className="actions">
+                      <td className="btn-actions">
                         <button className="edit-btn">Sửa</button>
                         <button className="delete-btn">Xóa</button>
                       </td>

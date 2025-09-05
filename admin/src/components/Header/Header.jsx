@@ -1,5 +1,4 @@
 import { useSelector } from 'react-redux'
-import './Header.scss'
 
 const Header = () => {
   const { user } = useSelector(state => state.auth)

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import Header from '../../components/Header/Header'
 import Menu from '../../components/Menu/Menu'
-import './Home.scss'
 
 const Home = () => {
   const [stats, setStats] = useState({

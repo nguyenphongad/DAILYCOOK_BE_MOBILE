@@ -8,3 +8,126 @@ body {
     padding: 0px;
 
 }
+
+.add-button {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+
+    &:hover {
+        background: #45a049;
+    }
+}
+
+.search-bar {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+
+    input {
+        flex: 1;
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    button {
+        padding: 8px 16px;
+        background: #45a050;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+
+        &:hover {
+            background: #4CAF49;
+        }
+    }
+}
+
+.filters {
+    display: flex;
+    gap: 12px;
+
+    select {
+        padding: 8px 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: white;
+        font-size: 14px;
+        min-width: 150px;
+
+        &:focus {
+            outline: none;
+            border-color: #35A55E;
+        }
+
+        &:hover {
+            border-color: #35A55E;
+        }
+
+        option {
+            padding: 6px 12px;
+        }
+    }
+}
+
+.btn-actions {
+    display: flex;
+    gap: 8px;
+    padding: 16px;
+
+    button {
+        flex: 1;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+
+        &.view-btn {
+            background: #2196F3;
+            color: white;
+
+            &:hover {
+                background: #1976D2;
+            }
+        }
+
+        &.edit-btn {
+            background: #FFC107;
+            color: #000;
+
+            &:hover {
+                background: #FFA000;
+            }
+        }
+
+        &.delete-btn {
+            background: #f44336;
+            color: white;
+
+            &:hover {
+                background: #D32F2F;
+            }
+        }
+    }
+}
+
+// Import component styles
+@import './components/Menu.scss';
+@import './components/Header.scss';
+
+// Import page styles
+@import './pages/Users.scss';
+@import './pages/Dishes.scss';
+@import './pages/Ingredients.scss';
+@import './pages/Products.scss';
+@import './pages/Home.scss';
+@import './pages/Login.scss';

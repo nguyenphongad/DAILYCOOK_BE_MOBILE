@@ -5,65 +5,65 @@ import Menu from '../../components/Menu/Menu'
 const Products = () => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  
+
   useEffect(() => {
     // Giả lập việc lấy danh sách sản phẩm
     const fetchProducts = () => {
       setLoading(true)
-      
+
       // Giả lập API call
       setTimeout(() => {
         const mockProducts = [
-          { 
-            id: 1, 
-            name: 'Nồi cơm điện', 
-            description: 'Nồi cơm điện đa năng 1.8L', 
-            price: 1200000, 
+          {
+            id: 1,
+            name: 'Nồi cơm điện',
+            description: 'Nồi cơm điện đa năng 1.8L',
+            price: 1200000,
             category: 'Thiết bị nhà bếp',
             stock: 25,
             image: 'https://placekitten.com/300/300',
           },
-          { 
-            id: 2, 
-            name: 'Máy xay sinh tố', 
-            description: 'Máy xay sinh tố công suất cao', 
-            price: 800000, 
+          {
+            id: 2,
+            name: 'Máy xay sinh tố',
+            description: 'Máy xay sinh tố công suất cao',
+            price: 800000,
             category: 'Thiết bị nhà bếp',
             stock: 15,
             image: 'https://placekitten.com/301/300',
           },
-          { 
-            id: 3, 
-            name: 'Dao bếp set 5 món', 
-            description: 'Bộ dao bếp inox cao cấp', 
-            price: 550000, 
+          {
+            id: 3,
+            name: 'Dao bếp set 5 món',
+            description: 'Bộ dao bếp inox cao cấp',
+            price: 550000,
             category: 'Dụng cụ nấu ăn',
             stock: 30,
             image: 'https://placekitten.com/302/300',
           },
-          { 
-            id: 4, 
-            name: 'Thớt gỗ', 
-            description: 'Thớt gỗ tự nhiên kháng khuẩn', 
-            price: 180000, 
+          {
+            id: 4,
+            name: 'Thớt gỗ',
+            description: 'Thớt gỗ tự nhiên kháng khuẩn',
+            price: 180000,
             category: 'Dụng cụ nấu ăn',
             stock: 40,
             image: 'https://placekitten.com/303/300',
           },
-          { 
-            id: 5, 
-            name: 'Nồi áp suất', 
-            description: 'Nồi áp suất đa năng 5L', 
-            price: 1500000, 
+          {
+            id: 5,
+            name: 'Nồi áp suất',
+            description: 'Nồi áp suất đa năng 5L',
+            price: 1500000,
             category: 'Thiết bị nhà bếp',
             stock: 10,
             image: 'https://placekitten.com/304/300',
           },
-          { 
-            id: 6, 
-            name: 'Chảo chống dính', 
-            description: 'Chảo chống dính cao cấp 28cm', 
-            price: 450000, 
+          {
+            id: 6,
+            name: 'Chảo chống dính',
+            description: 'Chảo chống dính cao cấp 28cm',
+            price: 450000,
             category: 'Dụng cụ nấu ăn',
             stock: 35,
             image: 'https://placekitten.com/305/300',
@@ -73,10 +73,10 @@ const Products = () => {
         setLoading(false)
       }, 1000)
     }
-    
+
     fetchProducts()
   }, [])
-  
+
   return (
     <div className="products-container">
       <Menu />
@@ -87,7 +87,7 @@ const Products = () => {
             <h1>Quản lý sản phẩm</h1>
             <button className="add-button">+ Thêm sản phẩm</button>
           </div>
-          
+
           <div className="products-filter">
             <div className="search-bar">
               <input type="text" placeholder="Tìm kiếm sản phẩm..." />
@@ -108,7 +108,7 @@ const Products = () => {
               </select>
             </div>
           </div>
-          
+
           <div className="products-grid-container">
             {loading ? (
               <div className="loading">Đang tải dữ liệu...</div>
@@ -130,7 +130,7 @@ const Products = () => {
                         <span className="price">{product.price.toLocaleString()} VNĐ</span>
                       </div>
                     </div>
-                    <div className="product-actions">
+                    <div className="btn-actions">
                       <button className="view-btn">Xem</button>
                       <button className="edit-btn">Sửa</button>
                       <button className="delete-btn">Xóa</button>

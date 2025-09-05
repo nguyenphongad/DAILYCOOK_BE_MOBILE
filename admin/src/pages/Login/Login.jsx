@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { loginSuccess } from '../../redux/slices/authSlice'
 import { loginAPI } from '../../utils/api'
-import './Login.scss'
 import logoImage from '../../assets/logo.png'
 
 const Login = () => {
