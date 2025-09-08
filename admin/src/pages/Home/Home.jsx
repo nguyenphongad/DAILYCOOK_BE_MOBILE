@@ -44,9 +44,7 @@ const Home = () => {
   
   return (
     <div className="home-container">
-      <Menu />
       <div className="content-area">
-        <Header />
         <div className="content">
           <h1>Bảng điều khiển</h1>
           
@@ -92,6 +90,139 @@ const Home = () => {
                 <div className="activity-content">
                   <p><strong>Trần Thị B</strong> vừa thêm món "Gà xào xả ớt"</p>
                   <span className="activity-time">15 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon">📋</div>
+                <div className="activity-content">
+                  <p><strong>Lê Văn C</strong> vừa tạo thực đơn "Bữa trưa cho gia đình"</p>
+                  <span className="activity-time">30 phút trước</span>
                 </div>
               </div>
               <div className="activity-item">

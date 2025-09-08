@@ -79,9 +79,7 @@ const Dishes = () => {
   
   return (
     <div className="dishes-container">
-      <Menu />
       <div className="content-area">
-        <Header />
         <div className="content">
           <div className="page-header">
             <h1>Quản lý món ăn</h1>

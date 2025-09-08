@@ -1,32 +1,45 @@
 import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
-import { ToastContainer } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
+import { Toaster } from 'sonner'
 
-import Login from './pages/Login/Login'
+import LoginPage from './pages/auth/LoginPage'
 import Home from './pages/Home/Home'
 import Users from './pages/Users/Users'
 import Dishes from './pages/Dishes/Dishes'
 import Ingredients from './pages/Ingredients/Ingredients'
 import Products from './pages/Products/Products'
 import PrivateRoute from './routes/PrivateRoute'
+import Layout from './pages/layout'
 
 function App() {
   return (
     <>
-    
-    
-      <div className="app">
-        <ToastContainer position="top-right" autoClose={3000} />
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<PrivateRoute element={<Home />} />} />
-          <Route path="/users" element={<PrivateRoute element={<Users />} />} />
-          <Route path="/dishes" element={<PrivateRoute element={<Dishes />} />} />
-          <Route path="/ingredients" element={<PrivateRoute element={<Ingredients />} />} />
-          <Route path="/products" element={<PrivateRoute element={<Products />} />} />
-        </Routes>
-      </div>
+      <Toaster position="bottom-center" richColors closeButton />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={
+          <Layout>
+            <PrivateRoute element={<Home />} />
+          </Layout>
+        } />
+        <Route path="/users" element={
+          <Layout>
+            <PrivateRoute element={<Users />} />
+          </Layout>} />
+        <Route path="/dishes" element={
+          <Layout>
+            <PrivateRoute element={<Dishes />} />
+          </Layout>} />
+        <Route path="/ingredients" element={
+          <Layout>
+            <PrivateRoute element={
+              <Ingredients />} />
+          </Layout>} />
+        <Route path="/products" element={
+          <Layout>
+            <PrivateRoute element={<Products />} />
+          </Layout>} />
+      </Routes>
     </>
   )
 }

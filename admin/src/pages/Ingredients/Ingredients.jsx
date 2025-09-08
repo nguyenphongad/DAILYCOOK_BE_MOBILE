@@ -35,9 +35,7 @@ const Ingredients = () => {
 
   return (
     <div className="ingredients-container">
-      <Menu />
       <div className="content-area">
-        <Header />
         <div className="content">
           <div className="page-header">
             <h1>Quản lý thành phần</h1>

@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
 import { loginSuccess } from '../../redux/slices/authSlice'
 import { loginAPI } from '../../utils/api'
 import logoImage from '../../assets/logo.png'
 
-const Login = () => {
+const LoginPage = () => {
   const [credentials, setCredentials] = useState({
     email: 'user@example.com',
-    password: 'password123'
+    password: 'password123',
+    name: "ADMIN TRÂN",
+    avatar: 'https://hinhnenpowerpoint.app/wp-content/uploads/2025/06/anh-avatar-capybara-cute-1.jpg'
   })
   const [loading, setLoading] = useState(false)
   const dispatch = useDispatch()
@@ -91,4 +93,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default LoginPage

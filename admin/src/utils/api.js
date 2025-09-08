@@ -9,8 +9,9 @@ export const loginAPI = (credentials) => {
           success: true,
           user: {
             id: 1,
-            name: 'Người Dùng',
-            email: 'user@example.com',
+            name: credentials.name,
+            email: credentials.email,
+            avatar: credentials.avatar,
           }
         })
       } else {

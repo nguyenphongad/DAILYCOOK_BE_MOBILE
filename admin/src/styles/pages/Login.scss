@@ -118,9 +118,9 @@
         cursor: pointer;
         transition: background-color 0.3s;
         
-        &:hover {
-          background-color: darken(#35A55E, 10%);
-        }
+        // &:hover {
+        //   background-color: darken(#35A55E, 10%);
+        // }
         
         &:disabled {
           background-color: #a0a0a0;

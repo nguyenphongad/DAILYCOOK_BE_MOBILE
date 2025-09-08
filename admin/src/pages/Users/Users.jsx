@@ -30,9 +30,7 @@ const Users = () => {
   
   return (
     <div className="users-container">
-      <Menu />
       <div className="content-area">
-        <Header />
         <div className="content">
           <div className="page-header">
             <h1>Quản lý người dùng</h1>
