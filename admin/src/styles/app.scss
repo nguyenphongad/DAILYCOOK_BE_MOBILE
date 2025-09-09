@@ -133,6 +133,40 @@ body {
     }
 }
 
+.form-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+
+    button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+
+        &.save-btn {
+            background: #4CAF50;
+            color: white;
+
+            &:hover {
+                background: #45a049;
+            }
+        }
+
+        &.cancel-btn {
+            background: #f44336;
+            color: white;
+
+            &:hover {
+                background: #D32F2F;
+            }
+        }
+    }
+}
+
 
 .container_layout {
     display: flex;
@@ -140,11 +174,41 @@ body {
 
     .content_area {
         width: 100%;
-        min-height:  calc(100vh - 70px);
+        min-height: calc(100vh - 70px);
     }
 
     .main_content {
         padding-top: 60px;
         padding-left: 250px;
+    }
+}
+
+.form-group {
+    margin-bottom: 16px;
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+
+        &:focus {
+            outline: none;
+            border-color: #35A55E;
+        }
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 80px;
     }
 }
