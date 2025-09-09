@@ -15,7 +15,7 @@ const IngredientType = {
   HERBS_AND_SPICES: "Thảo mộc & Gia vị",
   OILS_AND_FATS: "Dầu, mỡ, bơ",
   BEVERAGES: "Đồ uống",
-  BEVERAGES: "Đồ ăn vặt",
+  SNACKS: "Đồ ăn vặt",
   SWEETS_AND_DESSERTS: "Kẹo & tráng miệng",
   BAKERY: "Bánh mì, bánh ngọt",
   CONDIMENTS: "Gia vị / Nước chấm",
@@ -48,6 +48,7 @@ const Ingredients = () => {
   const [categoryFilter, setCategoryFilter] = useState("")
   const [sortBy, setSortBy] = useState("")
   const [showAddModal, setShowAddModal] = useState(false)
+  const [preview, setPreview] = useState(null) // thêm state preview
 
   const [newIngredient, setNewIngredient] = useState({
     name: "",
@@ -69,6 +70,7 @@ const Ingredients = () => {
             name: "Thịt gà",
             description: "Thịt gà tươi, ít chất béo",
             category: IngredientType.MEAT,
+            ingredientImage: "https://product.hstatic.net/200000423303/product/ca-rot-huu-co_051657cb99144443bac8015f6dd34dae_grande.jpg",
             defaultAmount: 100,
             defaultUnit: MeasurementUnits.GRAM,
             nutrition: { calories: 239, protein: 27, carbs: 0, fat: 14 },
@@ -79,6 +81,7 @@ const Ingredients = () => {
             name: "Cà rốt",
             description: "Rau củ giàu vitamin A",
             category: IngredientType.VEGETABLES,
+            ingredientImage: "https://product.hstatic.net/200000423303/product/ca-rot-huu-co_051657cb99144443bac8015f6dd34dae_grande.jpg",
             defaultAmount: 1,
             defaultUnit: MeasurementUnits.ROOT,
             nutrition: { calories: 41, protein: 1, carbs: 10, fat: 0 },
@@ -89,6 +92,7 @@ const Ingredients = () => {
             name: "Sữa tươi",
             description: "Đồ uống giàu canxi",
             category: IngredientType.DAIRY,
+            ingredientImage: "https://product.hstatic.net/200000423303/product/ca-rot-huu-co_051657cb99144443bac8015f6dd34dae_grande.jpg",
             defaultAmount: 100,
             defaultUnit: MeasurementUnits.MILLILITER,
             nutrition: { calories: 42, protein: 3.4, carbs: 5, fat: 1 },
@@ -99,6 +103,7 @@ const Ingredients = () => {
             name: "Cá hồi",
             description: "Cá hồi tươi, giàu omega-3",
             category: IngredientType.SEAFOOD,
+            ingredientImage: "https://product.hstatic.net/200000423303/product/ca-rot-huu-co_051657cb99144443bac8015f6dd34dae_grande.jpg",
             defaultAmount: 100,
             defaultUnit: MeasurementUnits.GRAM,
             nutrition: { calories: 208, protein: 20, carbs: 0, fat: 13 },
@@ -109,6 +114,7 @@ const Ingredients = () => {
             name: "Táo",
             description: "Trái cây giàu chất xơ và vitamin C",
             category: IngredientType.FRUITS,
+            ingredientImage: "https://product.hstatic.net/200000423303/product/ca-rot-huu-co_051657cb99144443bac8015f6dd34dae_grande.jpg",
             defaultAmount: 1,
             defaultUnit: MeasurementUnits.FRUIT,
             nutrition: { calories: 52, protein: 0.3, carbs: 14, fat: 0.2 },
@@ -192,6 +198,7 @@ const Ingredients = () => {
                     <th>ID</th>
                     <th>Tên</th>
                     <th>Danh mục</th>
+                    <th>Hình ảnh</th>
                     <th>Đơn vị</th>
                     <th>Dinh dưỡng (100g)</th>
                     <th>Công dụng</th>
@@ -204,6 +211,13 @@ const Ingredients = () => {
                       <td>{ingredient._id}</td>
                       <td>{ingredient.name}</td>
                       <td>{ingredient.category}</td>
+                      <td>
+                        <img
+                          src={ingredient.ingredientImage || "https://via.placeholder.com/50"}
+                          alt={ingredient.name}
+                          style={{ width: "50px", height: "50px", objectFit: "cover" }}
+                        />
+                      </td>
                       <td>
                         {ingredient.defaultAmount} {ingredient.defaultUnit}
                       </td>
@@ -272,6 +286,32 @@ const Ingredients = () => {
               </select>
             </div>
             <div className="form-group">
+              <label>Hình ảnh</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0]
+                  if (file) {
+                    const previewUrl = URL.createObjectURL(file)
+                    setPreview(previewUrl) // state để hiển thị ảnh
+                    setFormData({ ...formData, ingredientImage: file })
+                  }
+                }}
+              />
+
+              {preview && (
+                <div style={{ marginTop: "10px" }}>
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="form-group">
               <label>Số lượng mặc định</label>
               <input
                 type="number"
@@ -297,54 +337,56 @@ const Ingredients = () => {
             </div>
             <div className="form-group">
               <label>Dinh dưỡng (trên 100g)</label>
-              <input
-                type="number"
-                value={newIngredient.nutrition.calories}
-                onChange={(e) =>
-                  setNewIngredient({
-                    ...newIngredient,
-                    nutrition: { ...newIngredient.nutrition, calories: e.target.value },
-                  })
-                }
-                placeholder="Calo"
-                min="0"
-              />
-              <input
-                type="number"
-                value={newIngredient.nutrition.protein}
-                onChange={(e) =>
-                  setNewIngredient({
-                    ...newIngredient,
-                    nutrition: { ...newIngredient.nutrition, protein: e.target.value },
-                  })
-                }
-                placeholder="Protein (g)"
-                min="0"
-              />
-              <input
-                type="number"
-                value={newIngredient.nutrition.carbs}
-                onChange={(e) =>
-                  setNewIngredient({
-                    ...newIngredient,
-                    nutrition: { ...newIngredient.nutrition, carbs: e.target.value },
-                  })
-                }
-                placeholder="Carbs (g)"
-                min="0"
-              />
-              <input
-                type="number"
-                value={newIngredient.nutrition.fat}
-                onChange={(e) =>
-                  setNewIngredient({
-                    ...newIngredient,
-                    nutrition: { ...newIngredient.nutrition, fat: e.target.value },
-                  })
-                }
-                placeholder="Fat (g)"
-                min="0"
-              />
+              <div style={{ display: "flex", flexDirection: "row", gap: "10px" }}>
+                <input
+                  type="number"
+                  value={newIngredient.nutrition.calories}
+                  onChange={(e) =>
+                    setNewIngredient({
+                      ...newIngredient,
+                      nutrition: { ...newIngredient.nutrition, calories: e.target.value },
+                    })
+                  }
+                  placeholder="Calo"
+                  min="0"
+                />
+                <input
+                  type="number"
+                  value={newIngredient.nutrition.protein}
+                  onChange={(e) =>
+                    setNewIngredient({
+                      ...newIngredient,
+                      nutrition: { ...newIngredient.nutrition, protein: e.target.value },
+                    })
+                  }
+                  placeholder="Protein (g)"
+                  min="0"
+                />
+                <input
+                  type="number"
+                  value={newIngredient.nutrition.carbs}
+                  onChange={(e) =>
+                    setNewIngredient({
+                      ...newIngredient,
+                      nutrition: { ...newIngredient.nutrition, carbs: e.target.value },
+                    })
+                  }
+                  placeholder="Carbs (g)"
+                  min="0"
+                />
+                <input
+                  type="number"
+                  value={newIngredient.nutrition.fat}
+                  onChange={(e) =>
+                    setNewIngredient({
+                      ...newIngredient,
+                      nutrition: { ...newIngredient.nutrition, fat: e.target.value },
+                    })
+                  }
+                  placeholder="Fat (g)"
+                  min="0"
+                />
+              </div>
             </div>
             <div className="form-group">
               <label>Công dụng phổ biến</label>
