@@ -14,7 +14,13 @@ import Layout from './pages/layout'
 function App() {
   return (
     <>
-      <Toaster position="bottom-center" richColors closeButton />
+      <Toaster position="bottom-right" closeButton
+        toastOptions={{
+          style: {
+            background: 'black',
+            color: 'white',
+          },
+        }} />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={
@@ -26,7 +32,7 @@ function App() {
           <Layout>
             <PrivateRoute element={<Users />} />
           </Layout>} />
-        <Route path="/dishes" element={
+        <Route path="/manage_meal" element={
           <Layout>
             <PrivateRoute element={<Dishes />} />
           </Layout>} />
