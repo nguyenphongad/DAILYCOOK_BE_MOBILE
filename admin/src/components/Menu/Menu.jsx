@@ -9,10 +9,10 @@ const Menu = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [menuItems] = useState([
     { path: '/', label: 'Trang chủ', icon: <MdDashboard /> },
+    { path: '/manage_meal', label: 'Quản lý món ăn', icon: <MdRestaurantMenu /> },
+    { path: '/products', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
+    { path: '/ingredients', label: 'Quản lý nguyên liệu', icon: <MdInventory /> },
     { path: '/users', label: 'Quản lý người dùng', icon: <MdPeople /> },
-    { path: '/dishes', label: 'Quản lý món ăn', icon: <MdRestaurantMenu /> },
-    { path: '/ingredients', label: 'Quản lý thành phần', icon: <MdInventory /> },
-    { path: '/products', label: 'Quản lý sản phẩm', icon: <MdShoppingBasket /> },
   ])
 
   return (
