@@ -1,7 +1,7 @@
 import { Modal } from "antd"
 import { useState, useEffect } from "react"
 
-// Enum chuyển sang object thường (JS)
+// Danh mục thành phần 
 const IngredientType = {
   VEGETABLES: "Rau củ",
   FRUITS: "Trái cây",
@@ -24,32 +24,41 @@ const IngredientType = {
   OTHER: "Khác",
 }
 
+// Các đơn vị đo lường
 const MeasurementUnits = {
   GRAM: "g",            // Gram
   KILOGRAM: "kg",       // Kilogram
   MILLILITER: "ml",     // Mililít
   LITER: "l",           // Lít
-  TEASPOON: "thìa cà phê",      // Thìa cà phê
+  TEASPOON: "thìa cà phê",   // Thìa cà phê
   TABLESPOON: "thìa canh",   // Thìa canh
   CUP: "cốc",           // Cốc
-  PIECE: "cái",         // Cái/miếng chung
-  FRUIT: "trái",        // Trái (dùng cho trái cây, quả)
-  ROOT: "củ",           // Củ (củ hành, củ khoai…)
+  PIECE: "cái",         // Cái/miếng
+  FRUIT: "trái",        // Trái (hoa quả)
+  ROOT: "củ",           // Củ (khoai, hành…)
   SLICE: "lát",         // Lát
-  BUNCH: "bó",          // Bó
+  BUNCH: "bó",          // Bó rau
   CLOVE: "tép",         // Tép (tỏi)
-  PINCH: "nhúm",        // Nhúm
+  PINCH: "nhúm",        // Nhúm (muối, tiêu…)
 }
 
 const Ingredients = () => {
+  // State quản lý danh sách thành phần
   const [ingredients, setIngredients] = useState([])
   const [loading, setLoading] = useState(true)
+
+  // State cho filter & search
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("")
   const [sortBy, setSortBy] = useState("")
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [preview, setPreview] = useState(null) // thêm state preview
 
+  // State modal thêm thành phần
+  const [showAddModal, setShowAddModal] = useState(false)
+
+  // State lưu ảnh preview khi upload
+  const [preview, setPreview] = useState(null)
+
+  // State dữ liệu thành phần mới (trong form)
   const [newIngredient, setNewIngredient] = useState({
     name: "",
     description: "",
@@ -60,6 +69,7 @@ const Ingredients = () => {
     commonUses: [],
   })
 
+  // Fake API lấy dữ liệu (mock data)
   useEffect(() => {
     const fetchIngredients = () => {
       setLoading(true)
@@ -129,7 +139,7 @@ const Ingredients = () => {
     fetchIngredients()
   }, [])
 
-  // Xử lý lọc + tìm kiếm + sắp xếp
+  // Lọc + tìm kiếm + sắp xếp
   const filteredIngredients = ingredients
     .filter((ing) =>
       ing.name.toLowerCase().includes(search.toLowerCase())
@@ -149,6 +159,8 @@ const Ingredients = () => {
     <div className="ingredients-container">
       <div className="content-area">
         <div className="content">
+
+          {/* Header + nút thêm thành phần */}
           <div className="page-header">
             <h1>Quản lý thành phần</h1>
             <button className="add-button" onClick={() => setShowAddModal(true)}>
@@ -156,7 +168,9 @@ const Ingredients = () => {
             </button>
           </div>
 
+          {/* Bộ lọc + tìm kiếm */}
           <div className="ingredients-filter">
+            {/* Tìm kiếm */}
             <div className="search-bar">
               <input
                 type="text"
@@ -165,6 +179,7 @@ const Ingredients = () => {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
+            {/* Lọc danh mục + sắp xếp */}
             <div className="filters">
               <select
                 value={categoryFilter}
@@ -188,6 +203,7 @@ const Ingredients = () => {
             </div>
           </div>
 
+          {/* Bảng danh sách thành phần */}
           <div className="ingredients-table-container">
             {loading ? (
               <div className="loading">Đang tải dữ liệu...</div>
@@ -245,6 +261,7 @@ const Ingredients = () => {
         </div>
       </div>
 
+      {/* Modal thêm thành phần */}
       {showAddModal && (
         <Modal
           title="Thêm thành phần mới"
@@ -254,6 +271,8 @@ const Ingredients = () => {
           width={700}
         >
           <div className="add-ingredient-form">
+
+            {/* Tên thành phần */}
             <div className="form-group">
               <label>Tên thành phần</label>
               <input
@@ -263,6 +282,8 @@ const Ingredients = () => {
                 placeholder="Nhập tên thành phần"
               />
             </div>
+
+            {/* Mô tả */}
             <div className="form-group">
               <label>Mô tả</label>
               <textarea
@@ -271,6 +292,8 @@ const Ingredients = () => {
                 placeholder="Nhập mô tả"
               />
             </div>
+
+            {/* Danh mục */}
             <div className="form-group">
               <label>Danh mục</label>
               <select
@@ -285,6 +308,8 @@ const Ingredients = () => {
                 ))}
               </select>
             </div>
+
+            {/* Upload hình ảnh */}
             <div className="form-group">
               <label>Hình ảnh</label>
               <input
@@ -299,7 +324,7 @@ const Ingredients = () => {
                   }
                 }}
               />
-
+              {/* Preview ảnh */}
               {preview && (
                 <div style={{ marginTop: "10px" }}>
                   <img
@@ -311,33 +336,41 @@ const Ingredients = () => {
               )}
             </div>
 
-            <div className="form-group">
-              <label>Số lượng mặc định</label>
-              <input
-                type="number"
-                value={newIngredient.defaultAmount}
-                onChange={(e) => setNewIngredient({ ...newIngredient, defaultAmount: e.target.value })}
-                placeholder="Nhập số lượng"
-                min="0"
-              />
+            <div style={{ display: "flex", flexDirection: "row", gap: "20px" }}>
+              {/* Số lượng mặc định */}
+              <div className="form-group">
+                <label>Số lượng mặc định</label>
+                <input
+                  type="number"
+                  value={newIngredient.defaultAmount}
+                  onChange={(e) => setNewIngredient({ ...newIngredient, defaultAmount: e.target.value })}
+                  placeholder="Nhập số lượng"
+                  min="0"
+                />
+              </div>
+
+              {/* Đơn vị đo */}
+              <div className="form-group">
+                <label>Đơn vị đo</label>
+                <select
+                  value={newIngredient.defaultUnit}
+                  onChange={(e) => setNewIngredient({ ...newIngredient, defaultUnit: e.target.value })}
+                >
+                  <option value="">Chọn đơn vị</option>
+                  {Object.entries(MeasurementUnits).map(([key, value]) => (
+                    <option key={key} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div className="form-group">
-              <label>Đơn vị đo</label>
-              <select
-                value={newIngredient.defaultUnit}
-                onChange={(e) => setNewIngredient({ ...newIngredient, defaultUnit: e.target.value })}
-              >
-                <option value="">Chọn đơn vị</option>
-                {Object.entries(MeasurementUnits).map(([key, value]) => (
-                  <option key={key} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
+
+            {/* Dinh dưỡng */}
             <div className="form-group">
               <label>Dinh dưỡng (trên 100g)</label>
               <div style={{ display: "flex", flexDirection: "row", gap: "10px" }}>
+                {/* Calo */}
                 <input
                   type="number"
                   value={newIngredient.nutrition.calories}
@@ -350,6 +383,7 @@ const Ingredients = () => {
                   placeholder="Calo"
                   min="0"
                 />
+                {/* Protein */}
                 <input
                   type="number"
                   value={newIngredient.nutrition.protein}
@@ -362,6 +396,7 @@ const Ingredients = () => {
                   placeholder="Protein (g)"
                   min="0"
                 />
+                {/* Carbs */}
                 <input
                   type="number"
                   value={newIngredient.nutrition.carbs}
@@ -374,6 +409,7 @@ const Ingredients = () => {
                   placeholder="Carbs (g)"
                   min="0"
                 />
+                {/* Fat */}
                 <input
                   type="number"
                   value={newIngredient.nutrition.fat}
@@ -388,6 +424,8 @@ const Ingredients = () => {
                 />
               </div>
             </div>
+
+            {/* Công dụng phổ biến */}
             <div className="form-group">
               <label>Công dụng phổ biến</label>
               <input
@@ -396,9 +434,11 @@ const Ingredients = () => {
                 onChange={(e) =>
                   setNewIngredient({ ...newIngredient, commonUses: e.target.value.split(",").map(s => s.trim()) })
                 }
-                placeholder="Nhập các công dụng, cách nhau bằng dấu phẩy"
+                placeholder="Nhập công dụng, cách nhau bằng dấu phẩy"
               />
             </div>
+
+            {/* Nút hành động */}
             <div className="form-actions">
               <button className="cancel-btn" onClick={() => setShowAddModal(false)}>
                 Hủy
@@ -410,8 +450,6 @@ const Ingredients = () => {
           </div>
         </Modal>
       )}
-
-
     </div>
   )
 }

@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react'
 import Header from '../../components/Header/Header'
 import Menu from '../../components/Menu/Menu'
+import { Modal } from 'antd'
 
-const Products = () => {
+const Recipes = () => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+
+  // State modal thêm công thức món ăn
+  const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
     // Giả lập việc lấy danh sách sản phẩm
@@ -82,8 +86,13 @@ const Products = () => {
       <div className="content-area">
         <div className="content">
           <div className="page-header">
-            <h1>Quản lý sản phẩm</h1>
-            <button className="add-button">+ Thêm sản phẩm</button>
+            <h1>Quản lý công thức</h1>
+            <button
+              className="add-button"
+              onClick={() => setShowAddModal(true)}
+            >
+              + Thêm công thức
+            </button>
           </div>
 
           <div className="products-filter">
@@ -140,8 +149,27 @@ const Products = () => {
           </div>
         </div>
       </div>
+
+      {showAddModal && (
+        <Modal
+          title="Thêm công thức món mới"
+          open={showAddModal}
+          onCancel={() => setShowAddModal(false)}
+          footer={null}
+          width={700}
+        >
+
+          <div className="add-recipe-form">
+            <div className="form-group">
+              <label></label>
+              <input type="text" placeholder="Nhập tên sản phẩm" />
+            </div>
+          </div>
+        </Modal>
+      )}
+
     </div>
   )
 }
 
-export default Products
+export default Recipes

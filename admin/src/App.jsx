@@ -7,9 +7,9 @@ import Home from './pages/Home/Home'
 import Users from './pages/Users/Users'
 import Dishes from './pages/Dishes/Dishes'
 import Ingredients from './pages/Ingredients/Ingredients'
-import Products from './pages/Products/Products'
 import PrivateRoute from './routes/PrivateRoute'
 import Layout from './pages/layout'
+import Recipes from './pages/Recipes/Recipes'
 
 function App() {
   return (
@@ -41,9 +41,9 @@ function App() {
             <PrivateRoute element={
               <Ingredients />} />
           </Layout>} />
-        <Route path="/products" element={
+        <Route path="/recipes" element={
           <Layout>
-            <PrivateRoute element={<Products />} />
+            <PrivateRoute element={<Recipes />} />
           </Layout>} />
       </Routes>
     </>
