@@ -7,6 +7,7 @@ import Home from './pages/Home/Home'
 import Users from './pages/Users/Users'
 import Dishes from './pages/Dishes/Dishes'
 import Ingredients from './pages/Ingredients/Ingredients'
+import DietTypePage from './pages/DietType/DietTypePage'
 import PrivateRoute from './routes/PrivateRoute'
 import Layout from './pages/layout'
 import Recipes from './pages/Recipes/Recipes'
@@ -28,7 +29,7 @@ function App() {
             <PrivateRoute element={<Home />} />
           </Layout>
         } />
-        <Route path="/users" element={
+        <Route path="/manage_users" element={
           <Layout>
             <PrivateRoute element={<Users />} />
           </Layout>} />
@@ -36,14 +37,18 @@ function App() {
           <Layout>
             <PrivateRoute element={<Dishes />} />
           </Layout>} />
-        <Route path="/ingredients" element={
+        <Route path="/manage_ingredients" element={
           <Layout>
             <PrivateRoute element={
               <Ingredients />} />
           </Layout>} />
-        <Route path="/recipes" element={
+        <Route path="/manage_recipes" element={
           <Layout>
             <PrivateRoute element={<Recipes />} />
+          </Layout>} />
+        <Route path="/manage_diet-types" element={
+          <Layout>
+            <PrivateRoute element={<DietTypePage />} />
           </Layout>} />
       </Routes>
     </>

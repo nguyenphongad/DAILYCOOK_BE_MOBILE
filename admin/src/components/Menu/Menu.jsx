@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { MdDashboard, MdPeople, MdRestaurantMenu, MdShoppingBasket, MdInventory, MdInfo } from 'react-icons/md'
+import { MdDashboard, MdPeople, MdRestaurantMenu, MdShoppingBasket, MdInventory, MdInfo, MdLocalDining } from 'react-icons/md'
 import { Modal } from 'antd'
 import logoImage from '../../assets/logo.png'
 
@@ -9,10 +9,11 @@ const Menu = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [menuItems] = useState([
     { path: '/', label: 'Trang chủ', icon: <MdDashboard /> },
-    { path: '/manage_meal', label: 'Quản lý món ăn', icon: <MdRestaurantMenu /> },
-    { path: '/recipes', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
-    { path: '/ingredients', label: 'Quản lý nguyên liệu', icon: <MdInventory /> },
-    { path: '/users', label: 'Quản lý người dùng', icon: <MdPeople /> },
+     { path: '/manage_meal', label: 'Quản lý món ăn', icon: <MdRestaurantMenu /> },
+    { path: '/manage_recipes', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
+    { path: '/manage_ingredients', label: 'Quản lý nguyên liệu', icon: <MdInventory /> },
+    { path: '/manage_diet-types', label: 'Quản lý chế độ ăn', icon: <MdLocalDining /> },
+    { path: '/manage_users', label: 'Quản lý người dùng', icon: <MdPeople /> },
   ])
 
   return (
@@ -70,7 +71,7 @@ const Menu = () => {
           </div>
           <div className="info-section">
             <h4>Giảng viên hướng dẫn</h4>
-            <p>• ThS. Nguyễn Trọng Tiến</p>
+            <p>• ThS. Nguyễn Thị Thu Hà</p>
           </div>
           <div className="info-section">
             <h4>Công nghệ sử dụng</h4>
