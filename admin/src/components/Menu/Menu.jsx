@@ -10,7 +10,7 @@ const Menu = () => {
   const [menuItems] = useState([
     { path: '/', label: 'Trang chủ', icon: <MdDashboard /> },
     { path: '/manage_meal', label: 'Quản lý món ăn', icon: <MdRestaurantMenu /> },
-    { path: '/products', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
+    { path: '/recipes', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
     { path: '/ingredients', label: 'Quản lý nguyên liệu', icon: <MdInventory /> },
     { path: '/users', label: 'Quản lý người dùng', icon: <MdPeople /> },
   ])
