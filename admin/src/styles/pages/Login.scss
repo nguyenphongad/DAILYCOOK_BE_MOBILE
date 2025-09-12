@@ -53,8 +53,8 @@
     padding: 20px;
     
     .login-form {
-      width: 400px;
-      padding: 30px;
+      width: 450px;
+      padding: 50px;
       background-color: white;
       border-radius: 8px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -104,6 +104,28 @@
             outline: none;
           }
         }
+        
+        .password-input-container {
+          position: relative;
+          
+          input {
+            width: 100%;
+            padding-right: 40px; // Space for the eye icon
+          }
+          
+          .password-toggle-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+            
+            &:hover {
+              color: #35A55E;
+            }
+          }
+        }
       }
       
       .login-button {
@@ -118,12 +140,12 @@
         cursor: pointer;
         transition: background-color 0.3s;
         
-        // &:hover {
-        //   background-color: darken(#35A55E, 10%);
-        // }
+        &:hover {
+          background-color: #1d7a3f;
+        }
         
         &:disabled {
-          background-color: #a0a0a0;
+          background-color: #2d593d;
           cursor: not-allowed;
         }
       }
@@ -141,4 +163,19 @@
       padding: 40px 20px;
     }
   }
+}
+
+// Thêm CSS cho white-spin
+.white-spin {
+  .ant-spin-dot-item {
+    background-color: white !important;
+  }
+}
+
+// CSS cho icon đăng nhập
+.login-icon {
+  margin-right: 3px;
+  margin-bottom: 3px;
+  font-size: 18px;
+  vertical-align: middle;
 }

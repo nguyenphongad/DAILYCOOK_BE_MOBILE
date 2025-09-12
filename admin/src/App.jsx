@@ -11,10 +11,12 @@ import DietTypePage from './pages/DietType/DietTypePage'
 import PrivateRoute from './routes/PrivateRoute'
 import Layout from './pages/layout'
 import Recipes from './pages/Recipes/Recipes'
+import ScrollToTop from './components/ScrollToTop/ScrollToTop'
 
 function App() {
   return (
     <>
+      <ScrollToTop />
       <Toaster position="bottom-right" closeButton
         toastOptions={{
           style: {
