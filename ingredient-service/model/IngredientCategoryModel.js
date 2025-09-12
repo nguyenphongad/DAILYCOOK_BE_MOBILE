@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const IngredientCategoriesSchema = new mongoose.Schema(
+const IngredientCategorySchema = new mongoose.Schema(
     {
         // Từ khóa duy nhất để dễ tìm kiếm hoặc tham chiếu
         keyword: {
@@ -22,4 +22,4 @@ const IngredientCategoriesSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-module.exports = mongoose.model("IngredientCategories", IngredientCategoriesSchema);
+module.exports = mongoose.model("IngredientCategory", IngredientCategorySchema);

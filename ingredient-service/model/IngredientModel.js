@@ -23,7 +23,7 @@ const IngredientSchema = new mongoose.Schema(
             default: ""
         },
         // Tham chiếu đến danh mục nguyên liệu
-        ingredientCategories: {
+        ingredientCategory: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "IngredientCategory",
             required: true
