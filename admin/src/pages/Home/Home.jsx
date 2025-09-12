@@ -46,7 +46,7 @@ const Home = () => {
     <div className="home-container">
       <div className="content-area">
         <div className="content">
-          <h1>Bảng điều khiển</h1>
+          <h1 style={{marginTop:0}}>Bảng điều khiển</h1>
           
           <div className="stats-container">
             <StatCard 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { MdAdminPanelSettings, MdLogout, MdAutoGraph } from 'react-icons/md'
 import { Modal } from 'antd'
+import { toast } from 'sonner'
 import { logout } from '../../redux/slices/authSlice'
 
 const Header = () => {
@@ -59,6 +60,7 @@ const Header = () => {
         open={isModalOpen}
         onOk={() => {
           dispatch(logout());
+          toast.success('Đăng xuất thành công!');
           setIsModalOpen(false);
         }}
         onCancel={() => setIsModalOpen(false)}

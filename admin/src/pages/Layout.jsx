@@ -8,7 +8,7 @@ const Layout = ({ children }) => {
             <Menu />
             <div className='content_area'>
                 <Header />
-                <div className='main_content'>
+                <div className='main_content' style={{ scrollBehavior: 'smooth' }}>
                     {children}
                 </div>
             </div>
