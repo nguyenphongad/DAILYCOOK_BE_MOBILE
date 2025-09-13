@@ -91,11 +91,46 @@ app.use('/api/users', authMiddleware, createProxyMiddleware({
     '^/api/users': '/api/users'
   },
   logLevel: 'debug',
+  onProxyReq: (proxyReq, req, res) => {
+    if (req.body && Object.keys(req.body).length > 0) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  },
   onError: (err, req, res) => {
     logger.error(`Proxy error (user service): ${err.message}`);
     res.status(500).json({ 
       status: 'error',
-      message: 'Gateway không thể kết nối đến service người dùng'
+      message: 'Gateway không thể kết nối đến service người dùng',
+      error: err.message
+    });
+  }
+}));
+
+// Chuyển tiếp đến service nguyên liệu
+app.use('/api/ingredient', authMiddleware, createProxyMiddleware({ 
+  target: config.services.ingredient.url,
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api/ingredient': '/api/ingredient'
+  },
+  logLevel: 'debug',
+  onProxyReq: (proxyReq, req, res) => {
+    if (req.body && Object.keys(req.body).length > 0) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  },
+  onError: (err, req, res) => {
+    logger.error(`Proxy error (ingredient service): ${err.message}`);
+    res.status(500).json({
+      status: 'error',
+      message: 'Gateway không thể kết nối đến service nguyên liệu',
+      error: err.message
     });
   }
 }));
@@ -108,28 +143,20 @@ app.use('/api/recipes', authMiddleware, createProxyMiddleware({
     '^/api/recipes': '/api/recipes'
   },
   logLevel: 'debug',
+  onProxyReq: (proxyReq, req, res) => {
+    if (req.body && Object.keys(req.body).length > 0) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  },
   onError: (err, req, res) => {
     logger.error(`Proxy error (recipe service): ${err.message}`);
     res.status(500).json({
       status: 'error',
-      message: 'Gateway không thể kết nối đến service công thức'
-    });
-  }
-}));
-
-// Chuyển tiếp đến service nguyên liệu
-app.use('/api/ingredients', authMiddleware, createProxyMiddleware({ 
-  target: config.services.ingredient.url,
-  changeOrigin: true,
-  pathRewrite: {
-    '^/api/ingredients': '/api/ingredients'
-  },
-  logLevel: 'debug',
-  onError: (err, req, res) => {
-    logger.error(`Proxy error (ingredient service): ${err.message}`);
-    res.status(500).json({
-      status: 'error',
-      message: 'Gateway không thể kết nối đến service nguyên liệu'
+      message: 'Gateway không thể kết nối đến service công thức',
+      error: err.message
     });
   }
 }));
@@ -142,11 +169,20 @@ app.use('/api/meals', authMiddleware, createProxyMiddleware({
     '^/api/meals': '/api/meals'
   },
   logLevel: 'debug',
+  onProxyReq: (proxyReq, req, res) => {
+    if (req.body && Object.keys(req.body).length > 0) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  },
   onError: (err, req, res) => {
     logger.error(`Proxy error (meal service): ${err.message}`);
     res.status(500).json({
       status: 'error',
-      message: 'Gateway không thể kết nối đến service món ăn'
+      message: 'Gateway không thể kết nối đến service món ăn',
+      error: err.message
     });
   }
 }));
@@ -159,11 +195,20 @@ app.use('/api/mealplans', authMiddleware, createProxyMiddleware({
     '^/api/mealplans': '/api/mealplans'
   },
   logLevel: 'debug',
+  onProxyReq: (proxyReq, req, res) => {
+    if (req.body && Object.keys(req.body).length > 0) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  },
   onError: (err, req, res) => {
     logger.error(`Proxy error (mealplan service): ${err.message}`);
     res.status(500).json({
       status: 'error', 
-      message: 'Gateway không thể kết nối đến service kế hoạch bữa ăn'
+      message: 'Gateway không thể kết nối đến service kế hoạch bữa ăn',
+      error: err.message
     });
   }
 }));
@@ -173,14 +218,23 @@ app.use('/api/shopping', authMiddleware, createProxyMiddleware({
   target: config.services.shopping.url,
   changeOrigin: true,
   pathRewrite: {
-    '^/api/shopping': '/api/shoping'
+    '^/api/shopping': '/api/shopping'  // Sửa typo từ '/api/shoping' thành '/api/shopping'
   },
   logLevel: 'debug',
+  onProxyReq: (proxyReq, req, res) => {
+    if (req.body && Object.keys(req.body).length > 0) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  },
   onError: (err, req, res) => {
     logger.error(`Proxy error (shopping service): ${err.message}`);
     res.status(500).json({
       status: 'error',
-      message: 'Gateway không thể kết nối đến service mua sắm'
+      message: 'Gateway không thể kết nối đến service mua sắm',
+      error: err.message
     });
   }
 }));
