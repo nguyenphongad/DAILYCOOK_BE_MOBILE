@@ -4,7 +4,7 @@ const {  loginUser, registerUser, checkToken } = require('../controllers/AuthCon
 const router = express.Router();
 
 // router.get("/checkToken", checkToken);
-router.post("/login", loginUser);
+router.post("/login-admin", loginUser);
 
 // Health check endpoint
 // router.get('/health', (req, res) => {
