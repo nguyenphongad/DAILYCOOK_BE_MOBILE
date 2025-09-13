@@ -18,10 +18,10 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ message: "Các trường không được để trống!", status: false });
         }
 
-        
+
         const checkUser = await UserModel.findOne({ email });
 
-        console.log("vv"+ checkUser)
+        console.log("vv" + checkUser)
 
         if (!checkUser) {
             return res.status(404).json({ message: "email không tồn tại!", status: false });
@@ -47,11 +47,59 @@ const loginUser = async (req, res) => {
 
     } catch (error) {
         console.error("Login error:", error);
-        return res.status(500).json({ 
-            message: 'Internal server error', 
-            error: error.message 
+        return res.status(500).json({
+            message: 'Internal server error',
+            error: error.message
         });
     }
 };
 
-module.exports = { loginUser }
+
+const checkToken = async (req, res) => {
+    try {
+        const token = req.header("Authorization")?.split(" ")[1];
+
+        // nếu token không có
+        if (!token) {
+            return res.status(401).json({
+                isLogin: false,
+                message: "Không có token, không được phép truy cập",
+                status: false
+            })
+        }
+
+        // giải mã token
+        const decode = jwt.verity(token, process.env.JWT_SECRET);
+
+
+        // tim ng dùng theo id
+        const user = await UserModel.findById(decode._id).select("-passwordAdmin");
+
+
+        if (!user) {
+            return res.status(404).json({
+                isLogin: false,
+                message: "Người dùng không tồn tại",
+                status: false
+            })
+        }
+
+        return res.status(200).json({
+            isLogin: false,
+            message: "Truy vấn thông tin  người dùng từ token thành công",
+            user: user
+        })
+
+    } catch (error) {
+        console.error("Lỗi xác thực token, lỗi: ", error);
+        return res.status(401).json({
+            isLogin: false,
+            message: "Lỗi xác thực, xác thực không hợp lệ (server bị lỗi/chưa khởi động)"
+        })
+    }
+}
+
+
+
+
+module.exports = { loginUser, checkToken }
