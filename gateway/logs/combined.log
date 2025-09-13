@@ -1,0 +1,156 @@
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 22:54:47"}
+{"level":"info","message":"::1 - - [13/Sep/2025:15:55:33 +0000] \"POST /api/auth/login-admin HTTP/1.1\" 404 156 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 22:55:33"}
+{"level":"info","message":"::1 - - [13/Sep/2025:15:57:40 +0000] \"POST /api/auth/login-admin HTTP/1.1\" 404 156 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 22:57:40"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 22:58:57"}
+{"level":"info","message":"::1 - - [13/Sep/2025:15:59:06 +0000] \"POST /auth/login-admin HTTP/1.1\" 404 156 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 22:59:06"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 22:59:17"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 22:59:30"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:15:39"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:15:40"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:15:40"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:15:45"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:15:45"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:15:50"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:15:50"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:17:22"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:17:22"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:18:35"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:18:35"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:19:03"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:19:03"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:19:20 +0000] \"POST /api/auth/login-admin HTTP/1.1\" - - \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:19:20"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:19:21 +0000] \"POST /auth/login-admin HTTP/1.1\" 404 156 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:19:21"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:20:18"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:20:18"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:20:20"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:20:20"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:20:42 +0000] \"POST /api/auth/login-admin HTTP/1.1\" - - \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:20:42"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:20:43 +0000] \"POST /login-admin HTTP/1.1\" 404 151 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:20:43"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:20:51 +0000] \"POST /auth/login-admin HTTP/1.1\" 404 156 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:20:51"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:22:03"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:22:03"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:22:03"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:22:03"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:22:03"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:22:03"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:22:03"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:22:03"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:22:11"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:22:11"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:22:11"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:22:11"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:22:11"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:22:11"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:22:11"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:22:11"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:22:19"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:22:19"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:22:19"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:22:19"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:22:19"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:22:19"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:22:19"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:22:19"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:22:29"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:22:29"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:22:29"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:22:29"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:22:29"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:22:29"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:22:29"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:22:29"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:22:32 +0000] \"POST /api/auth/login-admin HTTP/1.1\" 404 151 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:22:32"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:22:47 +0000] \"POST /login-admin HTTP/1.1\" 404 80 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:22:47"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:22:58 +0000] \"POST /auth/login-admin HTTP/1.1\" 404 85 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:22:58"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:23:05 +0000] \"POST /api/auth/login-admin HTTP/1.1\" 404 151 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:23:05"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:23:38"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:23:38"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:23:38"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:23:38"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:23:38"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:23:38"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:23:38"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:23:38"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:24:52"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:24:52"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:24:52"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:24:52"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:24:52"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:24:52"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:24:52"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:24:52"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:26:11"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:26:11"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:26:11"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:26:11"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:26:11"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:26:11"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:26:11"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:26:11"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:26:20 +0000] \"POST /api/auth/login-admin HTTP/1.1\" 200 340 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:26:20"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:26:38 +0000] \"POST /api/auth/login-admin HTTP/1.1\" 200 340 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:26:38"}
+{"level":"info","message":"::1 - - [13/Sep/2025:16:28:29 +0000] \"POST /api/auth/login-admin HTTP/1.1\" 200 340 \"-\" \"PostmanRuntime/7.46.0\"","service":"api-gateway","timestamp":"2025-09-13 23:28:29"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:29:04"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:29:04"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:29:04"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:29:04"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:29:04"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:29:04"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:29:04"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:29:04"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:29:08"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:29:08"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:29:08"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:29:08"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:29:08"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:29:08"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:29:08"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:29:08"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:29:51"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:29:51"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:29:51"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:29:51"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:29:51"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:29:51"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:29:51"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:29:51"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:30:52"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:30:52"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:30:52"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:30:52"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:30:52"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:30:52"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:30:52"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:30:52"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:31:12"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:31:12"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:31:12"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:31:12"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:31:12"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:31:12"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:31:12"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:31:12"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:31:28"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:31:28"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:31:28"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:31:28"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:31:28"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:31:28"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:31:28"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:31:28"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:31:36"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:31:36"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:31:36"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:31:36"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:31:36"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:31:36"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:31:36"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:31:36"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-09-13 23:31:43"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-09-13 23:31:43"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-09-13 23:31:43"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-09-13 23:31:43"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-09-13 23:31:43"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-09-13 23:31:43"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-09-13 23:31:43"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-09-13 23:31:43"}

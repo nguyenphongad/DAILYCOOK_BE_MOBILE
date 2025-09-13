@@ -23,7 +23,7 @@ const Menu = () => {
         <h2>DAILYCOOK</h2>
       </div>
       <ul className="menu-items">
-        {menuItems.map((item, index) => (
+        {menuItems.map(item => (
           <li
             key={item.path}
             className={location.pathname === item.path ? 'active' : ''}
@@ -34,9 +34,6 @@ const Menu = () => {
             </Link>
           </li>
         ))}
-        <div className="menu-indicator" style={{
-          transform: `translateY(${menuItems.findIndex(item => item.path === location.pathname) * 60}px)`
-        }}></div>
       </ul>
       <div className="menu-footer">
         <div className="system-info">
