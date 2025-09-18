@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { jwtDecode } from "jwt-decode";
+import { loginAdmin } from '../thunks/authThunk';
 
 const getToken = localStorage.getItem("auth_token");
 
@@ -34,7 +35,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loginAdmin.peding, state => {
+      .addCase(loginAdmin.pending, state => {
         state.status = 'loading';
         state.error = null;
       })

@@ -24,7 +24,7 @@ const loginUser = async (req, res) => {
         console.log("vv" + checkUser)
 
         if (!checkUser) {
-            return res.status(404).json({ message: "email không tồn tại!", status: false });
+            return res.status(404).json({ message: "Email không tồn tại!", status: false });
         }
 
         // Thêm JWT_SECRET vào password trước khi so sánh (để khớp với cách tạo hash trong createAdmin.js)
