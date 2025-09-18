@@ -5,7 +5,7 @@ export const GATEWAY_URL = `http://localhost:${GATEWAY_PORT}`;
 
 // Đường dẫn cho các service qua gateway
 export const SERVICE_PATHS = {
-    AUTH_SERVICE: 'api/auth',
+    AUTH_SERVICE: 'api/',
 };
 
 // Cấu hình base URL để client gọi API

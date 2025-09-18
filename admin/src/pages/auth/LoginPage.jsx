@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 import { loginAdmin } from '../../redux/thunks/authThunk'
 import logoImage from '../../assets/logo.png'
@@ -13,6 +13,16 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false)
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const location = useLocation()
+  const { isLogin } = useSelector(state => state.auth)
+  
+  // Kiểm tra nếu đã đăng nhập thì chuyển hướng đến trang chủ hoặc trang yêu cầu trước đó
+  useEffect(() => {
+    if (isLogin) {
+      const from = location.state?.from?.pathname || '/'
+      navigate(from, { replace: true })
+    }
+  }, [isLogin, navigate, location])
 
   const handleChange = (e) => {
     setCredentials({

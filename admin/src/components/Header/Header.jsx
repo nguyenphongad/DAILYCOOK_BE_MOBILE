@@ -19,18 +19,16 @@ const Header = () => {
       </div>
 
       <div className="header-right">
-
-
         <div className="user-info">
           <div className="user-greeting">
-            Xin chào, {user?.name || 'Người dùng'}
+            Xin chào, {user?.fullName || 'Người dùng'}
           </div>
-          {user?.avatar && (
+          {user?.userImage && (
             <div 
               className="avatar-container"
               onClick={() => setShowUserMenu(!showUserMenu)}
             >
-              <img src={user.avatar} alt="Avatar" className="user-avatar" />
+              <img src={user.userImage} alt="Avatar" className="user-avatar" />
               {showUserMenu && (
                 <div className="user-popup">
                   <div className="popup-item">
