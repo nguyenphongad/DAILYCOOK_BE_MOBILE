@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { jwtDecode } from "jwt-decode";
+import { checkToken, loginAdmin } from '../thunks/authThunk';
 
 const getToken = localStorage.getItem("auth_token");
 
@@ -34,7 +35,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(loginAdmin.peding, state => {
+      .addCase(loginAdmin.pending, state => {
         state.status = 'loading';
         state.error = null;
       })
@@ -52,7 +53,20 @@ const authSlice = createSlice({
 
 
       // bo sung them check token tra ve thong tin ng dung
-
+      .addCase(checkToken.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(checkToken.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.user = action.payload.user;
+        state.isLogin = true;
+      })
+      .addCase(checkToken.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+        state.isLogin = false;
+      });
 
   }
 })

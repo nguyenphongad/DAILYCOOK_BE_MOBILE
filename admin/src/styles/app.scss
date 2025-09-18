@@ -168,6 +168,29 @@ body {
     }
 }
 
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.layout-container {
+  flex: 1;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+
+  .content {
+    padding: 60px 0px 0px; // Padding-top để không bị header che
+    padding-bottom:  0px; // Padding-top để không bị header che
+    min-height: calc(100vh - 60px); // Chiều cao tối thiểu là chiều cao màn hình trừ header
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .layout-container {
+    margin-left: 0;
+  }
+}
 
 .container_layout {
     display: flex;

@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Toaster } from 'sonner'
+import { useDispatch, useSelector } from 'react-redux'
+import { checkToken } from './redux/thunks/authThunk'
 
 import LoginPage from './pages/auth/LoginPage'
 import Home from './pages/Home/Home'
@@ -9,10 +11,21 @@ import Dishes from './pages/Dishes/Dishes'
 import Ingredients from './pages/Ingredients/Ingredients'
 import DietTypePage from './pages/DietType/DietTypePage'
 import PrivateRoute from './routes/PrivateRoute'
+import PublicRoute from './routes/PublicRoute'
 import Layout from './pages/layout'
 import Recipes from './pages/Recipes/Recipes'
 
 function App() {
+  const dispatch = useDispatch()
+  const { token } = useSelector(state => state.auth)
+
+  // Kiểm tra token khi ứng dụng khởi động
+  useEffect(() => {
+    if (token) {
+      dispatch(checkToken(token))
+    }
+  }, [dispatch, token])
+
   return (
     <>
       <Toaster position="bottom-right" closeButton
@@ -23,7 +36,7 @@ function App() {
           },
         }} />
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<PublicRoute element={<LoginPage />} restricted={true} />} />
         <Route path="/" element={
           <Layout>
             <PrivateRoute element={<Home />} />

@@ -1,10 +1,11 @@
 const express = require('express');
-const {  loginUser, registerUser, checkToken } = require('../controllers/AuthController');
+const {  loginUser, checkToken } = require('../controllers/AuthController');
 
 const router = express.Router();
 
 // router.get("/checkToken", checkToken);
 router.post("/login-admin", loginUser);
+router.get("/check-token", checkToken);
 
 // Health check endpoint
 // router.get('/health', (req, res) => {

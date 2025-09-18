@@ -24,7 +24,7 @@ const loginUser = async (req, res) => {
         console.log("vv" + checkUser)
 
         if (!checkUser) {
-            return res.status(404).json({ message: "email không tồn tại!", status: false });
+            return res.status(404).json({ message: "Email không tồn tại!", status: false });
         }
 
         // Thêm JWT_SECRET vào password trước khi so sánh (để khớp với cách tạo hash trong createAdmin.js)
@@ -69,7 +69,7 @@ const checkToken = async (req, res) => {
         }
 
         // giải mã token
-        const decode = jwt.verity(token, process.env.JWT_SECRET);
+        const decode = jwt.verify(token, process.env.JWT_SECRET);
 
 
         // tim ng dùng theo id
@@ -85,8 +85,8 @@ const checkToken = async (req, res) => {
         }
 
         return res.status(200).json({
-            isLogin: false,
-            message: "Truy vấn thông tin  người dùng từ token thành công",
+            isLogin: true, // Thay đổi từ false thành true
+            message: "Truy vấn thông tin người dùng từ token thành công",
             user: user
         })
 
@@ -94,7 +94,7 @@ const checkToken = async (req, res) => {
         console.error("Lỗi xác thực token, lỗi: ", error);
         return res.status(401).json({
             isLogin: false,
-            message: "Lỗi xác thực, xác thực không hợp lệ (server bị lỗi/chưa khởi động)"
+            message: "token hết hạn , xác thực không hợp lệ (server bị lỗi/chưa khởi động)"
         })
     }
 }

@@ -1,6 +1,8 @@
 const ENDPOINT = {
     // đăng nhập admin
-    LOGIN_ADMIN: '/auth/login-admin',
+    //auth
+    LOGIN_ADMIN: 'auth/login-admin',
+    CHECK_TOKEN: 'auth/check-token',
 
     //
 
