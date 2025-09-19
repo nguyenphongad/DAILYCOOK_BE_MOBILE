@@ -6,6 +6,7 @@ const addIngredientCategory = async (req, res) => {
     try {
         const { keyword, title, description } = req.body;
 
+        // Kiểm tra thông tin bắt buộc
         if (!keyword || !title) {
             return res.status(400).json({
                 stype: "ingredient",
@@ -24,12 +25,9 @@ const addIngredientCategory = async (req, res) => {
             });
         }
 
-        const newIngredientCategory = new IngredientCategoryModel({
-            keyword,
-            title,
-            description
-        });
-
+        // Tạo mới danh mục nguyên liệu
+        const newIngredientCategory = new IngredientCategoryModel({ keyword, title, description });
+        // Lưu vào database
         const result = await newIngredientCategory.save();
         if (result) {
             return res.status(201).json({
@@ -123,7 +121,6 @@ const updateIngredientCategory = async (req, res) => {
                 updateAt: updated.updatedAt
             }
         });
-
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
@@ -169,11 +166,17 @@ const deleteIngredientCategory = async (req, res) => {
 }
 
 // Đưa ra danh sách danh mục nguyên liệu
-const getIngredientCategories = async (req, res) => {
+const getListIngredientCategories = async (req, res) => {
     try {
         const ingredientCategories = await IngredientCategoryModel.find();
-
-        if (ingredientCategories) {
+        // Lấy tất cả danh mục nguyên liệu
+        if (!ingredientCategories) {
+            return res.status(404).json({
+                stype: "ingredient",
+                message: "Không tìm thấy danh sách danh mục nguyên liệu!",
+                status: false
+            })
+        } else {
             return res.status(201).json({
                 stype: "ingredient",
                 message: "Danh sách danh mục nguyên liệu",
@@ -223,6 +226,6 @@ module.exports = {
     addIngredientCategory,
     updateIngredientCategory,
     deleteIngredientCategory,
-    getIngredientCategories,
+    getListIngredientCategories,
     findByIdIngredientCategory
 };
