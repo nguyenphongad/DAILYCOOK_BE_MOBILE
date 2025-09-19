@@ -3,17 +3,17 @@ import Header from '../components/Header/Header'
 import Menu from '../components/Menu/Menu'
 
 const Layout = ({ children }) => {
-    return (
-        <div className='container_layout'>
-            <Menu />
-            <div className='content_area'>
-                <Header />
-                <div className='main_content'>
-                    {children}
-                </div>
-            </div>
+  return (
+    <div className="app-container">
+      <Menu />
+      <div className="layout-container">
+        <Header />
+        <div className="content">
+          {children}
         </div>
-    )
+      </div>
+    </div>
+  )
 }
 
 export default Layout

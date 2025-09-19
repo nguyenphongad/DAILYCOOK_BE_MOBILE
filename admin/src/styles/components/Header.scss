@@ -1,7 +1,8 @@
 .header {
-  width: 100%;
+  width: calc(100% - 20px); // Giảm width đi để không bị tràn
   position: fixed;
   top: 0px;
+  right: 0; // Đặt vị trí từ bên phải thay vì left
   display: flex;
   justify-content: space-between; 
   align-items: center;
@@ -9,9 +10,9 @@
   padding: 0 20px;
   background-color: white;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  z-index: 1;
+  z-index: 49; // Đặt thấp hơn z-index của menu để không che phủ menu
+  padding-left: 250px; // Đặt margin-left bằng với chiều rộng của menu
 
-  padding-left: 260px;
   
   .logo-container {
     height: 100%;
@@ -43,6 +44,7 @@
     display: flex;
     align-items: center;
     gap: 20px;
+    margin-left: auto; // Đảm bảo các phần tử luôn nằm bên phải
   }
   
   .admin-badge {
@@ -52,7 +54,6 @@
     border: 2px solid #b30000;
     border-radius: 4px;
     color: #b30000;
-    margin-left: 10px;
     
     .admin-icon {
       font-size: 20px;
@@ -73,6 +74,7 @@
     .user-greeting {
       font-weight: 500;
       color: #333;
+      white-space: nowrap; // Ngăn text bị xuống dòng
     }
     
     .avatar-container {
@@ -152,6 +154,18 @@
         opacity: 1;
         transform: translateY(0);
       }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .header {
+    margin-left: 0; // Khi menu thu gọn hoặc trên màn hình nhỏ
+    width: 100%;
+    
+    .user-greeting {
+      display: none; // Ẩn phần chào khi màn hình nhỏ để tiết kiệm không gian
     }
   }
 }

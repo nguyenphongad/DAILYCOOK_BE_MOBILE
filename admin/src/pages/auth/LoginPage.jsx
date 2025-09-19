@@ -1,21 +1,28 @@
-import { useState } from 'react'
-import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
-import { loginSuccess } from '../../redux/slices/authSlice'
-import { loginAPI } from '../../utils/api'
+import { loginAdmin } from '../../redux/thunks/authThunk'
 import logoImage from '../../assets/logo.png'
 
 const LoginPage = () => {
   const [credentials, setCredentials] = useState({
-    email: 'user@example.com',
-    password: 'password123',
-    name: "ADMIN TRÂN",
-    avatar: 'https://hinhnenpowerpoint.app/wp-content/uploads/2025/06/anh-avatar-capybara-cute-1.jpg'
+    email: '',
+    passwordAdmin: ''
   })
   const [loading, setLoading] = useState(false)
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const location = useLocation()
+  const { isLogin } = useSelector(state => state.auth)
+  
+  // Kiểm tra nếu đã đăng nhập thì chuyển hướng đến trang chủ hoặc trang yêu cầu trước đó
+  useEffect(() => {
+    if (isLogin) {
+      const from = location.state?.from?.pathname || '/'
+      navigate(from, { replace: true })
+    }
+  }, [isLogin, navigate, location])
 
   const handleChange = (e) => {
     setCredentials({
@@ -29,10 +36,13 @@ const LoginPage = () => {
     setLoading(true)
     
     try {
-      const response = await loginAPI(credentials)
-      dispatch(loginSuccess(response.user))
-      toast.success('Đăng nhập thành công!')
-      navigate('/')
+      const resultAction = await dispatch(loginAdmin(credentials))
+      if (loginAdmin.fulfilled.match(resultAction)) {
+        toast.success('Đăng nhập thành công!')
+        navigate('/')
+      } else if (loginAdmin.rejected.match(resultAction)) {
+        toast.error(resultAction.payload?.message || 'Đăng nhập thất bại!')
+      }
     } catch (error) {
       toast.error(error.message || 'Đăng nhập thất bại!')
     } finally {
@@ -73,12 +83,12 @@ const LoginPage = () => {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="password">Mật khẩu</label>
+              <label htmlFor="passwordAdmin">Mật khẩu</label>
               <input
                 type="password"
-                id="password"
-                name="password"
-                value={credentials.password}
+                id="passwordAdmin"
+                name="passwordAdmin"
+                value={credentials.passwordAdmin}
                 onChange={handleChange}
                 required
               />
