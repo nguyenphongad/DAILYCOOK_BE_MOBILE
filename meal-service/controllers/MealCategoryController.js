@@ -189,9 +189,38 @@ const getListMealCategories = async (req, res) => {
     }
 }
 
+// Tìm danh mục bữa ăn theo ID
+const findByIdMealCategory = async (req, res) => {
+    try {
+        const { meal_category_id } = req.params;
+        const mealCategory = await MealCategoryModel.findById(meal_category_id);
+        if (!mealCategory) {
+            return res.status(400).json({
+                stype: "meal",
+                message: "Danh mục bữa ăn không tồn tại!",
+                status: false
+            });
+        }
+        return res.status(200).json({
+            stype: "meal",
+            message: "Thông tin danh mục bữa ăn",
+            status: true,
+            data: mealCategory
+        });
+    } catch (error) {
+        return res.status(500).json({
+            stype: "meal",
+            message: "Lỗi server, vui lòng thử lại sau!",
+            status: false,
+            error: error.message
+        });
+    }
+}
+
 module.exports = {
     addMealCategory,
     updateMealCategory,
     deleteMealCategory,
-    getListMealCategories
+    getListMealCategories,
+    findByIdMealCategory
 };
