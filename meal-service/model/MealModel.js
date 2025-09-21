@@ -63,7 +63,7 @@ const mealSchema = new mongoose.Schema(
             },
         ],
 
-        recipes:
+        recipe:
         {
             recipe_id: {
                 type: mongoose.Schema.Types.ObjectId,
