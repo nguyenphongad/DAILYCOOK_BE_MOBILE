@@ -32,7 +32,7 @@ mongoose
     .connect(process.env.MONGODB_URI)
     .then(() => {
         app.listen(process.env.PORT, () => {
-            console.log('server INGREDIENT-SERVICE listening at port ' + process.env.PORT);
+            console.log('INGREDIENT-SERVICE listening at port ' + process.env.PORT);
         })
     })
     .catch((error) => console.log(error));

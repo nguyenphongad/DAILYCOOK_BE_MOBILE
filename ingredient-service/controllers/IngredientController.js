@@ -5,7 +5,16 @@ const mongoose = require("mongoose");
 // Thêm nguyên liệu mới
 const addIngredient = async (req, res) => {
     try {
-        const { nameIngredient, description, ingredientCategory, ingredientImage, defaultAmount, defaultUnit, nutrition, commonUses } = req.body;
+        const {
+            nameIngredient,
+            description,
+            ingredientCategory,
+            ingredientImage,
+            defaultAmount,
+            defaultUnit,
+            nutrition,
+            commonUses
+        } = req.body;
 
         // Kiểm tra thông tin bắt buộc
         if (!nameIngredient || !ingredientCategory) {
@@ -190,7 +199,6 @@ const updateIngredient = async (req, res) => {
     }
 };
 
-
 // Xóa nguyên liệu
 const deleteIngredient = async (req, res) => {
     try {
@@ -226,10 +234,10 @@ const deleteIngredient = async (req, res) => {
 }
 
 // Đưa ra danh sách nguyên liệu
-const getIngredient = async (req, res) => {
+const getListIngredient = async (req, res) => {
     try {
-        const ingredient = await IngredientModel.find();
-        if (!ingredient) {
+        const ingredients = await IngredientModel.find();
+        if (!ingredients) {
             return res.status(404).json({
                 stype: "ingredient",
                 message: "Không tìm thấy danh sách nguyên liệu!",
@@ -240,7 +248,7 @@ const getIngredient = async (req, res) => {
             stype: "ingredient",
             message: "Danh sách nguyên liệu",
             status: true,
-            data: ingredient
+            data: ingredients
         })
     } catch (error) {
         return res.status(500).json({
@@ -285,6 +293,6 @@ module.exports = {
     addIngredient,
     updateIngredient,
     deleteIngredient,
-    getIngredient,
+    getListIngredient,
     findByIdIngredient
 };
