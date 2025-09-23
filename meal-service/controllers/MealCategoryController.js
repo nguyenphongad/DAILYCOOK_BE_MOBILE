@@ -32,14 +32,7 @@ const addMealCategory = async (req, res) => {
                 stype: "meal",
                 message: "Thêm danh mục bữa ăn thành công!",
                 status: true,
-                data: {
-                    _id: result._id,
-                    keyword: result.keyword,
-                    title: result.title,
-                    description: result.description,
-                    createAt: result.createdAt,
-                    updateAt: result.updatedAt
-                }
+                data: result
             })
         }
     }
@@ -105,19 +98,14 @@ const updateMealCategory = async (req, res) => {
             updateFields,
             { new: true }
         )
-        return res.status(200).json({
-            stype: "meal",
-            message: "Cập nhật danh mục bữa ăn thành công!",
-            status: true,
-            data: {
-                _id: updated._id,
-                keyword: updated.keyword,
-                title: updated.title,
-                description: updated.description,
-                createAt: updated.createdAt,
-                updateAt: updated.updatedAt
-            }
-        });
+        if (updated) {
+            return res.status(200).json({
+                stype: "meal",
+                message: "Cập nhật danh mục bữa ăn thành công!",
+                status: true,
+                data: updated
+            });
+        }
     } catch (error) {
         return res.status(500).json({
             stype: "meal",

@@ -1,7 +1,8 @@
 const MealCategoryModel = require("../model/MealCategoryModel");
 const MealModel = require("../model/MealModel");
+const { getIngredientById } = require("../services/IngredientService");
 // const { getIngredientById } = require("./services/ingredientService");
-const { addRecipe } = require("../services/recipeService");
+const { addRecipe, updateRecipe } = require("../services/recipeService");
 
 const addMeal = async (req, res) => {
     try {
@@ -54,6 +55,30 @@ const addMeal = async (req, res) => {
             });
         }
 
+        // Kiểm tra nguyên liệu (nếu cần thiết)
+        for (const item of ingredients) {
+            const ingredientExists = null;
+            try {
+                ingredientExists = await getIngredientById(item.ingredient_id, token);
+            } catch (error) {
+                if (error.response && error.response.status === 500) {
+                    return res.status(400).json({
+                        stype: "meal",
+                        message: `Nguyên liệu không tồn tại`,
+                        status: false
+                    });
+                }
+                throw error; // Ném lỗi nếu không phải lỗi 404
+            }
+            if (!ingredientExists) {
+                return res.status(400).json({
+                    stype: "meal",
+                    message: `Nguyên liệu không tồn tại`,
+                    status: false
+                });
+            }
+        }
+
         // Tạo công thức nấu ăn mới thông qua Recipe Service
         const recipeCreated = await addRecipe(recipe, token);
 
@@ -79,6 +104,7 @@ const addMeal = async (req, res) => {
         //     };
         // }
 
+
         // Tạo đối tượng Meal mới
         const newMeal = new MealModel({
             nameMeal,
@@ -87,7 +113,11 @@ const addMeal = async (req, res) => {
             mealImage,
             portionSize,
             dietaryCompatibility,
-            ingredients,
+            ingredients: ingredients.map(item => ({
+                ingredient_id: item.ingredient_id,   // ObjectId của nguyên liệu
+                quantity: item.quantity || 0
+                , unit: item.unit || ""
+            })),
             // Lưu thông tin recipe_id và cookingEffect vào meal
             recipe: {
                 recipe_id: recipeCreated.data._id,
@@ -104,21 +134,7 @@ const addMeal = async (req, res) => {
                 stype: "meal",
                 message: "Thêm bữa ăn thành công!",
                 status: true,
-                data: {
-                    _id: result._id,
-                    nameMeal: result.nameMeal,
-                    description: result.description,
-                    mealCategory: result.mealCategory,
-                    mealImage: result.mealImage,
-                    portionSize: result.portionSize,
-                    dietaryCompatibility: result.dietaryCompatibility,
-                    ingredients: result.ingredients,
-                    recipes: result.recipe,
-                    popularity: result.popularity,
-                    isActive: result.isActive,
-                    createAt: result.createdAt,
-                    updateAt: result.updatedAt
-                }
+                data: result
             })
         }
     } catch (error) {
@@ -148,8 +164,7 @@ const updateMeal = async (req, res) => {
             isActive
         } = req.body;
 
-
-        // Lấy token từ header (Bearer token)
+        // Lấy token từ header
         const tokenHeader = req.headers.authorization || "";
         const token = tokenHeader.startsWith("Bearer ") ? tokenHeader.split(" ")[1] : tokenHeader;
         if (!token) {
@@ -169,7 +184,7 @@ const updateMeal = async (req, res) => {
             });
         }
 
-        // Kiểm tra xem danh mục bữa ăn có tồn tại hay không
+        // Kiểm tra mealCategory
         if (mealCategory) {
             const mealCategoryExists = await MealCategoryModel.findOne({
                 $or: [
@@ -187,49 +202,56 @@ const updateMeal = async (req, res) => {
             meal.mealCategory = mealCategoryExists._id;
         }
 
-        // Cập nhật các trường nếu có trong request body
-        if (nameMeal) meal.nameMeal = nameMeal;
-        if (description) meal.description = description;
-        if (mealImage) meal.mealImage = mealImage;
-        if (portionSize) meal.portionSize = portionSize;
-        if (Array.isArray(dietaryCompatibility)) meal.dietaryCompatibility = dietaryCompatibility;
-        if (Array.isArray(ingredients) && ingredients.length > 0) meal.ingredients = ingredients;
-        if (typeof popularity === 'number') meal.popularity = popularity;
-        if (typeof isActive === 'boolean') meal.isActive = isActive;
+        // Gom field cần update
+        const updateFields = {};
+        if (nameMeal) updateFields.nameMeal = nameMeal;
+        if (description) updateFields.description = description;
+        if (mealImage) updateFields.mealImage = mealImage;
+        if (portionSize) updateFields.portionSize = portionSize;
+        if (Array.isArray(dietaryCompatibility)) updateFields.dietaryCompatibility = dietaryCompatibility;
 
-        // Cập nhật recipe nếu có
-        if (recipe) {
-            // Gọi dịch vụ cập nhật công thức nấu ăn (nếu cần)
-            // Giả sử bạn có hàm updateRecipe trong recipeService
-            // const updatedRecipe = await updateRecipe(meal.recipe.recipe_id, recipe, token);
-            // meal.recipe.recipe_id = updatedRecipe.data._id;
-            // meal.recipe.cookingEffect = updatedRecipe.data.nutrition; // Cập nhật thông tin dinh dưỡng mới
-            const updatedRecipe = await addRecipe(recipe, token);
-            meal.recipe.recipe_id = updatedRecipe.data._id;
-            meal.recipe.cookingEffect = recipe.cookingEffect || {};
+        // Xử lý ingredients
+        if (Array.isArray(ingredients)) {
+            updateFields.ingredients = ingredients.map(item => ({
+                ingredient_id: item.ingredient_id, 
+                quantity: item.quantity || 0,
+                unit: item.unit || ""
+            }));
         }
 
-        const updatedMeal = await meal.save();
+        if (typeof popularity === 'number') updateFields.popularity = popularity;
+        if (typeof isActive === 'boolean') updateFields.isActive = isActive;
+
+        // Cập nhật recipe nếu có thay đổi
+        if (recipe && meal.recipe && meal.recipe.recipe_id) {
+            await updateRecipe(meal.recipe.recipe_id, recipe, token);
+            updateFields.recipe = {
+                recipe_id: meal.recipe.recipe_id,
+                cookingEffect: recipe.cookingEffect || meal.recipe.cookingEffect
+            };
+        }
+
+        // Kiểm tra xem có trường nào được cập nhật không
+        if (Object.keys(updateFields).length === 0) {
+            return res.status(400).json({
+                stype: "meal",
+                message: "Không có trường nào để cập nhật!",
+                status: false
+            });
+        }
+
+        // Thực hiện cập nhật
+        const updatedMeal = await MealModel.findByIdAndUpdate(
+            meal_id,
+            updateFields,
+            { new: true }
+        );
         if (updatedMeal) {
             return res.status(200).json({
                 stype: "meal",
                 message: "Cập nhật bữa ăn thành công!",
                 status: true,
-                data: {
-                    _id: updatedMeal._id,
-                    nameMeal: updatedMeal.nameMeal,
-                    description: updatedMeal.description,
-                    mealCategory: updatedMeal.mealCategory,
-                    mealImage: updatedMeal.mealImage,
-                    portionSize: updatedMeal.portionSize,
-                    dietaryCompatibility: updatedMeal.dietaryCompatibility,
-                    ingredients: updatedMeal.ingredients,
-                    recipes: updatedMeal.recipe,
-                    popularity: updatedMeal.popularity,
-                    isActive: updatedMeal.isActive,
-                    createAt: updatedMeal.createdAt,
-                    updateAt: updatedMeal.updatedAt
-                }
+                data: updatedMeal
             });
         }
     } catch (error) {
@@ -240,7 +262,7 @@ const updateMeal = async (req, res) => {
             error: error.message
         });
     }
-}
+};
 
 // delete meal
 const deleteMeal = async (req, res) => {
