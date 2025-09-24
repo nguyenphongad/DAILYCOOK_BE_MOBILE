@@ -22,7 +22,7 @@ const addMealCategory = async (req, res) => {
             });
         }
         const newMealCategory = new MealCategoryModel({
-            keyword,
+            keyword: keyword.toUpperCase(),
             title,
             description
         });
@@ -79,7 +79,7 @@ const updateMealCategory = async (req, res) => {
 
         // Chuẩn bị các trường cần cập nhật
         const updateFields = {};
-        if (keyword) updateFields.keyword = keyword;
+        if (keyword) updateFields.keyword = keyword.toUpperCase();
         if (title) updateFields.title = title;
         if (description) updateFields.description = description;
 
@@ -164,6 +164,7 @@ const getListMealCategories = async (req, res) => {
                 total,
                 page,
                 limit,
+                totalPages: Math.ceil(total / limit),
                 mealCategories
             }
         });
