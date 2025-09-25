@@ -1,9 +1,11 @@
+const DietTypeModel = require("../model/DietTypeModel");
 const MealCategoryModel = require("../model/MealCategoryModel");
 const MealModel = require("../model/MealModel");
 const { getIngredientById } = require("../services/IngredientService");
 // const { getIngredientById } = require("./services/ingredientService");
 const { addRecipe, updateRecipe } = require("../services/recipeService");
 
+// Thêm mới meal
 const addMeal = async (req, res) => {
     try {
         // Lấy dữ liệu từ body request
@@ -55,26 +57,56 @@ const addMeal = async (req, res) => {
             });
         }
 
-        // Kiểm tra nguyên liệu (nếu cần thiết)
-        for (const item of ingredients) {
-            const ingredientExists = null;
+        // Kiểm tra chế độ ăn uống
+        let dietTypeIds = [];
+        for (const diet of dietaryCompatibility) {
             try {
-                ingredientExists = await getIngredientById(item.ingredient_id, token);
+                const dietTypeExists = await DietTypeModel.findOne({
+                    $or: [
+                        { keyword: { $regex: new RegExp(`^${diet}$`, 'i') } },
+                        { title: { $regex: new RegExp(`^${diet}$`, 'i') } }
+                    ]
+                });
+                if (!dietTypeExists) {
+                    return res.status(400).json({
+                        stype: "meal",
+                        message: `Chế độ ăn uống '${diet}' không tồn tại`,
+                        status: false
+                    });
+                }
+                dietTypeIds.push(dietTypeExists._id); 
+            } catch (error) {
+                return res.status(500).json({
+                    stype: "meal",
+                    message: "Lỗi khi kiểm tra chế độ ăn uống",
+                    status: false,
+                    error: error.message
+                });
+            }
+        }
+
+        // Kiểm tra nguyên liệu (nếu cần thiết)
+        for (const ingredient of ingredients) {
+            let ingredientExists = null;
+            try {
+                ingredientExists = await getIngredientById(ingredient.ingredient_id, token);
             } catch (error) {
                 if (error.response && error.response.status === 500) {
                     return res.status(400).json({
                         stype: "meal",
-                        message: `Nguyên liệu không tồn tại`,
-                        status: false
+                        message: "Lỗi khi kiểm tra nguyên liệu",
+                        status: false,
+                        error: error.message
                     });
                 }
-                throw error; // Ném lỗi nếu không phải lỗi 404
+                throw error;
             }
             if (!ingredientExists) {
                 return res.status(400).json({
                     stype: "meal",
-                    message: `Nguyên liệu không tồn tại`,
-                    status: false
+                    message: "Nguyên liệu không tồn tại",
+                    status: false,
+                    error: error.message
                 });
             }
         }
@@ -112,7 +144,7 @@ const addMeal = async (req, res) => {
             mealCategory: mealCategoryExists._id,
             mealImage,
             portionSize,
-            dietaryCompatibility,
+            dietaryCompatibility: dietTypeIds,
             ingredients: ingredients.map(item => ({
                 ingredient_id: item.ingredient_id,   // ObjectId của nguyên liệu
                 quantity: item.quantity || 0,
@@ -213,7 +245,7 @@ const updateMeal = async (req, res) => {
         // Xử lý ingredients
         if (Array.isArray(ingredients)) {
             updateFields.ingredients = ingredients.map(item => ({
-                ingredient_id: item.ingredient_id, 
+                ingredient_id: item.ingredient_id,
                 quantity: item.quantity || 0,
                 unit: item.unit || ""
             }));

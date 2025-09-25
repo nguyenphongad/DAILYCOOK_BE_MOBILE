@@ -15,7 +15,14 @@ const {
     updateMeal,
     deleteMeal,
 } = require('../controllers/MealController');
-const { updateDietType, addDietType, deleteDietType, getListDietTypes, findByIdDietType } = require('../controllers/DietTypeController');
+
+const { 
+    updateDietType, 
+    addDietType, 
+    deleteDietType, 
+    getListDietTypes, 
+    findByIdDietType 
+} = require('../controllers/DietTypeController');
 
 const router = express.Router();
 
@@ -115,7 +122,7 @@ router.delete(
 
 // Lấy danh sách loại chế độ ăn uống
 router.get(
-    "/",
+    "/diet-types",
     MealMiddleware,
     getListDietTypes
 );
