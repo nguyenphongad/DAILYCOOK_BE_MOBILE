@@ -115,8 +115,8 @@ const addMeal = async (req, res) => {
             dietaryCompatibility,
             ingredients: ingredients.map(item => ({
                 ingredient_id: item.ingredient_id,   // ObjectId của nguyên liệu
-                quantity: item.quantity || 0
-                , unit: item.unit || ""
+                quantity: item.quantity || 0,
+                unit: item.unit || ""
             })),
             // Lưu thông tin recipe_id và cookingEffect vào meal
             recipe: {

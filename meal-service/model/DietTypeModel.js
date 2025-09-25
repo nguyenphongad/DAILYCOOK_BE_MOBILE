@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const DietTypeSchema = new mongoose.Schema(
     {
         // ví dụ: "keto", "vegan"
-        keyWord: {
+        keyword: {
             type: String,
             required: true,
             unique: true,

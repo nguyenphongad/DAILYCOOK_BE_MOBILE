@@ -15,6 +15,7 @@ const {
     updateMeal,
     deleteMeal,
 } = require('../controllers/MealController');
+const { updateDietType, addDietType, deleteDietType, getListDietTypes, findByIdDietType } = require('../controllers/DietTypeController');
 
 const router = express.Router();
 
@@ -88,6 +89,42 @@ router.get(
     "/meal/:meal_id",
     MealMiddleware,
     getListMeals
+);
+
+/* ==========================   Diet Type   ========================== */
+// Thêm mới một loại chế độ ăn uống
+router.post(
+    '/add-diet-type',
+    MealMiddleware,
+    addDietType
+);
+
+// Cập nhật thông tin một loại chế độ ăn uống
+router.put(
+    '/update-diet-type/:diet_type_id',
+    MealMiddleware,
+    updateDietType
+);
+
+// Xoá một loại chế độ ăn uống
+router.delete(
+    '/delete-diet-type/:diet_type_id',
+    MealMiddleware,
+    deleteDietType
+);
+
+// Lấy danh sách loại chế độ ăn uống
+router.get(
+    "/",
+    MealMiddleware,
+    getListDietTypes
+);
+
+// Lấy thông tin chi tiết một loại chế độ ăn uống
+router.get(
+    "/diet-type/:diet_type_id",
+    MealMiddleware,
+    findByIdDietType
 );
 
 module.exports = router;
