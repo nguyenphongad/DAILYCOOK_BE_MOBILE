@@ -1,0 +1,110 @@
+.import-file-modal {
+  .modal-title {
+    font-weight: 700;
+    font-size: 18px;
+  }
+  
+  .upload-area {
+    margin-bottom: 20px;
+  }
+  
+  // Trạng thái xử lý file
+  .processing-status {
+    margin: 16px 0;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 4px;
+    
+    &.loading {
+      background-color: #e6f7ff;
+      border: 1px solid #91d5ff;
+      color: #1890ff;
+      
+      .ant-spin {
+        margin-right: 10px;
+      }
+      
+      .status-message {
+        margin-left: 8px;
+      }
+    }
+  }
+  
+  .status-alert {
+    margin: 16px 0;
+  }
+  
+  .preview-area {
+    .section-title {
+      font-weight: 600;
+    }
+    
+    .preview-table {
+      margin-bottom: 20px;
+      
+      .empty-preview-table {
+        background-color: #fafafa;
+        border: 1px dashed #e8e8e8;
+        border-radius: 4px;
+      }
+      
+      .loading-table {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+        background-color: #fafafa;
+        border: 1px dashed #e8e8e8;
+        border-radius: 4px;
+      }
+    }
+    
+    .import-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      
+      .import-counter {
+        display: flex;
+        align-items: center;
+        
+        .counter-label {
+          margin-right: 16px;
+          font-weight: 600;
+        }
+        
+        .counter-controls {
+          display: flex;
+          align-items: center;
+          
+          .counter-input {
+            margin: 0 8px;
+            width: 80px;
+          }
+          
+          .ant-input-number-disabled {
+            background-color: #f5f5f5;
+            color: rgba(0, 0, 0, 0.25);
+          }
+        }
+      }
+      
+      .action-buttons {
+        button {
+          margin-left: 8px;
+        }
+        
+        .import-selected-button,
+        .import-all-button {
+          &:disabled {
+            background-color: #f5f5f5;
+            color: rgba(0, 0, 0, 0.25);
+            border-color: #d9d9d9;
+          }
+        }
+      }
+    }
+  }
+}

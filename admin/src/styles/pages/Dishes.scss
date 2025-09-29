@@ -25,6 +25,41 @@
       font-size: 24px;
       color: #333;
     }
+    
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      
+      .import-button {
+        background: #1890ff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        &:hover {
+          background: #40a9ff;
+        }
+      }
+      
+      .add-button {
+        background: #52c41a;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-weight: 500;
+        
+        &:hover {
+          background: #73d13d;
+        }
+      }
+    }
   }
 
   .dishes-filter {
@@ -45,12 +80,9 @@
       border: 1px solid #ddd;
       border-radius: 8px;
       overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
-
-      &:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      }
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      position: relative;
 
       .dish-image {
         position: relative;
@@ -104,6 +136,105 @@
             border-radius: 4px;
           }
         }
+      }
+      
+      .btn-actions {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 10; /* Đảm bảo nút hiển thị trên các phần tử khác */
+        
+        button {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: white;
+          font-size: 18px;
+          transition: transform 0.2s;
+          z-index: 15; /* Đảm bảo nút có thể click được */
+          
+          &:hover {
+            transform: scale(1.1);
+          }
+        }
+        
+        // Nút xóa được đặt ở góc dưới bên trái, độc lập với overlay
+        .delete-btn {
+          position: absolute;
+          bottom: 12px;
+          left: 12px;
+          width: 32px;
+          height: 32px;
+          background-color: rgba(244, 67, 54, 0.85);
+          border: none;
+          border-radius: 50%;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 10;
+          transition: transform 0.2s, background-color 0.2s;
+          
+          &:hover {
+            background-color: #f44336;
+            transform: scale(1.1);
+          }
+        }
+        
+        // Overlay riêng biệt cho nút xem chi tiết
+        .view-detail-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          z-index: 5;
+          
+          .view-detail-btn {
+            background-color: #1890ff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            transform: translateX(-50px);
+            transition: transform 0.3s ease;
+            
+            &:hover {
+              background-color: #40a9ff;
+            }
+          }
+        }
+      }
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
       }
     }
   }

@@ -1,0 +1,67 @@
+{
+  "dishes": [
+    { 
+      "id": 1, 
+      "name": "Gà xào xả ớt", 
+      "description": "Món ăn truyền thống của Việt Nam", 
+      "ingredients_count": 8, 
+      "cooking_time": "30 phút", 
+      "category": "Món chính",
+      "image": "https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg?cs=srgb&dl=pexels-jang-699953.jpg&fm=jpg"
+    },
+    { 
+      "id": 2, 
+      "name": "Phở bò", 
+      "description": "Món ăn đặc trưng của Việt Nam", 
+      "ingredients_count": 12, 
+      "cooking_time": "45 phút", 
+      "category": "Món chính",
+      "image": "https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg?cs=srgb&dl=pexels-jang-699953.jpg&fm=jpg"
+    },
+    { 
+      "id": 3, 
+      "name": "Cá kho tộ", 
+      "description": "Món ăn dân dã miền Bắc", 
+      "ingredients_count": 6, 
+      "cooking_time": "40 phút", 
+      "category": "Món chính",
+      "image": "https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg?cs=srgb&dl=pexels-jang-699953.jpg&fm=jpg"
+    },
+    { 
+      "id": 4, 
+      "name": "Canh chua cá lóc", 
+      "description": "Món ăn đặc trưng miền Nam", 
+      "ingredients_count": 10, 
+      "cooking_time": "35 phút", 
+      "category": "Canh",
+      "image": "https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg?cs=srgb&dl=pexels-jang-699953.jpg&fm=jpg"
+    },
+    { 
+      "id": 5, 
+      "name": "Chè đậu xanh", 
+      "description": "Món tráng miệng truyền thống", 
+      "ingredients_count": 5, 
+      "cooking_time": "25 phút", 
+      "category": "Tráng miệng",
+      "image": "https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg?cs=srgb&dl=pexels-jang-699953.jpg&fm=jpg"
+    },
+    { 
+      "id": 6, 
+      "name": "Bún riêu cua", 
+      "description": "Món ăn dân dã Việt Nam", 
+      "ingredients_count": 15, 
+      "cooking_time": "50 phút", 
+      "category": "Món chính",
+      "image": "https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg?cs=srgb&dl=pexels-jang-699953.jpg&fm=jpg"
+    }
+  ],
+  "ingredients": [
+    { "id": 1, "name": "Thịt gà", "unit": "gram", "defaultAmount": 500, "category": "Thịt" },
+    { "id": 2, "name": "Tỏi", "unit": "củ", "defaultAmount": 3, "category": "Gia vị" },
+    { "id": 3, "name": "Ớt", "unit": "quả", "defaultAmount": 2, "category": "Gia vị" },
+    { "id": 4, "name": "Hành lá", "unit": "cây", "defaultAmount": 2, "category": "Rau" },
+    { "id": 5, "name": "Nước mắm", "unit": "ml", "defaultAmount": 15, "category": "Gia vị" },
+    { "id": 6, "name": "Đường", "unit": "gram", "defaultAmount": 10, "category": "Gia vị" },
+    { "id": 7, "name": "Dầu ăn", "unit": "ml", "defaultAmount": 20, "category": "Gia vị" }
+  ]
+}
