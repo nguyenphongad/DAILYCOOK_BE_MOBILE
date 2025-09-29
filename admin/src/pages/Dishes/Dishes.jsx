@@ -1,75 +1,33 @@
 import { useState, useEffect } from 'react'
-import Header from '../../components/Header/Header'
-import Menu from '../../components/Menu/Menu'
+import { Modal, Form } from 'antd'
+import { ImportOutlined } from '@ant-design/icons'
+import sampleData from '../../assets/data_sample_meal.json'
+import ImportFileModal from '../../components/ImportFileModal/ImportFileModal'
+import DishDetailModal from '../../components/DishDetailModal/DishDetailModal'
+import DishForm from '../../components/DishForm/DishForm'
+import Loading from '../../components/Loading/Loading'
 
 const Dishes = () => {
   const [dishes, setDishes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [isImportModalVisible, setIsImportModalVisible] = useState(false)
+  const [form] = Form.useForm()
+  const [allIngredients, setAllIngredients] = useState([])
+  
+  // State cho modal chi tiết món ăn
+  const [isDishDetailModalVisible, setIsDishDetailModalVisible] = useState(false)
+  const [selectedDish, setSelectedDish] = useState(null)
   
   useEffect(() => {
     // Giả lập việc lấy danh sách món ăn
     const fetchDishes = () => {
       setLoading(true)
       
-      // Giả lập API call
+      // Giả lập API call bằng cách sử dụng dữ liệu từ JSON
       setTimeout(() => {
-        const mockDishes = [
-          { 
-            id: 1, 
-            name: 'Gà xào xả ớt', 
-            description: 'Món ăn truyền thống của Việt Nam', 
-            ingredients_count: 8, 
-            cooking_time: '30 phút', 
-            category: 'Món chính',
-            image: 'https://placekitten.com/300/200',
-          },
-          { 
-            id: 2, 
-            name: 'Phở bò', 
-            description: 'Món ăn đặc trưng của Việt Nam', 
-            ingredients_count: 12, 
-            cooking_time: '45 phút', 
-            category: 'Món chính',
-            image: 'https://placekitten.com/301/200',
-          },
-          { 
-            id: 3, 
-            name: 'Cá kho tộ', 
-            description: 'Món ăn dân dã miền Bắc', 
-            ingredients_count: 6, 
-            cooking_time: '40 phút', 
-            category: 'Món chính',
-            image: 'https://placekitten.com/302/200',
-          },
-          { 
-            id: 4, 
-            name: 'Canh chua cá lóc', 
-            description: 'Món ăn đặc trưng miền Nam', 
-            ingredients_count: 10, 
-            cooking_time: '35 phút', 
-            category: 'Canh',
-            image: 'https://placekitten.com/303/200',
-          },
-          { 
-            id: 5, 
-            name: 'Chè đậu xanh', 
-            description: 'Món tráng miệng truyền thống', 
-            ingredients_count: 5, 
-            cooking_time: '25 phút', 
-            category: 'Tráng miệng',
-            image: 'https://placekitten.com/304/200',
-          },
-          { 
-            id: 6, 
-            name: 'Bún riêu cua', 
-            description: 'Món ăn dân dã Việt Nam', 
-            ingredients_count: 15, 
-            cooking_time: '50 phút', 
-            category: 'Món chính',
-            image: 'https://placekitten.com/305/200',
-          },
-        ]
-        setDishes(mockDishes)
+        setDishes(sampleData.dishes)
+        setAllIngredients(sampleData.ingredients)
         setLoading(false)
       }, 1000)
     }
@@ -77,13 +35,96 @@ const Dishes = () => {
     fetchDishes()
   }, [])
   
+  const showModal = () => {
+    setIsModalVisible(true)
+  }
+
+  const handleCancel = () => {
+    form.resetFields()
+    setIsModalVisible(false)
+  }
+
+  const handleSubmit = (values) => {
+    console.log('Form submitted:', values)
+    // Thêm món ăn mới vào danh sách
+    const newDish = {
+      id: Date.now(),
+      name: values.nameRecipe,
+      description: values.description,
+      ingredients_count: values.ingredients.length,
+      cooking_time: `${values.cookTimeMinutes} phút`,
+      category: "Món chính", // Giả sử category
+      image: values.image || "https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg"
+    };
+    
+    setDishes(prev => [...prev, newDish]);
+    handleCancel();
+  }
+
+  const showImportModal = () => {
+    setIsImportModalVisible(true);
+  };
+
+  const handleImportCancel = () => {
+    setIsImportModalVisible(false);
+  };
+
+  const handleImport = (importedData) => {
+    // Xử lý dữ liệu import ở đây
+    console.log('Imported data:', importedData);
+    
+    // Ở đây bạn có thể xử lý dữ liệu để thêm vào danh sách món ăn
+    // Ví dụ:
+    // const newDishes = importedData.map(item => ({
+    //   id: Date.now() + Math.random(),
+    //   name: item.name || item.nameRecipe || 'Món ăn không tên',
+    //   description: item.description || '',
+    //   ingredients_count: parseInt(item.ingredients_count) || 0,
+    //   cooking_time: item.cooking_time || '0 phút',
+    //   category: item.category || 'Khác',
+    //   image: item.image || 'https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg?cs=srgb&dl=pexels-jang-699953.jpg&fm=jpg',
+    // }));
+    // setDishes(prev => [...prev, ...newDishes]);
+  };
+  
+  // Xử lý hiển thị modal chi tiết món ăn
+  const showDishDetail = (dish) => {
+    setSelectedDish(dish);
+    setIsDishDetailModalVisible(true);
+  };
+  
+  const handleDishDetailClose = () => {
+    setIsDishDetailModalVisible(false);
+    setSelectedDish(null);
+  };
+  
+  // Xử lý chỉnh sửa món ăn
+  const handleEditDish = (editedDish) => {
+    setDishes(prev => prev.map(dish => 
+      dish.id === editedDish.id ? { ...dish, ...editedDish } : dish
+    ));
+  };
+  
+  // Xử lý xóa món ăn
+  const handleDeleteDish = (id) => {
+    setDishes(prev => prev.filter(dish => dish.id !== id));
+  };
+  
   return (
     <div className="dishes-container">
+      {/* Sử dụng Loading component */}
+      <Loading visible={loading} text="Đang tải dữ liệu..." />
+      
       <div className="content-area">
         <div className="content">
           <div className="page-header">
             <h1>Quản lý món ăn</h1>
-            <button className="add-button">+ Thêm món ăn</button>
+            <div className="action-buttons">
+              <button className="import-button" onClick={showImportModal}>
+                <ImportOutlined /> Import File
+              </button>
+              <button className="add-button" onClick={showModal}>+ Thêm món ăn</button>
+            </div>
           </div>
           
           <div className="dishes-filter">
@@ -110,11 +151,11 @@ const Dishes = () => {
           
           <div className="dishes-grid-container">
             {loading ? (
-              <div className="loading">Đang tải dữ liệu...</div>
+              <Loading visible={true} text="Đang tải món ăn..." />
             ) : (
               <div className="dishes-grid">
                 {dishes.map(dish => (
-                  <div key={dish.id} className="dish-card">
+                  <div key={dish.id} className="dish-card" onClick={() => showDishDetail(dish)}>
                     <div className="dish-image">
                       <img src={dish.image} alt={dish.name} />
                       <span className="category-badge">{dish.category}</span>
@@ -127,16 +168,52 @@ const Dishes = () => {
                         <span className="cooking-time">{dish.cooking_time}</span>
                       </div>
                     </div>
-                    <div className="btn-actions">
-                      <button className="view-btn">Xem</button>
-                      <button className="edit-btn">Sửa</button>
-                      <button className="delete-btn">Xóa</button>
-                    </div>
+                    
+                    {/* Đã xóa nút xóa */}
                   </div>
                 ))}
               </div>
             )}
           </div>
+          
+          {/* Modal Thêm Món Ăn */}
+          <Modal
+            title={<span style={{ fontWeight: 700, fontSize: '18px' }}>Thêm món ăn mới</span>}
+            open={isModalVisible}
+            onCancel={handleCancel}
+            width={1600}
+            style={{ 
+              top: 10,
+              maxWidth: '90%',
+              margin: '0 auto'
+            }}
+            footer={null}
+          >
+            <DishForm
+              form={form}
+              onFinish={handleSubmit}
+              onCancel={handleCancel}
+              allIngredients={allIngredients}
+              isEdit={false}
+            />
+          </Modal>
+
+          {/* Modal Import File */}
+          <ImportFileModal 
+            isVisible={isImportModalVisible}
+            onCancel={handleImportCancel}
+            onImport={handleImport}
+          />
+          
+          {/* Modal Chi tiết món ăn */}
+          <DishDetailModal
+            isVisible={isDishDetailModalVisible}
+            onClose={handleDishDetailClose}
+            dish={selectedDish}
+            onEdit={handleEditDish}
+            onDelete={handleDeleteDish}
+            allIngredients={allIngredients}
+          />
         </div>
       </div>
     </div>

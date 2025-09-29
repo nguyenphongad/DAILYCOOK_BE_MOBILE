@@ -1,0 +1,91 @@
+.dish-detail-modal {
+  .modal-title {
+    font-weight: 700;
+    font-size: 18px;
+  }
+  
+  .ant-modal-body {
+    padding: 24px;
+    // max-height: calc(90vh - 150px);
+    overflow-y: auto;
+  }
+  
+  .dish-detail-content {
+    padding: 0 10px;
+    
+    .dish-image-container {
+      position: relative;
+      margin-bottom: 20px;
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      
+      .dish-image {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        border-radius: 8px;
+      }
+      
+      .category-tag {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        font-weight: 500;
+      }
+    }
+    
+    .dish-header {
+      margin-bottom: 24px;
+      
+      .dish-description {
+        font-size: 16px;
+        color: #666;
+      }
+    }
+    
+    .dish-info-table {
+      margin-top: 16px;
+      
+      .ant-descriptions-item-label {
+        font-weight: 500;
+      }
+    }
+    
+    .section-title {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    .ingredient-item {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      
+      .check-icon {
+        color: #52c41a;
+        margin-right: 8px;
+      }
+      
+      .ingredient-name {
+        flex: 1;
+      }
+      
+      .ingredient-amount {
+        font-weight: 500;
+        color: #666;
+      }
+    }
+    
+    .cooking-steps {
+      .ant-steps-item {
+        padding-bottom: 12px;
+        
+        .ant-steps-item-description {
+          margin-top: 8px;
+          margin-bottom: 16px;
+        }
+      }
+    }
+  }
+}

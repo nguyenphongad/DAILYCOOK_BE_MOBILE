@@ -1,0 +1,51 @@
+.dish-form {
+  // Đảm bảo form scroll được trong modal
+//   max-height: 70vh;
+  
+  .ant-card {
+    margin-bottom: 16px;
+  }
+  
+  .ant-form-item-label {
+    font-weight: 500;
+  }
+  
+  .ant-divider-inner-text {
+    font-weight: 600;
+  }
+  
+  // Custom styles cho các phần của form
+  .ingredient-tags {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    
+    .ant-tag {
+      margin: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+      
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+  
+  .ingredient-list {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  // Custom styles cho bước nấu ăn
+  .cooking-step {
+    margin-bottom: 16px;
+    
+    .ant-card-head-title {
+      font-weight: 600;
+    }
+  }
+  
+  .nutrition-section {
+    margin-top: 24px;
+  }
+}
