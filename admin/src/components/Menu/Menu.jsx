@@ -14,7 +14,7 @@ const Menu = () => {
   const [menuItems] = useState([
     { path: '/', label: 'Trang chủ', icon: <MdDashboard /> },
     { path: '/manage_meal', label: 'Quản lý món ăn', icon: <MdRestaurantMenu /> },
-    { path: '/manage_recipes', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
+    // { path: '/manage_recipes', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
     { path: '/manage_ingredients', label: 'Quản lý nguyên liệu', icon: <MdInventory /> },
     { path: '/manage_diet-types', label: 'Quản lý chế độ ăn', icon: <MdLocalDining /> },
     { path: '/manage_users', label: 'Quản lý người dùng', icon: <MdPeople /> },
