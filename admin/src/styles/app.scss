@@ -23,20 +23,37 @@
 body {
     margin: 0px;
     padding: 0px;
-
 }
 
-.add-button {
-    background: #4CAF50;
+// Nút nhập file
+.import-button {
+    background: #1890ff;
     color: white;
     border: none;
-    padding: 8px 16px;
     border-radius: 4px;
+    padding: 8px 16px;
     cursor: pointer;
-    transition: background 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 
     &:hover {
-        background: #45a049;
+        background: #40a9ff;
+    }
+}
+
+// Nút thêm mới
+.add-button {
+    background: #52c41a;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover {
+        background: #73d13d;
     }
 }
 
@@ -65,6 +82,13 @@ body {
             background: #4CAF49;
         }
     }
+}
+
+.container-filter {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
 }
 
 .filters {
@@ -172,27 +196,27 @@ body {
 }
 
 .app-container {
-  display: flex;
-  min-height: 100vh;
+    display: flex;
+    min-height: 100vh;
 }
 
 .layout-container {
-  flex: 1;
-  margin-left: 250px;
-  transition: margin-left 0.3s ease;
+    flex: 1;
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
 
-  .content {
-    padding: 60px 0px 0px; // Padding-top để không bị header che
-    padding-bottom:  0px; // Padding-top để không bị header che
-    min-height: calc(100vh - 60px); // Chiều cao tối thiểu là chiều cao màn hình trừ header
-  }
+    .content {
+        padding: 60px 0px 0px; // Padding-top để không bị header che
+        padding-bottom: 0px; // Padding-top để không bị header che
+        min-height: calc(100vh - 60px); // Chiều cao tối thiểu là chiều cao màn hình trừ header
+    }
 }
 
 // Responsive
 @media (max-width: 768px) {
-  .layout-container {
-    margin-left: 0;
-  }
+    .layout-container {
+        margin-left: 0;
+    }
 }
 
 .container_layout {
