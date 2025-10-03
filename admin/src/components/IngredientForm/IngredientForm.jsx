@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
-import { Form, Input, Select, Button, Row, Col, Upload, InputNumber, Divider, Card, Typography } from 'antd';
+import {
+    Form,
+    Input,
+    Select,
+    Button,
+    Row,
+    Col,
+    Upload,
+    InputNumber,
+    Divider,
+    Card
+} from 'antd';
 import { PlusOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 const { TextArea } = Input;
-const { Text } = Typography;
 
 const IngredientForm = ({
     form,
@@ -15,9 +25,11 @@ const IngredientForm = ({
     allMeasureUnits,
     isEdit = false
 }) => {
+    // State quản lý danh sách công dụng phổ biến
     const [commonUses, setCommonUses] = useState(initialValues?.commonUses || []);
     const [newUse, setNewUse] = useState('');
 
+    // Thêm công dụng mới
     const addCommonUse = () => {
         if (newUse.trim()) {
             setCommonUses([...commonUses, newUse.trim()]);
@@ -25,14 +37,16 @@ const IngredientForm = ({
         }
     };
 
+    // Xóa công dụng theo index
     const removeCommonUse = (index) => {
         setCommonUses(commonUses.filter((_, i) => i !== index));
     };
 
+    // Xử lý submit form
     const handleSubmit = (values) => {
         const ingredientData = {
             ...values,
-            commonUses,
+            commonUses, // merge thêm công dụng phổ biến
         };
         onFinish(ingredientData);
     };
@@ -46,12 +60,13 @@ const IngredientForm = ({
             className="ingredient-form"
         >
             <Row gutter={24}>
-                {/* Bên trái */}
+                {/* ================== CỘT TRÁI: Thông tin nguyên liệu ================== */}
                 <Col span={14}>
                     <Card
                         title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Thông tin nguyên liệu</span>}
                         variant="bordered"
                     >
+                        {/* Tên nguyên liệu */}
                         <Form.Item
                             name="nameIngredient"
                             label="Tên nguyên liệu"
@@ -60,6 +75,7 @@ const IngredientForm = ({
                             <Input placeholder="Nhập tên nguyên liệu" />
                         </Form.Item>
 
+                        {/* Danh mục nguyên liệu */}
                         <Form.Item
                             name="ingredientCategory"
                             label="Danh mục"
@@ -74,7 +90,7 @@ const IngredientForm = ({
                             </Select>
                         </Form.Item>
 
-
+                        {/* Số lượng + đơn vị */}
                         <Row gutter={16}>
                             <Col span={12}>
                                 <Form.Item
@@ -103,15 +119,17 @@ const IngredientForm = ({
                             </Col>
                         </Row>
 
+                        {/* Mô tả */}
                         <Form.Item name="description" label="Mô tả">
                             <TextArea rows={3} placeholder="Mô tả ngắn gọn về nguyên liệu" />
                         </Form.Item>
 
+                        {/* Ảnh nguyên liệu */}
                         <Form.Item name="ingredientImage" label="Hình ảnh">
                             <Upload
                                 listType="picture"
                                 maxCount={1}
-                                beforeUpload={() => false}
+                                beforeUpload={() => false} // không upload ngay mà giữ file local
                                 defaultFileList={
                                     initialValues?.image
                                         ? [
@@ -129,47 +147,11 @@ const IngredientForm = ({
                             </Upload>
                         </Form.Item>
                     </Card>
-
-                    <Divider />
-
-                    <Card
-                        title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Công dụng phổ biến</span>}
-                        variant="bordered"
-                    >
-                        <Row gutter={8} style={{ marginBottom: 12 }}>
-                            <Col span={18}>
-                                <Input
-                                    value={newUse}
-                                    placeholder="Thêm công dụng"
-                                    onChange={(e) => setNewUse(e.target.value)}
-                                    onPressEnter={addCommonUse}
-                                />
-                            </Col>
-                            <Col span={6}>
-                                <Button type="primary" onClick={addCommonUse} block icon={<PlusOutlined />}>
-                                    Thêm
-                                </Button>
-                            </Col>
-                        </Row>
-
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                            {commonUses.map((use, index) => (
-                                <Button
-                                    key={index}
-                                    size="small"
-                                    style={{ borderRadius: 20 }}
-                                    onClick={() => removeCommonUse(index)}
-                                    icon={<DeleteOutlined />}
-                                >
-                                    {use}
-                                </Button>
-                            ))}
-                        </div>
-                    </Card>
                 </Col>
 
-                {/* Bên phải */}
+                {/* ================== CỘT PHẢI: Dinh dưỡng + Công dụng ================== */}
                 <Col span={10}>
+                    {/* Thông tin dinh dưỡng */}
                     <Card
                         title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Thông tin dinh dưỡng (tùy chọn)</span>}
                         variant="bordered"
@@ -199,9 +181,55 @@ const IngredientForm = ({
                             </Col>
                         </Row>
                     </Card>
+
+                    <Divider />
+
+                    {/* Công dụng phổ biến */}
+                    <Card
+                        title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Công dụng phổ biến</span>}
+                        variant="bordered"
+                    >
+                        {/* Input thêm công dụng */}
+                        <Row gutter={8} style={{ marginBottom: 12 }}>
+                            <Col span={18}>
+                                <Input
+                                    value={newUse}
+                                    placeholder="Thêm công dụng"
+                                    onChange={(e) => setNewUse(e.target.value)}
+                                    onPressEnter={addCommonUse}
+                                />
+                            </Col>
+                            <Col span={6}>
+                                <Button
+                                    type="primary"
+                                    onClick={addCommonUse}
+                                    block
+                                    icon={<PlusOutlined />}
+                                >
+                                    Thêm
+                                </Button>
+                            </Col>
+                        </Row>
+
+                        {/* Danh sách công dụng */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                            {commonUses.map((use, index) => (
+                                <Button
+                                    key={index}
+                                    size="small"
+                                    style={{ borderRadius: 20 }}
+                                    onClick={() => removeCommonUse(index)}
+                                    icon={<DeleteOutlined />}
+                                >
+                                    {use}
+                                </Button>
+                            ))}
+                        </div>
+                    </Card>
                 </Col>
             </Row>
 
+            {/* ================== FOOTER FORM ================== */}
             <div style={{ textAlign: 'right', marginTop: 24 }}>
                 <Button style={{ marginRight: 8 }} onClick={onCancel}>
                     Hủy
