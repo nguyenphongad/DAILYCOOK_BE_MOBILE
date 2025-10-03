@@ -113,6 +113,91 @@
           }
         }
       }
+
+      &.has-submenu {
+        .menu-item-with-submenu {
+          display: flex;
+          padding: 16px 20px;
+          color: white;
+          text-decoration: none;
+          transition: all 0.3s ease;
+          align-items: center;
+          white-space: nowrap;
+          cursor: pointer;
+
+          .icon {
+            margin-right: 15px;
+            font-size: 21px;
+            transition: all 0.3s ease;
+            min-width: 21px;
+          }
+
+          .text_menu {
+            margin-top: -2px;
+            transition: opacity 0.3s ease;
+            flex-grow: 1;
+          }
+
+          .submenu-arrow {
+            transition: transform 0.3s ease;
+            font-size: 20px;
+            
+            &.expanded {
+              transform: rotate(180deg);
+            }
+          }
+
+          &:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding-left: 25px;
+          }
+        }
+
+        .submenu {
+          list-style: none;
+          padding-left: 0;
+          margin: 0;
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.3s ease-out;
+          background-color: rgba(0, 0, 0, 0.1);
+          
+          &.expanded {
+            max-height: 300px; // Giá trị đủ lớn để hiện tất cả submenu items
+            transition: max-height 0.3s ease-in;
+          }
+          
+          li {
+            a {
+              padding: 12px 20px 12px 56px;
+              font-size: 14px;
+              display: flex;
+              align-items: center;
+              
+              .submenu-icon {
+                margin-right: 10px;
+                font-size: 16px;
+                min-width: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+              
+              &:hover {
+                padding-left: 60px;
+              }
+            }
+            
+            &.active {
+              background-color: rgba(255, 255, 255, 0.15);
+              
+              a .submenu-icon {
+                transform: scale(1.1);
+              }
+            }
+          }
+        }
+      }
     }
   }
 

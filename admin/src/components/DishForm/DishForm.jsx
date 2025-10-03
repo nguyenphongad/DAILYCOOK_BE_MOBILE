@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Input, Select, Button, Row, Col, Upload, InputNumber, Divider, Tag, List, Card, Typography } from 'antd';
-import { PlusOutlined, CloseOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, CloseOutlined, UploadOutlined, DeleteOutlined, PercentageOutlined } from '@ant-design/icons';
 
 
 const { Option } = Select;
@@ -325,30 +325,78 @@ const DishForm = ({ form, onFinish, onCancel, initialValues, allIngredients, isE
             </Form.Item>
 
             <Divider>
-              <span style={{ fontWeight: 600 }}>Thông tin dinh dưỡng (tùy chọn)</span>
+              <span style={{ fontWeight: 600 }}>Thông tin dinh dưỡng giảm/tăng sau khi có áp dụng công thức nấu</span>
             </Divider>
             
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item name={['nutrition', 'calories']} label="Calories">
-                  <InputNumber min={0} style={{ width: '100%' }} />
+                <Form.Item 
+                  name={['nutrition', 'calories']} 
+                  label="Calories (%)"
+                  rules={[
+                    { type: 'number', min: 0, max: 100, message: 'Giá trị phải từ 0-100%' }
+                  ]}
+                >
+                  <InputNumber 
+                    min={0} 
+                    max={100}
+                    formatter={value => `${value}%`}
+                    parser={value => value.replace('%', '')}
+                    style={{ width: '100%' }} 
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item name={['nutrition', 'protein']} label="Protein (g)">
-                  <InputNumber min={0} style={{ width: '100%' }} />
+                <Form.Item 
+                  name={['nutrition', 'protein']} 
+                  label="Protein (%)"
+                  rules={[
+                    { type: 'number', min: 0, max: 100, message: 'Giá trị phải từ 0-100%' }
+                  ]}
+                >
+                  <InputNumber 
+                    min={0} 
+                    max={100}
+                    formatter={value => `${value}%`}
+                    parser={value => value.replace('%', '')}
+                    style={{ width: '100%' }} 
+                  />
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item name={['nutrition', 'carbs']} label="Carbs (g)">
-                  <InputNumber min={0} style={{ width: '100%' }} />
+                <Form.Item 
+                  name={['nutrition', 'carbs']} 
+                  label="Carbs (%)"
+                  rules={[
+                    { type: 'number', min: 0, max: 100, message: 'Giá trị phải từ 0-100%' }
+                  ]}
+                >
+                  <InputNumber 
+                    min={0} 
+                    max={100}
+                    formatter={value => `${value}%`}
+                    parser={value => value.replace('%', '')}
+                    style={{ width: '100%' }} 
+                  />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item name={['nutrition', 'fat']} label="Fat (g)">
-                  <InputNumber min={0} style={{ width: '100%' }} />
+                <Form.Item 
+                  name={['nutrition', 'fat']} 
+                  label="Fat (%)"
+                  rules={[
+                    { type: 'number', min: 0, max: 100, message: 'Giá trị phải từ 0-100%' }
+                  ]}
+                >
+                  <InputNumber 
+                    min={0} 
+                    max={100}
+                    formatter={value => `${value}%`}
+                    parser={value => value.replace('%', '')}
+                    style={{ width: '100%' }} 
+                  />
                 </Form.Item>
               </Col>
             </Row>
