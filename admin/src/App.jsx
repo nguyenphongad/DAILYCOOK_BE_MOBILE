@@ -8,13 +8,13 @@ import LoginPage from './pages/auth/LoginPage'
 import Home from './pages/Home/Home'
 import Users from './pages/Users/Users'
 import Dishes from './pages/Dishes/Dishes'
-import Ingredients from './pages/Ingredients/Ingredients'
 import DietTypePage from './pages/DietType/DietTypePage'
 import PrivateRoute from './routes/PrivateRoute'
 import PublicRoute from './routes/PublicRoute'
 import Layout from './pages/layout'
 import Recipes from './pages/Recipes/Recipes'
 import Loading from './components/Loading/Loading'
+import Ingredients1 from './pages/Ingredients/Ingredients1'
 
 function App() {
   const dispatch = useDispatch()
@@ -59,7 +59,7 @@ function App() {
         <Route path="/manage_ingredients" element={
           <Layout>
             <PrivateRoute element={
-              <Ingredients />} />
+              <Ingredients1 />} />
           </Layout>} />
         <Route path="/manage_recipes" element={
           <Layout>

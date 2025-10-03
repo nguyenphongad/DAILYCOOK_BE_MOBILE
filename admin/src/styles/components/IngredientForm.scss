@@ -1,0 +1,46 @@
+.ingredient-form {
+    .ant-card {
+        margin-bottom: 16px;
+    }
+
+    .ant-form-item-label {
+        font-weight: 500;
+    }
+
+    .ant-divider-inner-text {
+        font-weight: 600;
+    }
+
+    // Custom styles cho phần tag công dụng
+    .common-uses {
+        max-height: 200px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+
+        .ant-btn {
+            margin: 4px;
+            border-radius: 20px;
+            transition: all 0.3s;
+
+            &:hover {
+                background: #fafafa;
+                transform: scale(1.05);
+            }
+        }
+    }
+
+    // Custom styles cho danh sách nguyên liệu (nếu có list)
+    .ingredient-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    // Section dinh dưỡng
+    .nutrition-section {
+        margin-top: 24px;
+
+        .ant-form-item-label {
+            font-weight: 600;
+        }
+    }
+}

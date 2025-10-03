@@ -1,0 +1,208 @@
+{
+    "ingredients": [
+        {
+            "_id": "1",
+            "nameIngredient": "Thịt gà",
+            "description": "Thịt gà tươi, ít chất béo",
+            "ingredientCategory": "3",
+            "ingredientImage": "https://suckhoedoisong.qltns.mediacdn.vn/324455921873985536/2024/9/16/thit-ga-1726458605898981451967.jpg",
+            "defaultAmount": 100,
+            "defaultUnit": "g",
+            "nutrition": {
+                "calories": 239,
+                "protein": 27,
+                "carbs": 0,
+                "fat": 14
+            },
+            "commonUses": [
+                "Xào",
+                "Luộc",
+                "Nướng"
+            ]
+        },
+        {
+            "_id": "2",
+            "nameIngredient": "Cà rốt",
+            "description": "Rau củ giàu vitamin A",
+            "ingredientCategory": "1",
+            "ingredientImage": "https://cdn.tienphong.vn/images/7f5c70d3e738104229acfb7638bb6b02ac67c58eec83f4c6727d92353613fbb8196bf8171bdf00ee59e632379267a678db1b10efbc027cba1d42798aca4c668b/Carrots_Nantes1_RYXE.jpg",
+            "defaultAmount": 1,
+            "defaultUnit": "củ",
+            "nutrition": {
+                "calories": 41,
+                "protein": 1,
+                "carbs": 10,
+                "fat": 0
+            },
+            "commonUses": [
+                "Xào",
+                "Canh",
+                "Salad"
+            ]
+        },
+        {
+            "_id": "3",
+            "nameIngredient": "Sữa tươi TH true MILK",
+            "description": "Đồ uống giàu canxi",
+            "ingredientCategory": "5",
+            "ingredientImage": "https://suachobeyeu.vn/upload/images/sua-tuoi-th-true-milk-co-duong-hop-180ml-4-2.jpg",
+            "defaultAmount": 100,
+            "defaultUnit": "ml",
+            "nutrition": {
+                "calories": 42,
+                "protein": 3.4,
+                "carbs": 5,
+                "fat": 1
+            },
+            "commonUses": [
+                "Uống",
+                "Pha chế",
+                "Làm bánh"
+            ]
+        },
+        {
+            "_id": "4",
+            "nameIngredient": "Cá hồi",
+            "description": "Cá hồi tươi, giàu omega-3",
+            "ingredientCategory": "4",
+            "ingredientImage": "https://cdn2.fptshop.com.vn/unsafe/1920x0/filters:format(webp):quality(75)/cach_che_bien_ca_hoi_ngon_0_3975f19dd5.jpg",
+            "defaultAmount": 100,
+            "defaultUnit": "g",
+            "nutrition": {
+                "calories": 208,
+                "protein": 20,
+                "carbs": 0,
+                "fat": 13
+            },
+            "commonUses": [
+                "Nướng",
+                "Sashimi",
+                "Chiên"
+            ]
+        },
+        {
+            "_id": "5",
+            "nameIngredient": "Táo",
+            "description": "Trái cây giàu chất xơ và vitamin C",
+            "ingredientCategory": "2",
+            "ingredientImage": "https://tieudung.kinhtedothi.vn/upload_images/images/2020/10/10/tao.jpg",
+            "defaultAmount": 1,
+            "defaultUnit": "trái",
+            "nutrition": {
+                "calories": 52,
+                "protein": 0.3,
+                "carbs": 14,
+                "fat": 0.2
+            },
+            "commonUses": [
+                "Ăn tươi",
+                "Làm bánh",
+                "Nước ép"
+            ]
+        }
+    ],
+    "ingredientCategories": [
+        {
+            "_id": "1",
+            "keyword": "VEGETABLES",
+            "title": "Rau củ",
+            "description": "Các loại rau củ tươi ngon, đa dạng"
+        },
+        {
+            "_id": "2",
+            "keyword": "FRUITS",
+            "title": "Trái cây",
+            "description": "Trái cây giàu vitamin và khoáng chất"
+        },
+        {
+            "_id": "3",
+            "keyword": "MEAT",
+            "title": "Thịt",
+            "description": "Các loại thịt tươi ngon, giàu dinh dưỡng"
+        },
+        {
+            "_id": "4",
+            "keyword": "SEAFOOD",
+            "title": "Hải sản",
+            "description": "Hải sản tươi ngon từ biển"
+        },
+        {
+            "_id": "5",
+            "keyword": "DAIRY",
+            "title": "Sữa & chế phẩm",
+            "description": "Sữa và các sản phẩm từ sữa"
+        }
+    ],
+    "measurementUnits": [
+        {
+            "key": "GRAM",
+            "value": "g",
+            "title": "Gram"
+        },
+        {
+            "key": "KILOGRAM",
+            "value": "kg",
+            "title": "Kilogram"
+        },
+        {
+            "key": "MILLILITER",
+            "value": "ml",
+            "title": "Mililít"
+        },
+        {
+            "key": "LITER",
+            "value": "l",
+            "title": "Lít"
+        },
+        {
+            "key": "TEASPOON",
+            "value": "thìa cà phê",
+            "title": "Thìa cà phê"
+        },
+        {
+            "key": "TABLESPOON",
+            "value": "thìa canh",
+            "title": "Thìa canh"
+        },
+        {
+            "key": "CUP",
+            "value": "cốc",
+            "title": "Cốc"
+        },
+        {
+            "key": "PIECE",
+            "value": "cái",
+            "title": "Cái/miếng"
+        },
+        {
+            "key": "FRUIT",
+            "value": "trái",
+            "title": "Trái (hoa quả)"
+        },
+        {
+            "key": "ROOT",
+            "value": "củ",
+            "title": "Củ (khoai, hành…)"
+        },
+        {
+            "key": "SLICE",
+            "value": "lát",
+            "title": "Lát"
+        },
+        {
+            "key": "BUNCH",
+            "value": "bó",
+            "title": "Bó"
+        },
+        {
+            "key": "CLOVE",
+            "value": "tép",
+            "title": "Tép (tỏi)"
+        },
+        {
+            "key": "PINCH",
+            "value": "nhúm",
+            "title": "Nhúm (muối, tiêu…)"
+        }
+    ]
+}
