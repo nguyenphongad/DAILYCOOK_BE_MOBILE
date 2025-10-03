@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { MdDashboard, MdPeople, MdRestaurantMenu, MdShoppingBasket, MdInventory, MdInfo, MdLocalDining } from 'react-icons/md'
+import { MdDashboard, MdPeople, MdRestaurantMenu, MdShoppingBasket, MdInventory, MdInfo, MdLocalDining, MdKeyboardArrowDown, MdCategory, MdFoodBank } from 'react-icons/md'
 import { Modal } from 'antd'
 import logoImage from '../../assets/logo.png'
+import { BiSolidDuplicate } from "react-icons/bi";
 
 const Menu = () => {
   const location = useLocation()
@@ -10,10 +11,20 @@ const Menu = () => {
   const [activeMenuIndex, setActiveMenuIndex] = useState(0)
   const menuRef = useRef(null)
   const floatingBorderRef = useRef(null)
-  
+  const [expandedMenus, setExpandedMenus] = useState({})
+
   const [menuItems] = useState([
     { path: '/', label: 'Trang chủ', icon: <MdDashboard /> },
-    { path: '/manage_meal', label: 'Quản lý món ăn', icon: <MdRestaurantMenu /> },
+    {
+      path: '/manage_categorys', label: 'Quản lý danh mục', icon: <BiSolidDuplicate />,
+      submenu: [
+        { path: '/manage_category/ingredients', label: 'Nguyên liệu', icon: <MdInventory /> },
+        { path: '/manage_category/meals', label: 'Món ăn', icon: <MdFoodBank /> },
+      ]
+    },
+    {
+      path: '/manage_meal', label: 'Quản lý món ăn', icon: <MdRestaurantMenu />,
+    },
     // { path: '/manage_recipes', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
     { path: '/manage_ingredients', label: 'Quản lý nguyên liệu', icon: <MdInventory /> },
     { path: '/manage_diet-types', label: 'Quản lý chế độ ăn', icon: <MdLocalDining /> },
@@ -22,8 +33,31 @@ const Menu = () => {
 
   // Tìm menu item đang active dựa vào path
   useEffect(() => {
-    const index = menuItems.findIndex(item => item.path === location.pathname);
-    setActiveMenuIndex(index !== -1 ? index : 0);
+    const currentPath = location.pathname;
+
+    // Kiểm tra đường dẫn chính và submenu
+    for (let i = 0; i < menuItems.length; i++) {
+      const item = menuItems[i];
+
+      // Kiểm tra path chính
+      if (item.path === currentPath) {
+        setActiveMenuIndex(i);
+        return;
+      }
+
+      // Kiểm tra trong submenu nếu có
+      if (item.submenu) {
+        const subIndex = item.submenu.findIndex(sub => sub.path === currentPath);
+        if (subIndex !== -1) {
+          setActiveMenuIndex(i);
+          setExpandedMenus(prev => ({ ...prev, [i]: true }));
+          return;
+        }
+      }
+    }
+
+    // Nếu không tìm thấy, đặt về menu đầu tiên
+    setActiveMenuIndex(0);
   }, [location, menuItems]);
 
   // Di chuyển floating border đến menu item đang active
@@ -35,7 +69,7 @@ const Menu = () => {
         const menuTop = menuRef.current.getBoundingClientRect().top;
         const itemTop = activeItem.getBoundingClientRect().top;
         const offsetTop = itemTop - menuTop;
-        
+
         // Cập nhật vị trí của floating border
         floatingBorderRef.current.style.top = `${offsetTop}px`;
         floatingBorderRef.current.style.opacity = '1';
@@ -43,33 +77,70 @@ const Menu = () => {
         floatingBorderRef.current.style.opacity = '0';
       }
     }
-  }, [activeMenuIndex, location.pathname]);
+  }, [activeMenuIndex, location.pathname, expandedMenus]);
+
+  const toggleSubmenu = (index) => {
+    setExpandedMenus(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
 
   return (
     <div className="menu" ref={menuRef}>
       {/* Floating border element */}
       <div className="floating-border" ref={floatingBorderRef}></div>
-      
+
       <div className="menu-header">
         <img src={logoImage} alt="DailyCook Logo" className="menu-logo" />
         <h2>DAILYCOOK</h2>
       </div>
-      
+
       <ul className="menu-items">
         {menuItems.map((item, index) => (
           <li
             key={item.path}
-            className={location.pathname === item.path ? 'active' : ''}
+            className={`${location.pathname === item.path ? 'active' : ''} ${item.submenu ? 'has-submenu' : ''}`}
             title={item.label}
           >
-            <Link to={item.path}>
-              <span className="icon">{item.icon}</span>
-              <span className="label text_menu">{item.label}</span>
-            </Link>
+            {item.submenu ? (
+              <>
+                <div
+                  className="menu-item-with-submenu"
+                  onClick={() => toggleSubmenu(index)}
+                >
+                  <span className="icon">{item.icon}</span>
+                  <span className="label text_menu">{item.label}</span>
+                  <span className={`submenu-arrow ${expandedMenus[index] ? 'expanded' : ''}`}>
+                    <MdKeyboardArrowDown />
+                  </span>
+                </div>
+                {item.submenu && (
+                  <ul className={`submenu ${expandedMenus[index] ? 'expanded' : ''}`}>
+                    {item.submenu.map((subItem) => (
+                      <li
+                        key={subItem.path}
+                        className={location.pathname === subItem.path ? 'active' : ''}
+                      >
+                        <Link to={subItem.path}>
+                          <span className="submenu-icon">{subItem.icon}</span>
+                          <span className="label">{subItem.label}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            ) : (
+              <Link to={item.path}>
+                <span className="icon">{item.icon}</span>
+                <span className="label text_menu">{item.label}</span>
+              </Link>
+            )}
           </li>
         ))}
       </ul>
-      
+
       <div className="menu-footer">
         <div className="system-info">
           <p>Hệ thống khóa luận tốt nghiệp</p>
