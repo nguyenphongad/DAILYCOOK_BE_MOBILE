@@ -1,0 +1,79 @@
+{
+    "mealCategories": [
+        {
+            "keyword": "MAIN_DISH",
+            "title": "Món chính / Món mặn",
+            "description": "Các món ăn chính, thường ăn với cơm, có thịt/cá/trứng."
+        },
+        {
+            "keyword": "SIDE_DISH",
+            "title": "Món phụ",
+            "description": "Món ăn kèm, thường ít nguyên liệu và dễ chế biến."
+        },
+        {
+            "keyword": "SOUP",
+            "title": "Canh / Súp",
+            "description": "Các loại canh Việt Nam hoặc súp kiểu Âu."
+        },
+        {
+            "keyword": "SALAD",
+            "title": "Salad / Gỏi",
+            "description": "Các món rau, gỏi, trộn."
+        },
+        {
+            "keyword": "APPETIZER",
+            "title": "Khai vị",
+            "description": "Món nhẹ dùng trước bữa chính."
+        },
+        {
+            "keyword": "DESSERT",
+            "title": "Món ngọt / Tráng miệng",
+            "description": "Các loại chè, bánh, kem, đồ ngọt."
+        },
+        {
+            "keyword": "SNACK",
+            "title": "Ăn vặt",
+            "description": "Các món ăn vặt như bánh tráng trộn, nem chua rán."
+        },
+        {
+            "keyword": "BEVERAGE",
+            "title": "Thức uống",
+            "description": "Các loại nước ép, trà, sinh tố, đồ uống khác."
+        },
+        {
+            "keyword": "BREAKFAST",
+            "title": "Món sáng",
+            "description": "Các món ăn sáng phổ biến như phở, bún, xôi, bánh mì."
+        },
+        {
+            "keyword": "STREET_FOOD",
+            "title": "Đồ ăn đường phố",
+            "description": "Các món như bánh tráng nướng, bắp xào."
+        },
+        {
+            "keyword": "VEGETARIAN",
+            "title": "Món chay",
+            "description": "Món ăn từ rau củ, không có thịt cá."
+        },
+        {
+            "keyword": "FAST_FOOD",
+            "title": "Đồ ăn nhanh",
+            "description": "Các món kiểu Tây như hamburger, pizza, gà rán."
+        },
+        {
+            "keyword": "TRADITIONAL",
+            "title": "Món truyền thống",
+            "description": "Đặc sản Việt như bánh chưng, bún bò Huế..."
+        },
+        {
+            "keyword": "FESTIVE",
+            "title": "Món lễ / Tiệc",
+            "description": "Các món thường nấu vào dịp giỗ, cưới, Tết."
+        },
+        {
+            "keyword": "OTHER",
+            "title": "Khác",
+            "description": "Các loại món khác không thuộc nhóm trên."
+        }
+    ]
+}
