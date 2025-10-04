@@ -15,8 +15,8 @@ import Layout from './pages/layout'
 import Recipes from './pages/Recipes/Recipes'
 import Loading from './components/Loading/Loading'
 import Ingredients1 from './pages/Ingredients/Ingredients1'
-import ManageIngredient from './pages/categorys/ManageIngredient'
-import ManageMeal from './pages/categorys/ManageMeal'
+import ManageIngredient from "./pages/categories/ManageIngredient"
+import ManageMeal from './pages/categories/ManageMeal'
 
 function App() {
   const dispatch = useDispatch()
