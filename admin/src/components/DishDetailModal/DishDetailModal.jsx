@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Modal, Row, Col, Image, Typography, Divider, Descriptions, Tag, Card, List, Steps, Button, Form } from 'antd';
-import { 
-  CheckCircleOutlined, 
-  ClockCircleOutlined, 
-  TeamOutlined, 
-  FireOutlined, 
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  TeamOutlined,
+  FireOutlined,
   StarOutlined,
   EditOutlined,
   DeleteOutlined
@@ -17,9 +17,10 @@ const { Step } = Steps;
 const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngredients }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [form] = Form.useForm();
-  
+  const [modal, contextHolder] = Modal.useModal();
+
   if (!dish) return null;
-  
+
   // Dữ liệu mẫu để hiển thị (trong thực tế sẽ lấy từ API)
   const mockIngredients = [
     { id: 1, name: "Thịt gà", amount: "500g" },
@@ -31,7 +32,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
     { id: 7, name: "Dầu ăn", amount: "2 muỗng canh" },
     { id: 8, name: "Tỏi", amount: "3 tép" }
   ];
-  
+
   const mockSteps = [
     {
       title: "Sơ chế nguyên liệu",
@@ -50,39 +51,43 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
       content: "Nêm nếm lại cho vừa ăn, rắc thêm hành lá, ớt, rau mùi. Dọn ra đĩa."
     }
   ];
-  
+
   const handleEditClick = () => {
     setIsEditing(true);
   };
-  
+
   const handleCancelEdit = () => {
     setIsEditing(false);
     form.resetFields();
   };
-  
+
   const handleSaveEdit = (values) => {
     if (onEdit) {
       onEdit({ ...values, id: dish.id });
     }
     setIsEditing(false);
   };
-  
+
+  // Xóa nguyên liệu (hiện modal confirm)
   const handleDelete = () => {
-    if (onDelete) {
-      Modal.confirm({
-        title: 'Xác nhận xóa',
-        content: 'Bạn có chắc chắn muốn xóa món ăn này?',
-        okText: 'Xóa',
-        okType: 'danger',
-        cancelText: 'Hủy',
-        onOk: () => {
-          onDelete(dish.id);
-          onClose();
+    if (!dish) return;
+
+    modal.confirm({
+      title: 'Xác nhận xóa',
+      content: `Bạn có chắc chắn muốn xóa nguyên liệu "${dish.name}" không?`,
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      centered: true,
+      onOk: () => {
+        if (onDelete) {
+          onDelete(dish._id);
         }
-      });
-    }
+        onClose();
+      }
+    });
   };
-  
+
   // Nếu đang trong chế độ chỉnh sửa, hiển thị form thay vì thông tin chi tiết
   if (isEditing) {
     return (
@@ -91,7 +96,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
         open={isVisible}
         onCancel={handleCancelEdit}
         width={1600}
-        style={{ 
+        style={{
           top: 10,
           maxWidth: '90%',
           margin: '0 auto'
@@ -99,7 +104,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
         footer={null}
         className="dish-detail-modal editing"
       >
-        <DishForm 
+        <DishForm
           form={form}
           initialValues={dish}
           onFinish={handleSaveEdit}
@@ -110,7 +115,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
       </Modal>
     );
   }
-  
+
   // Hiển thị thông tin chi tiết món ăn
   return (
     <Modal
@@ -118,8 +123,8 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
       open={isVisible}
       onCancel={onClose}
       width={1600}
-      style={{ 
-        top: 10,
+      style={{
+        top: 20,
         maxWidth: '90%',
         margin: '0 auto'
       }}
@@ -143,8 +148,8 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
       <Row gutter={24}>
         {/* Phần bên trái (60%) - Thông tin cơ bản và nguyên liệu */}
         <Col span={14}>
-          <Card 
-            title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Thông tin cơ bản</span>} 
+          <Card
+            title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Thông tin cơ bản</span>}
             variant="bordered"
           >
             <Row gutter={16}>
@@ -162,7 +167,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
                 <Title level={3}>{dish.name}</Title>
                 <Tag color="#4CAF50" style={{ marginBottom: 16 }}>{dish.category}</Tag>
                 <Paragraph>{dish.description}</Paragraph>
-                
+
                 <Descriptions column={1} size="small">
                   <Descriptions.Item label={<strong>Thời gian nấu</strong>}>
                     <ClockCircleOutlined style={{ marginRight: 8 }} />{dish.cooking_time}
@@ -186,8 +191,8 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
 
           <Divider />
 
-          <Card 
-            title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Nguyên liệu</span>} 
+          <Card
+            title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Nguyên liệu</span>}
             variant="bordered"
           >
             <List
@@ -196,7 +201,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
               renderItem={item => (
                 <List.Item>
                   <div className="ingredient-item">
-                    <CheckCircleOutlined className="check-icon" /> 
+                    <CheckCircleOutlined className="check-icon" />
                     <span className="ingredient-name">{item.name}</span>
                     <span className="ingredient-amount">{item.amount}</span>
                   </div>
@@ -208,8 +213,8 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
 
         {/* Phần bên phải (40%) - Các bước thực hiện */}
         <Col span={10}>
-          <Card 
-            title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Công thức nấu ăn</span>} 
+          <Card
+            title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Công thức nấu ăn</span>}
             variant="bordered"
           >
             <div style={{ marginBottom: 16 }}>
@@ -223,7 +228,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
                 className="cooking-steps"
               >
                 {mockSteps.map((step, index) => (
-                  <Step 
+                  <Step
                     key={index}
                     title={<Text strong>{step.title}</Text>}
                     description={<Paragraph>{step.content}</Paragraph>}
@@ -235,7 +240,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
             <Divider>
               <span style={{ fontWeight: 600 }}>Thông tin dinh dưỡng</span>
             </Divider>
-            
+
             <Row gutter={16}>
               <Col span={12}>
                 <Card size="small" title="Calories" variant="bordered">
@@ -271,6 +276,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
           </Card>
         </Col>
       </Row>
+      {contextHolder}
     </Modal>
   );
 };

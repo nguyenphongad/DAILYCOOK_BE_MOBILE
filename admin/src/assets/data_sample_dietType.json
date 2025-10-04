@@ -1,0 +1,31 @@
+{
+  "dietType": [
+    {
+      "_id": "1",
+      "keyword": "ketogenic",
+      "title": "Keto",
+      "description": "Chế độ ăn ít carb, nhiều chất béo lành mạnh giúp cơ thể đốt cháy chất béo thay vì carbohydrate.",
+      "descriptionDetail": "Chế độ ăn Keto (viết tắt của Ketogenic) là một phương pháp ăn uống tập trung vào việc giảm lượng carbohydrate và tăng cường chất béo để đưa cơ thể vào trạng thái ketosis - khi cơ thể đốt cháy chất béo thay vì glucose để lấy năng lượng. Chế độ ăn này thường bao gồm 70-80% chất béo, 15-25% protein và chỉ 5-10% carbohydrate.",
+      "researchSource": "Journal of Nutrition and Metabolism, 2018",
+      "dietTypeImage": "https://images.unsplash.com/photo-1490645935967-10de6ba17061"
+    },
+    {
+      "_id": "2",
+      "keyword": "plant-based",
+      "title": "Thuần chay",
+      "description": "Chế độ ăn dựa hoàn toàn vào thực vật mà không có thực phẩm có nguồn gốc động vật.",
+      "descriptionDetail": "Chế độ ăn thuần chay loại bỏ tất cả các sản phẩm có nguồn gốc động vật, bao gồm thịt, cá, sữa, trứng và mật ong. Thay vào đó, nó tập trung vào rau, trái cây, đậu, hạt, ngũ cốc và các thực phẩm từ thực vật khác. Chế độ ăn này không chỉ là một lựa chọn dinh dưỡng mà còn là lối sống ủng hộ động vật và bảo vệ môi trường.",
+      "researchSource": "American Journal of Clinical Nutrition, 2019",
+      "dietTypeImage": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd"
+    },
+    {
+      "_id": "3",
+      "keyword": "mediterranean",
+      "title": "Địa Trung Hải",
+      "description": "Chế độ ăn dựa trên thói quen ăn uống truyền thống của các quốc gia quanh Địa Trung Hải.",
+      "descriptionDetail": "Chế độ ăn Địa Trung Hải bao gồm nhiều rau, trái cây, ngũ cốc nguyên hạt, đậu, hạt và dầu ô liu. Nó cũng bao gồm một lượng vừa phải cá, gia cầm, trứng và các sản phẩm từ sữa, nhưng hạn chế thịt đỏ. Mô hình ăn uống này đã được chứng minh là có nhiều lợi ích cho sức khỏe tim mạch và tuổi thọ.",
+      "researchSource": "New England Journal of Medicine, 2020",
+      "dietTypeImage": "https://images.unsplash.com/photo-1498837167922-ddd27525d352"
+    }
+  ]
+}
