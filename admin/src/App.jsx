@@ -15,8 +15,10 @@ import Layout from './pages/layout'
 import Recipes from './pages/Recipes/Recipes'
 import Loading from './components/Loading/Loading'
 import Ingredients1 from './pages/Ingredients/Ingredients1'
+
 import ManageIngredientCategories from "./pages/categories/ManageIngredientCategories"
 import ManageMeal from './pages/categories/ManageMeal'
+
 
 function App() {
   const dispatch = useDispatch()
@@ -79,7 +81,7 @@ function App() {
           </Layout>} />
         <Route path="/manage_category/meals" element={
           <Layout>
-            <PrivateRoute element={<ManageMeal />} />
+            <PrivateRoute element={<ManageMealCategories />} />
           </Layout>} />
       </Routes>
     </>
