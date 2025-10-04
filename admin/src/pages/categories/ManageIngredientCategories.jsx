@@ -6,10 +6,11 @@ import sampleData from '../../assets/data_sample_ingredientCategory.json';
 import Loading from '../../components/Loading/Loading';
 import IngredientCategoryForm from '../../components/Categories/IngredientCategoryForm';
 
-const ManageIngredient = () => {
+const ManageIngredientCategories = () => {
     const [ingredientCategories, setIngredientCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState(null); // << lưu danh mục được chọn
     const [form] = Form.useForm();
 
     useEffect(() => {
@@ -24,24 +25,48 @@ const ManageIngredient = () => {
     }, []);
 
     const showModalAddIngredientCategory = () => {
+        setSelectedCategory(null); // thêm mới thì không có category
+        form.resetFields();
         setIsModalVisible(true);
     };
 
     const handleCancel = () => {
         form.resetFields();
+        setSelectedCategory(null);
         setIsModalVisible(false);
     };
 
     const handleSubmit = (values) => {
-        console.log("Dữ liệu form:", values);
-        const newIngredientCategory = {
-            _id: Date.now().toString(),
-            keyword: values.keyword,
-            title: values.title,
-            description: values.description
+        if (selectedCategory) {
+            // Update (Edit)
+            setIngredientCategories(prev =>
+                prev.map(cat =>
+                    cat._id === selectedCategory._id ? { ...cat, ...values } : cat
+                )
+            );
+        } else {
+            // Add
+            const newIngredientCategory = {
+                _id: Date.now().toString(),
+                keyword: values.keyword,
+                title: values.title,
+                description: values.description
+            };
+            setIngredientCategories(prev => [...prev, newIngredientCategory]);
         }
-        setIngredientCategories(prev => [...prev, newIngredientCategory]);
-        handleCancel()
+        handleCancel();
+    };
+
+    const handleDelete = (id) => {
+        setIngredientCategories(prev => prev.filter(cat => cat._id !== id));
+        handleCancel();
+    };
+
+    // Khi bấm vào card
+    const handleCardClick = (ingredientCategory) => {
+        setSelectedCategory(ingredientCategory);
+        form.setFieldsValue(ingredientCategory);
+        setIsModalVisible(true);
     };
 
     return (
@@ -76,7 +101,11 @@ const ManageIngredient = () => {
                         ) : (
                             <div className="ingredientCategories-grid">
                                 {ingredientCategories.map(ingredientCategory => (
-                                    <div key={ingredientCategory._id} className="ingredientCategory-card">
+                                    <div
+                                        key={ingredientCategory._id}
+                                        className="ingredientCategory-card"
+                                        onClick={() => handleCardClick(ingredientCategory)} // << click card để edit
+                                    >
                                         <div className="ingredientCategory-keyword">
                                             <span className="category-badge">{ingredientCategory.keyword}</span>
                                         </div>
@@ -92,14 +121,17 @@ const ManageIngredient = () => {
                 </div>
             </div>
 
-            {/* Modal Add Form */}
+            {/* Modal Form */}
             <Modal
-                title={<span style={{ fontWeight: 700, fontSize: '18px' }}>Thêm danh mục nguyên liệu mới</span>}
+                title={
+                    <span style={{ fontWeight: 700, fontSize: '18px' }}>
+                        {selectedCategory ? "Chỉnh sửa danh mục nguyên liệu" : "Thêm danh mục nguyên liệu mới"}
+                    </span>
+                }
                 open={isModalVisible}
                 onCancel={handleCancel}
                 width={1600}
                 style={{
-
                     maxWidth: '90%',
                     margin: '0 auto'
                 }}
@@ -109,11 +141,13 @@ const ManageIngredient = () => {
                     form={form}
                     onFinish={handleSubmit}
                     onCancel={handleCancel}
-                    isEdit={false}
+                    onDelete={handleDelete}
+                    ingredientCategory={selectedCategory}
+                    isEdit={!!selectedCategory}
                 />
             </Modal>
         </div>
     );
 };
 
-export default ManageIngredient;
+export default ManageIngredientCategories;

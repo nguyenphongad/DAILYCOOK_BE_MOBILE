@@ -1,5 +1,6 @@
 import React from 'react';
-import { Form, Input, Button, Card, Row, Col } from 'antd';
+import { Form, Input, Button, Card, Row, Col, Modal } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 
 const { TextArea } = Input;
 
@@ -7,15 +8,36 @@ const IngredientCategoryForm = ({
     form,
     onFinish,
     onCancel,
+    onDelete,
+    ingredientCategory,
     initialValues,
     isEdit = false
 }) => {
+    const [modal, contextHolder] = Modal.useModal();
+
     // Xử lý submit form
     const handleSubmit = (values) => {
-        const categoryData = {
-            ...values,
-        };
+        const categoryData = { ...values };
         onFinish(categoryData);
+    };
+
+    // Xóa nguyên liệu (hiện modal confirm)
+    const handleDelete = () => {
+        if (!ingredientCategory) return;
+
+        modal.confirm({
+            title: 'Xác nhận xóa',
+            content: `Bạn có chắc chắn muốn xóa danh mục "${ingredientCategory.title}" không?`,
+            okText: 'Xóa',
+            okType: 'danger',
+            cancelText: 'Hủy',
+            centered: true,
+            onOk: () => {
+                if (onDelete) {
+                    onDelete(ingredientCategory._id);
+                }
+            }
+        });
     };
 
     return (
@@ -24,16 +46,11 @@ const IngredientCategoryForm = ({
             layout="vertical"
             onFinish={handleSubmit}
             initialValues={initialValues}
-            style={{
-                '--form-label-font-weight': 500, 
-            }}
+            style={{ '--form-label-font-weight': 500 }}
         >
             <Row gutter={24}>
                 <Col span={24}>
-                    <Card
-                        variant="bordered"
-                        style={{ marginBottom: 16 }}
-                    >
+                    <Card variant="bordered" style={{ marginBottom: 16 }}>
                         {/* Keyword */}
                         <Form.Item
                             name="keyword"
@@ -61,14 +78,33 @@ const IngredientCategoryForm = ({
             </Row>
 
             {/* FOOTER FORM */}
-            <div style={{ textAlign: 'right', marginTop: 24 }}>
-                <Button style={{ marginRight: 8 }} onClick={onCancel}>
-                    Hủy
-                </Button>
-                <Button type="primary" htmlType="submit">
-                    {isEdit ? 'Lưu thay đổi' : 'Thêm danh mục'}
-                </Button>
+            <div
+                style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginTop: 24
+                }}
+            >
+                {/* Trái: Xóa (chỉ khi edit) */}
+                {isEdit ? (
+                    <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
+                        Xóa danh mục nguyên liệu
+                    </Button>
+                ) : (
+                    <div /> // giữ khoảng trống
+                )}
+
+                {/* Phải: Hủy + Thêm/Lưu */}
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <Button onClick={onCancel}>Hủy</Button>
+                    <Button type="primary" htmlType="submit">
+                        {isEdit ? 'Lưu thay đổi' : 'Thêm danh mục'}
+                    </Button>
+                </div>
             </div>
+
+            {contextHolder}
         </Form>
     );
 };

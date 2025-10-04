@@ -65,6 +65,7 @@ const IngredientDetailModal = ({
             okText: 'Xóa',
             okType: 'danger',
             cancelText: 'Hủy',
+            centered: true,
             onOk: () => {
                 if (onDelete) {
                     onDelete(ingredient._id);
