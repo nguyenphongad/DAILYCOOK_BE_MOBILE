@@ -17,7 +17,7 @@ import Loading from './components/Loading/Loading'
 import Ingredients1 from './pages/Ingredients/Ingredients1'
 
 import ManageIngredientCategories from "./pages/categories/ManageIngredientCategories"
-import ManageMeal from './pages/categories/ManageMeal'
+import ManageMealCategories from './pages/categories/ManageMealCategories'
 
 
 function App() {

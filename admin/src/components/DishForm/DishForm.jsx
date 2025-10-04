@@ -136,16 +136,7 @@ const DishForm = ({ form, onFinish, onCancel, initialValues, allIngredients, isE
             </Row>
 
             <Row gutter={16}>
-              <Col span={8}>
-                <Form.Item
-                  name="servings"
-                  label="Khẩu phần"
-                  rules={[{ required: true, message: 'Vui lòng nhập khẩu phần' }]}
-                >
-                  <InputNumber min={1} placeholder="Số người ăn" style={{ width: '100%' }} />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   name="prepTimeMinutes"
                   label="Thời gian chuẩn bị (phút)"
@@ -154,7 +145,7 @@ const DishForm = ({ form, onFinish, onCancel, initialValues, allIngredients, isE
                   <InputNumber min={1} style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item
                   name="cookTimeMinutes"
                   label="Thời gian nấu (phút)"
@@ -325,7 +316,7 @@ const DishForm = ({ form, onFinish, onCancel, initialValues, allIngredients, isE
             </Form.Item>
 
             <Divider>
-              <span style={{ fontWeight: 600 }}>Thông tin dinh dưỡng giảm/tăng sau khi có áp dụng công thức nấu</span>
+              <span style={{ fontWeight: 600 }}>Phần trăm dinh dưỡng tăng/giảm sau khi nấu:</span>
             </Divider>
             
             <Row gutter={16}>
