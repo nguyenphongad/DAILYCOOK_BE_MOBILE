@@ -15,8 +15,10 @@ import Layout from './pages/layout'
 import Recipes from './pages/Recipes/Recipes'
 import Loading from './components/Loading/Loading'
 import Ingredients1 from './pages/Ingredients/Ingredients1'
-import ManageIngredient from './pages/categorys/ManageIngredient'
-import ManageMealCategories from './pages/categorys/ManageMealCategories'
+
+import ManageIngredientCategories from "./pages/categories/ManageIngredientCategories"
+import ManageMeal from './pages/categories/ManageMeal'
+
 
 function App() {
   const dispatch = useDispatch()
@@ -75,7 +77,7 @@ function App() {
         {/* Thêm routes mới cho các submenu */}
         <Route path="/manage_category/ingredients" element={
           <Layout>
-            <PrivateRoute element={<ManageIngredient />} />
+            <PrivateRoute element={<ManageIngredientCategories />} />
           </Layout>} />
         <Route path="/manage_category/meals" element={
           <Layout>

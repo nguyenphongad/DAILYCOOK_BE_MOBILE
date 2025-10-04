@@ -190,7 +190,7 @@ const Ingredients1 = () => {
                 onCancel={handleCancel}
                 width={1600}
                 style={{
-                    top: 10,
+                    top: 20,
                     maxWidth: '90%',
                     margin: '0 auto'
                 }}
@@ -200,7 +200,6 @@ const Ingredients1 = () => {
                     form={form}
                     onFinish={handleSubmit}
                     onCancel={handleCancel}
-                    allIngredients={ingredients}
                     allIngredientCategories={allIngredientCategories}
                     allMeasureUnits={allMeasureUnits}
                     isEdit={false}

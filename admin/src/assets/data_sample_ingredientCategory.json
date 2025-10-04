@@ -1,0 +1,34 @@
+{
+    "ingredientCategories": [
+        {
+            "_id": "1",
+            "keyword": "VEGETABLES",
+            "title": "Rau củ",
+            "description": "Các loại rau củ tươi ngon, đa dạng"
+        },
+        {
+            "_id": "2",
+            "keyword": "FRUITS",
+            "title": "Trái cây",
+            "description": "Trái cây giàu vitamin và khoáng chất"
+        },
+        {
+            "_id": "3",
+            "keyword": "MEAT",
+            "title": "Thịt",
+            "description": "Các loại thịt tươi ngon, giàu dinh dưỡng"
+        },
+        {
+            "_id": "4",
+            "keyword": "SEAFOOD",
+            "title": "Hải sản",
+            "description": "Hải sản tươi ngon từ biển"
+        },
+        {
+            "_id": "5",
+            "keyword": "DAIRY",
+            "title": "Sữa & chế phẩm",
+            "description": "Sữa và các sản phẩm từ sữa"
+        }
+    ]
+}
