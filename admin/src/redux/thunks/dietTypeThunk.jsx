@@ -69,7 +69,7 @@ export const fetchDietTypeById = createAsyncThunk(
   }
 );
 
-// Thêm diet type mới
+// Thêm diet type mới với hỗ trợ upload ảnh
 export const addDietType = createAsyncThunk(
   'dietType/addDietType',
   async (dietTypeData, { dispatch, getState, rejectWithValue }) => {
@@ -77,6 +77,8 @@ export const addDietType = createAsyncThunk(
       dispatch(setLoading(true));
       
       const { token } = getState().auth;
+      
+      // dietTypeData đã chứa dietTypeImage URL từ Cloudinary
       const response = await post(ENDPOINT.ADD_DIET_TYPE, dietTypeData, token);
       
       if (response.status) {
@@ -89,14 +91,15 @@ export const addDietType = createAsyncThunk(
         return rejectWithValue(response.message);
       }
     } catch (error) {
-      dispatch(setError(error.message));
-      toast.error(error.message);
-      return rejectWithValue(error.message);
+      const errorMessage = error.message || 'Lỗi kết nối đến server';
+      dispatch(setError(errorMessage));
+      toast.error(errorMessage);
+      return rejectWithValue(errorMessage);
     }
   }
 );
 
-// Cập nhật diet type
+// Cập nhật diet type với hỗ trợ upload ảnh
 export const updateDietType = createAsyncThunk(
   'dietType/updateDietType',
   async ({ id, dietTypeData }, { dispatch, getState, rejectWithValue }) => {
@@ -104,6 +107,8 @@ export const updateDietType = createAsyncThunk(
       dispatch(setLoading(true));
       
       const { token } = getState().auth;
+      
+      // dietTypeData đã chứa dietTypeImage URL từ Cloudinary
       const response = await put(`${ENDPOINT.UPDATE_DIET_TYPE}/${id}`, dietTypeData, token);
       
       if (response.status) {
@@ -116,9 +121,10 @@ export const updateDietType = createAsyncThunk(
         return rejectWithValue(response.message);
       }
     } catch (error) {
-      dispatch(setError(error.message));
-      toast.error(error.message);
-      return rejectWithValue(error.message);
+      const errorMessage = error.message || 'Lỗi kết nối đến server';
+      dispatch(setError(errorMessage));
+      toast.error(errorMessage);
+      return rejectWithValue(errorMessage);
     }
   }
 );
