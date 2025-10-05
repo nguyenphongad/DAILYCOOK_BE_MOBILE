@@ -1,89 +1,118 @@
 import { useState, useEffect } from 'react';
-import { ImportOutlined } from '@ant-design/icons';
-import { Modal, Form } from 'antd';
+import { ImportOutlined, SearchOutlined } from '@ant-design/icons';
+import { Modal, Form, Input, Button, Empty, Spin, Pagination } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
 
-import sampleData from '../../assets/data_sample_dietType.json';
 import Loading from '../../components/Loading/Loading';
 import DietTypeForm from '../../components/DietTypeForm/DietTypeForm';
 import DietTypeDetailModal from '../../components/DietTypeDetailModal/DietTypeDetailModal';
+import { 
+  fetchDietTypes, 
+  addDietType, 
+  updateDietType, 
+  deleteDietType 
+} from '../../redux/thunks/dietTypeThunk';
 
 const DietTypePage = () => {
-    const [dietType, setDietType] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const dispatch = useDispatch();
+    const dietTypeState = useSelector(state => state.dietType);
+    
+    // Đảm bảo dietTypes luôn là một mảng
+    const { dietTypes = [], loading, pagination = { page: 1, limit: 10 } } = dietTypeState || {};
+    
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [isDietTpeDetailModalVisible, setIsDietTpeDetailModalVisible] = useState(false);
-    const [selectedCategory, setSelectedCategory] = useState(null); // << lưu danh mục được chọn
+    const [isDietTypeDetailModalVisible, setIsDietTypeDetailModalVisible] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState(null);
     const [form] = Form.useForm();
+    const [searchKeyword, setSearchKeyword] = useState('');
+    const [sortOrder, setSortOrder] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
 
-
+    // Tải dữ liệu khi component được mount
     useEffect(() => {
-        const fetchDietType = () => {
-            setLoading(true);
-            setTimeout(() => {
-                setLoading(false);
-                setDietType(sampleData.dietType);
-            }, 1000);
-        };
-        fetchDietType();
-    }, []);
+        dispatch(fetchDietTypes({ page: 1, limit: 10 }));
+    }, [dispatch]);
 
+    // Lọc danh sách diet types theo từ khóa tìm kiếm
+    const filteredDietTypes = (dietTypes || []).filter(item => 
+        (item.title || '').toLowerCase().includes(searchKeyword.toLowerCase()) || 
+        (item.keyword || '').toLowerCase().includes(searchKeyword.toLowerCase())
+    );
+
+    // Sắp xếp danh sách diet types
+    const sortedDietTypes = [...filteredDietTypes].sort((a, b) => {
+        if (sortOrder === 'name_asc') {
+            return (a.title || '').localeCompare(b.title || '');
+        } else if (sortOrder === 'name_desc') {
+            return (b.title || '').localeCompare(a.title || '');
+        }
+        return 0;
+    });
+
+    // Hiển thị modal thêm mới
     const showModalAddDietType = () => {
         setSelectedCategory(null);
         form.resetFields();
         setIsModalVisible(true);
     };
 
+    // Đóng modal thêm mới
     const handleCancel = () => {
         form.resetFields();
         setSelectedCategory(null);
         setIsModalVisible(false);
     };
 
+    // Xử lý submit form thêm mới
     const handleSubmit = (values) => {
         if (selectedCategory) {
-            // Update (Edit)
-            setDietType(prev =>
-                prev.map(cat =>
-                    cat._id === selectedCategory._id ? { ...cat, ...values } : cat
-                )
-            );
+            // Update existing diet type
+            dispatch(updateDietType({
+                id: selectedCategory._id, 
+                dietTypeData: values
+            }));
         } else {
-            // Add
-            const newDietType = {
-                _id: Date.now().toString(),
-                keyword: values.keyword,
-                title: values.title,
-                description: values.description,
-                descriptionDetail: values.descriptionDetail,
-                researchSource: values.researchSource,
-                dietTypeImage: values.dietTypeImage
-            };
-            setDietType(prev => [...prev, newDietType]);
+            // Add new diet type
+            dispatch(addDietType(values));
         }
         handleCancel();
     };
 
+    // Xử lý xóa chế độ ăn
     const handleDelete = (id) => {
-        setDietType(prev => prev.filter(cat => cat._id !== id));
-        handleCancel();
+        dispatch(deleteDietType(id));
+        setIsDietTypeDetailModalVisible(false);
     };
 
-    const showDietTypeDetail = (tmp) => {
-        setSelectedCategory(tmp);
-        setIsDietTpeDetailModalVisible(true);
+    // Hiển thị modal chi tiết
+    const showDietTypeDetail = (item) => {
+        setSelectedCategory(item);
+        setIsDietTypeDetailModalVisible(true);
     };
 
-
+    // Đóng modal chi tiết
     const handleDietTypeDetailClose = () => {
-        setIsDietTpeDetailModalVisible(false);
+        setIsDietTypeDetailModalVisible(false);
         setSelectedCategory(null);
     };
 
+    // Xử lý chỉnh sửa từ modal chi tiết
+    const handleEdit = (updatedDietType) => {
+        dispatch(updateDietType({
+            id: updatedDietType._id,
+            dietTypeData: updatedDietType
+        }));
+    };
 
-    const handleEditDietType = (tmp) => {
-        setDietType(prev =>
-            prev.map(ing => ing._id === tmp._id ? tmp : ing)
-        );
+    // Xử lý tìm kiếm
+    const handleSearch = () => {
+        // Thực hiện tìm kiếm client-side vì đã tải tất cả dữ liệu
+    };
+
+    // Xử lý phân trang
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        dispatch(fetchDietTypes({ page, limit: pagination.limit }));
     };
 
     return (
@@ -109,11 +138,20 @@ const DietTypePage = () => {
                     {/* Bộ lọc tìm kiếm */}
                     <div className="container-filter">
                         <div className="search-bar">
-                            <input type="text" placeholder="Tìm kiếm chế độ ăn..." />
-                            <button>Tìm</button>
+                            <Input 
+                                placeholder="Tìm kiếm chế độ ăn..." 
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
+                                prefix={<SearchOutlined />}
+                                onPressEnter={handleSearch}
+                            />
+                            <Button onClick={handleSearch} type="primary">Tìm</Button>
                         </div>
                         <div className="filters">
-                            <select>
+                            <select 
+                                value={sortOrder} 
+                                onChange={(e) => setSortOrder(e.target.value)}
+                            >
                                 <option value="">Sắp xếp theo</option>
                                 <option value="name_asc">Tên (A-Z)</option>
                                 <option value="name_desc">Tên (Z-A)</option>
@@ -121,42 +159,67 @@ const DietTypePage = () => {
                         </div>
                     </div>
 
-                    {/* Danh sách nguyên liệu */}
+                    {/* Danh sách chế độ ăn */}
                     <div className="ingredients-grid-container">
                         {loading ? (
-                            <Loading visible={true} text="Đang tải chế độ ăn..." />
-                        ) : (
+                            <div className="loading-container">
+                                <Spin size="large" />
+                            </div>
+                        ) : sortedDietTypes.length > 0 ? (
                             <div className="ingredients-grid">
-                                {dietType.map(tmp => (
+                                {sortedDietTypes.map(item => (
                                     <div
-                                        key={tmp._id}
+                                        key={item._id}
                                         className="ingredient-card"
-                                        onClick={() => showDietTypeDetail(tmp)}
+                                        onClick={() => showDietTypeDetail(item)}
                                     >
                                         <div className="ingredient-image">
-                                            <img src={tmp.dietTypeImage} alt={tmp.title} />
+                                            <img 
+                                                src={item.dietTypeImage || 'https://media.istockphoto.com/id/1433432507/vi/anh/%C4%83n-u%E1%BB%91ng-l%C3%A0nh-m%E1%BA%A1nh-%C4%91%C4%A9a-v%E1%BB%9Bi-th%E1%BB%B1c-ph%E1%BA%A9m-thu%E1%BA%A7n-chay-ho%E1%BA%B7c-chay-trong-tay-ph%E1%BB%A5-n%E1%BB%AF-ch%E1%BA%BF-%C4%91%E1%BB%99-%C4%83n-u%E1%BB%91ng-d%E1%BB%B1a.jpg?s=612x612&w=0&k=20&c=Z0BVb_z-mLjup_3f4Kvto5q0A0z8CqBjsHS7DSMaQ1k='} 
+                                                alt={item.title} 
+                                            />
                                             <span className="category-badge">
-                                                {tmp.keyword}
+                                                {item.keyword}
                                             </span>
                                         </div>
                                         <div className="ingredient-content">
-                                            <h3>{tmp.title}</h3>
-                                            <p className="description">{tmp.description}</p>
+                                            <h3>{item.title}</h3>
+                                            <p className="description">{item.description || 'Không có mô tả'}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                        ) : (
+                            <div className="empty-state">
+                                <Empty description="Không có chế độ ăn nào" />
+                            </div>
                         )}
                     </div>
+                    
+                    {/* Phân trang */}
+                    {pagination.total > 0 && (
+                        <div className="pagination-container">
+                            <Pagination
+                                current={pagination.page}
+                                total={pagination.total}
+                                pageSize={pagination.limit}
+                                onChange={handlePageChange}
+                                showSizeChanger={false}
+                                showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} mục`}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Modal thêm nguyên liệu */}
+            {/* Modal thêm chế độ ăn mới */}
             <Modal
-                title={<span style={{ fontWeight: 700, fontSize: '18px' }}>Thêm chế độ ăn mới</span>}
+                title={<span style={{ fontWeight: 700, fontSize: '18px' }}>
+                    Thêm chế độ ăn mới
+                </span>}
                 open={isModalVisible}
                 onCancel={handleCancel}
-                width={1600}
+                width={800}
                 centered
                 style={{
                     maxWidth: '90%',
@@ -169,14 +232,16 @@ const DietTypePage = () => {
                     onFinish={handleSubmit}
                     onCancel={handleCancel}
                     isEdit={false}
+                    initialValues={null}
                 />
             </Modal>
 
+            {/* Modal chi tiết chế độ ăn */}
             <DietTypeDetailModal
-                isVisible={isDietTpeDetailModalVisible}
+                isVisible={isDietTypeDetailModalVisible}
                 onClose={handleDietTypeDetailClose}
                 dietType={selectedCategory}
-                onEdit={handleEditDietType}
+                onEdit={handleEdit}
                 onDelete={handleDelete}
             />
         </div>

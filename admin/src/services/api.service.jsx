@@ -44,14 +44,14 @@ export const put = async (uri, data, token) => {
     }
 };
 
-export const del = async (uri, data, token) => {
+export const del = async (uri, token) => {
     try {
         const headers = {};
         if (token) {
             headers.Authorization = `Bearer ${token}`;
         }
 
-        const res = await apiServiceInstance.delete(uri, { headers, data });
+        const res = await apiServiceInstance.delete(uri, { headers });
         return res.data;
     } catch (error) {
         throw error;
