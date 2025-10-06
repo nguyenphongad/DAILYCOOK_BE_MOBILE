@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    ingredientCategories: [],
-    selectedIngredientCategory: null,
+    ingredients: [],
+    selectedIngredient: null,
     loading: false,
     error: null,
     success: false,
@@ -14,8 +14,8 @@ const initialState = {
     }
 }
 
-const ingredientCategorySlice = createSlice({
-    name: 'ingredientCategory',
+const ingredientSlice = createSlice({
+    name: 'ingredients',
     initialState,
     reducers: {
         // Các reducers chung
@@ -33,7 +33,7 @@ const ingredientCategorySlice = createSlice({
             state.success = action.payload;
         },
 
-        setIngredientCategories: (state, action) => {
+        setIngredients: (state, action) => {
             if (action.payload && action.payload.data) {
                 const { total, page, limit, totalPages, ingredientCategories } = action.payload.data;
 
@@ -50,40 +50,40 @@ const ingredientCategorySlice = createSlice({
             state.loading = false;
         },
 
-        setSelectedIngredientCategory: (state, action) => {
-            state.selectedIngredientCategory = action.payload;
+        setSelectedIngredient: (state, action) => {
+            state.selectedIngredient = action.payload;
         },
 
-        addIngredientCategoryToList: (state, action) => {
+        addIngredientToList: (state, action) => {
             state.ingredientCategories = [action.payload, ...state.ingredientCategories];
             state.pagination.total += 1;
             state.loading = false;
             state.success = true;
         },
 
-        updateIngredientCategoryInList: (state, action) => {
+        updateIngredientInList: (state, action) => {
             const index = state.ingredientCategories.findIndex(item => item._id === action.payload._id);
             if (index !== -1) {
                 state.ingredientCategories[index] = action.payload;
             }
-            if (state.selectedIngredientCategory && state.selectedIngredientCategory._id === action.payload._id) {
-                state.selectedIngredientCategory = action.payload;
+            if (state.selectedIngredient && state.selectedIngredient._id === action.payload._id) {
+                state.selectedIngredient = action.payload;
             }
             state.loading = false;
             state.success = true;
         },
 
-        removeIngredientCategoryFromList: (state, action) => {
+        removeIngredientFromList: (state, action) => {
             state.ingredientCategories = state.ingredientCategories.filter(item => item._id !== action.payload);
-            if (state.selectedIngredientCategory && state.selectedIngredientCategory._id === action.payload) {
-                state.selectedIngredientCategory = null;
+            if (state.selectedIngredient && state.selectedIngredient._id === action.payload) {
+                state.selectedIngredient = null;
             }
             state.pagination.total -= 1;
             state.loading = false;
             state.success = true;
         },
 
-        resetIngredientCategoryState: () => initialState
+        resetIngredientState: () => initialState
     }
 });
 
@@ -92,12 +92,12 @@ export const {
     setError,
     clearError,
     setSuccess,
-    setIngredientCategories,
-    setSelectedIngredientCategory,
-    addIngredientCategoryToList,
-    updateIngredientCategoryInList,
-    removeIngredientCategoryFromList,
-    resetIngredientCategoryState
-} = ingredientCategorySlice.actions;
+    setIngredients,
+    setSelectedIngredient,
+    addIngredientToList,
+    updateIngredientInList,
+    removeIngredientFromList,
+    resetIngredientState
+} = ingredientSlice.actions;
 
-export default ingredientCategorySlice.reducer;
+export default ingredientSlice.reducer;

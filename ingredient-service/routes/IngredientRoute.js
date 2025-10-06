@@ -76,7 +76,7 @@ router.get(
 );
 
 router.get(
-    '/:ingredient_id',
+    '/ingredient/:ingredient_id',
     IngredientMiddleware,
     findByIdIngredient
 );

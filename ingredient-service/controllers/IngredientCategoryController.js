@@ -36,7 +36,7 @@ const addIngredientCategory = async (req, res) => {
                 status: true,
                 data: {
                     _id: result._id,
-                    keyword: result.keyword,
+                    keyword: result.keyword.toUpperCase(),
                     title: result.title,
                     description: result.description,
                     createAt: result.createdAt,
@@ -47,7 +47,7 @@ const addIngredientCategory = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Thêm danh mục nguyên liệu thất bại!",
             status: false,
             error: error.message
         });
@@ -114,7 +114,7 @@ const updateIngredientCategory = async (req, res) => {
             status: true,
             data: {
                 _id: updated._id,
-                keyword: updated.keyword,
+                keyword: updated.keyword.toUpperCase(),
                 title: updated.title,
                 description: updated.description,
                 createAt: updated.createdAt,
@@ -124,7 +124,7 @@ const updateIngredientCategory = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Cập nhật danh mục nguyên liệu thất bại!",
             status: false,
             error: error.message
         });
@@ -158,7 +158,7 @@ const deleteIngredientCategory = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Xóa danh mục nguyên liệu thất bại!",
             status: false,
             error: error.message
         });
@@ -179,7 +179,7 @@ const getListIngredientCategories = async (req, res) => {
             .sort({ createdAt: -1 });
         return res.status(200).json({
             stype: "diet type",
-            message: "Lấy danh sách loại chế độ ăn uống thành công!",
+            message: "Lấy danh sách danh mục nguyên liệu thành công!",
             status: true,
             data: {
                 total,
@@ -192,7 +192,7 @@ const getListIngredientCategories = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Lấy danh sách danh mục nguyên liệu thật bại!",
             status: false,
             error: error.message
         });
@@ -220,7 +220,7 @@ const findByIdIngredientCategory = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Không tìm thấy danh mục nguyên liệu!",
             status: false,
             error: error.message
         });

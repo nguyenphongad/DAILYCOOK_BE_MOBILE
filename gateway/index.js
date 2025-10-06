@@ -110,11 +110,11 @@ app.use('/api/users', authMiddleware, createProxyMiddleware({
 }));
 
 // Chuyển tiếp đến service nguyên liệu
-app.use('/api/ingredient', authMiddleware, createProxyMiddleware({ 
+app.use('/api/ingredients', authMiddleware, createProxyMiddleware({ 
   target: config.services.ingredient.url,
   changeOrigin: true,
   pathRewrite: {
-    '^/api/ingredient': '/api/ingredient'
+    '^/api/ingredients': '/api/ingredients'
   },
   logLevel: 'debug',
   onProxyReq: (proxyReq, req, res) => {
