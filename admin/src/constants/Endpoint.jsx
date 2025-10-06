@@ -12,6 +12,13 @@ const ENDPOINT = {
     GET_DIET_TYPE: 'meals/diet-type',
 
 
+    // INGREDIENTCATEGORY
+    ADD_INGREDIENT_CATEGORY: 'ingredient/add-ingredient-category',
+    UPDATE_INGREDIENT_CATEGORY: 'ingredient/update-ingredient-category',
+    DELETE_INGREDIENT_CATEGORY: 'ingredient/delete-ingredient-category',
+    GET_LIST_INGREDIENT_CATEGORY: 'ingredient/ingredient-categories',
+    GET_INGREDIENT_CATEGORY: 'ingredient/ingredient-category',
+
 }
 
 export default ENDPOINT;

@@ -69,7 +69,7 @@ function App() {
           <Layout>
             <PrivateRoute element={<Recipes />} />
           </Layout>} />
-        <Route path="/manage_diet-types" element={
+        <Route path="/manage_diet_types" element={
           <Layout>
             <PrivateRoute element={<DietTypePage />} />
           </Layout>} />

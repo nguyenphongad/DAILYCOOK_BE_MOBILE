@@ -27,7 +27,7 @@ const Menu = () => {
     },
     // { path: '/manage_recipes', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
     { path: '/manage_ingredients', label: 'Quản lý nguyên liệu', icon: <MdInventory /> },
-    { path: '/manage_diet-types', label: 'Quản lý chế độ ăn', icon: <MdLocalDining /> },
+    { path: '/manage_diet_types', label: 'Quản lý chế độ ăn', icon: <MdLocalDining /> },
     { path: '/manage_users', label: 'Quản lý người dùng', icon: <MdPeople /> },
   ])
 

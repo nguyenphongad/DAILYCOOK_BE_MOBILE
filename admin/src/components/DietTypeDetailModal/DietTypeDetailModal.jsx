@@ -86,14 +86,13 @@ const DietTypeDetailModal = ({
                 title={<span style={{ fontWeight: 700, fontSize: '18px' }}>Chỉnh sửa chế độ ăn</span>}
                 open={isVisible}
                 onCancel={handleCancelEdit}
-                width={800}
+                width={1600}
                 centered
                 style={{
                     maxWidth: '90%',
                     margin: '0 auto'
                 }}
                 footer={null}
-                className="ingredient-detail-modal editing"
             >
                 <DietTypeForm
                     form={form}
@@ -112,7 +111,7 @@ const DietTypeDetailModal = ({
             title={<span style={{ fontWeight: 700, fontSize: '18px' }}>Chi tiết chế độ ăn</span>}
             open={isVisible}
             onCancel={onClose}
-            width={800}
+            width={1600}
             centered
             style={{
                 maxWidth: '90%',

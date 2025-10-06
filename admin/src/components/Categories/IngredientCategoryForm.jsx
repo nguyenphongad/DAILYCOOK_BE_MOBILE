@@ -1,5 +1,5 @@
-import React from 'react';
-import { Form, Input, Button, Card, Row, Col, Modal } from 'antd';
+import React, { useState } from 'react';
+import { Form, Input, Button, Card, Row, Col, Modal, message } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 
 const { TextArea } = Input;
@@ -14,11 +14,24 @@ const IngredientCategoryForm = ({
     isEdit = false
 }) => {
     const [modal, contextHolder] = Modal.useModal();
+    const [submitting, setSubmitting] = useState(false);
 
     // Xử lý submit form
     const handleSubmit = (values) => {
-        const categoryData = { ...values };
-        onFinish(categoryData);
+        setSubmitting(true);
+        try {
+            const categoryData = {
+                ...values,
+                keyword: values.keyword.trim(),
+                title: values.title.trim(),
+                description: values.description?.trim() || "",
+            };
+            onFinish(categoryData);
+        } catch (error) {
+            message.error(`Có lỗi xảy ra, vui lòng thử lại! ${error.message}`);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     // Xóa nguyên liệu (hiện modal confirm)
@@ -98,7 +111,7 @@ const IngredientCategoryForm = ({
                 {/* Phải: Hủy + Thêm/Lưu */}
                 <div style={{ display: 'flex', gap: 8 }}>
                     <Button onClick={onCancel}>Hủy</Button>
-                    <Button type="primary" htmlType="submit">
+                    <Button type="primary" htmlType="submit" loading={submitting}>
                         {isEdit ? 'Lưu thay đổi' : 'Thêm danh mục'}
                     </Button>
                 </div>

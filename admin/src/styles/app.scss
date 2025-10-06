@@ -198,6 +198,17 @@ body {
     }
 }
 
+.pagination-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+
+    .ant-pagination {
+        font-size: 14px;
+    }
+}
+
+
 .app-container {
     display: flex;
     min-height: 100vh;
