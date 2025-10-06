@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { MdDashboard, MdPeople, MdRestaurantMenu, MdShoppingBasket, MdInventory, MdInfo, MdLocalDining, MdKeyboardArrowDown, MdCategory, MdFoodBank } from 'react-icons/md'
+import { MdDashboard, MdPeople, MdRestaurantMenu, MdShoppingBasket, MdInventory, MdInfo, MdLocalDining, MdKeyboardArrowDown, MdCategory, MdFoodBank, MdOutlineAssignment } from 'react-icons/md'
 import { Modal } from 'antd'
 import logoImage from '../../assets/logo.png'
 import { BiSolidDuplicate } from "react-icons/bi";
@@ -22,12 +22,13 @@ const Menu = () => {
         { path: '/manage_category/meals', label: 'Món ăn', icon: <MdFoodBank /> },
       ]
     },
+    { path: '/manage_diet_types', label: 'Quản lý chế độ ăn', icon: <MdLocalDining /> },
+    { path: '/manage_surveys', label: 'Quản lý khảo sát', icon: <MdOutlineAssignment /> },
     {
       path: '/manage_meal', label: 'Quản lý món ăn', icon: <MdRestaurantMenu />,
     },
     // { path: '/manage_recipes', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
     { path: '/manage_ingredients', label: 'Quản lý nguyên liệu', icon: <MdInventory /> },
-    { path: '/manage_diet_types', label: 'Quản lý chế độ ăn', icon: <MdLocalDining /> },
     { path: '/manage_users', label: 'Quản lý người dùng', icon: <MdPeople /> },
   ])
 
