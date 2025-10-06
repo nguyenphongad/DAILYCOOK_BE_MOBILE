@@ -25,7 +25,7 @@ const addDietType = async (req, res) => {
         }
 
         const newDietType = new DietTypeModel({
-            keyword: keyword.toLowerCase(),
+            keyword: keyword.toUpperCase(),
             title,
             dietTypeImage,
             description,
@@ -44,7 +44,7 @@ const addDietType = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "diet type",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Thêm loại chế độ ăn uống thất bại!",
             status: false,
             error: error.message
         });
@@ -83,7 +83,7 @@ const updateDietType = async (req, res) => {
 
         // Chuẩn bị các trường cần cập nhật
         const updateFields = {};
-        if (keyword) updateFields.keyword = keyword.toLowerCase();
+        if (keyword) updateFields.keyword = keyword.toUpperCase();
         if (title) updateFields.title = title;
         if (dietTypeImage) updateFields.dietTypeImage = dietTypeImage;
         if (description) updateFields.description = description;
@@ -116,7 +116,7 @@ const updateDietType = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "diet type",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Cập nhật loại chế độ ăn uống thất bại",
             status: false,
             error: error.message
         });
@@ -144,7 +144,7 @@ const deleteDietType = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "diet type",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Xóa loại chế độ ăn uống thất bại!",
             status: false,
             error: error.message
         });
@@ -178,7 +178,7 @@ const getListDietTypes = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "diet type",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Lấy danh sách loại chế độ ăn uống thất bại!",
             status: false,
             error: error.message
         });
@@ -206,7 +206,7 @@ const findByIdDietType = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "diet type",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Lấy thông tin chế độ ăn uống thất bại!",
             status: false,
             error: error.message
         });

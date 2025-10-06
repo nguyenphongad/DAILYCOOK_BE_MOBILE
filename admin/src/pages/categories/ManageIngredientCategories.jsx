@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { ImportOutlined, SearchOutlined } from '@ant-design/icons';
 import { Empty, Form, Modal, Pagination } from 'antd';
 import Loading from '../../components/Loading/Loading';
 import IngredientCategoryForm from '../../components/Categories/IngredientCategoryForm';
-import { useDispatch, useSelector } from 'react-redux';
-import { deleteIngredientCategory, fetchIngredientCategories, updateIngredientCategory } from '../../redux/thunks/ingredientCategoryThunk';
-import { addIngredientCategory } from '../../redux/thunks/ingredientCategoryThunk';
+import { deleteIngredientCategory, addIngredientCategory, fetchIngredientCategories, updateIngredientCategory } from '../../redux/thunks/ingredientCategoryThunk';
 
 const ManageIngredientCategories = () => {
 
@@ -31,7 +30,7 @@ const ManageIngredientCategories = () => {
     );
 
     // Sắp xếp danh sách diet types
-    const sorteIngredientCategories = [...filtereIngredientCategories].sort((a, b) => {
+    const sortIngredientCategories = [...filtereIngredientCategories].sort((a, b) => {
         if (sortOrder === 'name_asc') {
             return (a.title || '').localeCompare(b.title || '');
         } else if (sortOrder === 'name_desc') {
@@ -55,12 +54,10 @@ const ManageIngredientCategories = () => {
     const handleSubmit = (values) => {
         // update
         if (selectedCategory) {
-            if (selectedCategory) {
-                dispatch(updateIngredientCategory({
-                    id: selectedCategory._id,
-                    ingredientCategoryData: values
-                }))
-            }
+            dispatch(updateIngredientCategory({
+                id: selectedCategory._id,
+                ingredientCategoryData: values
+            }))
         } else {
             // Add
             dispatch(addIngredientCategory(values));
@@ -113,7 +110,7 @@ const ManageIngredientCategories = () => {
                         <div className="search-bar">
                             <input
                                 type="text"
-                                placeholder="Tìm kiếm nguyên liệu..."
+                                placeholder="Tìm kiếm danh mục nguyên liệu..."
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
                                 prefix={<SearchOutlined />}
@@ -137,9 +134,9 @@ const ManageIngredientCategories = () => {
                     <div className="ingredientCategories-grid-container">
                         {loading ? (
                             <Loading visible={true} text="Đang tải danh mục nguyên liệu..." />
-                        ) : sorteIngredientCategories.length > 0 ? (
+                        ) : sortIngredientCategories.length > 0 ? (
                             <div className="ingredientCategories-grid">
-                                {sorteIngredientCategories.map(ingredientCategory => (
+                                {sortIngredientCategories.map(ingredientCategory => (
                                     <div
                                         key={ingredientCategory._id}
                                         className="ingredientCategory-card"
