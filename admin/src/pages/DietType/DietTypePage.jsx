@@ -6,20 +6,20 @@ import { useDispatch, useSelector } from 'react-redux';
 import Loading from '../../components/Loading/Loading';
 import DietTypeForm from '../../components/DietTypeForm/DietTypeForm';
 import DietTypeDetailModal from '../../components/DietTypeDetailModal/DietTypeDetailModal';
-import { 
-  fetchDietTypes, 
-  addDietType, 
-  updateDietType, 
-  deleteDietType 
+import {
+    fetchDietTypes,
+    addDietType,
+    updateDietType,
+    deleteDietType
 } from '../../redux/thunks/dietTypeThunk';
 
 const DietTypePage = () => {
     const dispatch = useDispatch();
     const dietTypeState = useSelector(state => state.dietType);
-    
+
     // Đảm bảo dietTypes luôn là một mảng
-    const { dietTypes = [], loading, pagination = { page: 1, limit: 10 } } = dietTypeState || {};
-    
+    const { dietTypes = [], loading, pagination = { page: 1, limit: 9 } } = dietTypeState || {};
+
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isDietTypeDetailModalVisible, setIsDietTypeDetailModalVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -30,12 +30,12 @@ const DietTypePage = () => {
 
     // Tải dữ liệu khi component được mount
     useEffect(() => {
-        dispatch(fetchDietTypes({ page: 1, limit: 10 }));
+        dispatch(fetchDietTypes({ page: 1, limit: 9 }));
     }, [dispatch]);
 
     // Lọc danh sách diet types theo từ khóa tìm kiếm
-    const filteredDietTypes = (dietTypes || []).filter(item => 
-        (item.title || '').toLowerCase().includes(searchKeyword.toLowerCase()) || 
+    const filteredDietTypes = (dietTypes || []).filter(item =>
+        (item.title || '').toLowerCase().includes(searchKeyword.toLowerCase()) ||
         (item.keyword || '').toLowerCase().includes(searchKeyword.toLowerCase())
     );
 
@@ -68,7 +68,7 @@ const DietTypePage = () => {
         if (selectedCategory) {
             // Update existing diet type
             dispatch(updateDietType({
-                id: selectedCategory._id, 
+                id: selectedCategory._id,
                 dietTypeData: values
             }));
         } else {
@@ -138,8 +138,8 @@ const DietTypePage = () => {
                     {/* Bộ lọc tìm kiếm */}
                     <div className="container-filter">
                         <div className="search-bar">
-                            <Input 
-                                placeholder="Tìm kiếm chế độ ăn..." 
+                            <Input
+                                placeholder="Tìm kiếm chế độ ăn..."
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
                                 prefix={<SearchOutlined />}
@@ -148,8 +148,8 @@ const DietTypePage = () => {
                             <Button onClick={handleSearch} type="primary">Tìm</Button>
                         </div>
                         <div className="filters">
-                            <select 
-                                value={sortOrder} 
+                            <select
+                                value={sortOrder}
                                 onChange={(e) => setSortOrder(e.target.value)}
                             >
                                 <option value="">Sắp xếp theo</option>
@@ -174,9 +174,9 @@ const DietTypePage = () => {
                                         onClick={() => showDietTypeDetail(item)}
                                     >
                                         <div className="ingredient-image">
-                                            <img 
-                                                src={item.dietTypeImage || 'https://media.istockphoto.com/id/1433432507/vi/anh/%C4%83n-u%E1%BB%91ng-l%C3%A0nh-m%E1%BA%A1nh-%C4%91%C4%A9a-v%E1%BB%9Bi-th%E1%BB%B1c-ph%E1%BA%A9m-thu%E1%BA%A7n-chay-ho%E1%BA%B7c-chay-trong-tay-ph%E1%BB%A5-n%E1%BB%AF-ch%E1%BA%BF-%C4%91%E1%BB%99-%C4%83n-u%E1%BB%91ng-d%E1%BB%B1a.jpg?s=612x612&w=0&k=20&c=Z0BVb_z-mLjup_3f4Kvto5q0A0z8CqBjsHS7DSMaQ1k='} 
-                                                alt={item.title} 
+                                            <img
+                                                src={item.dietTypeImage || 'https://media.istockphoto.com/id/1433432507/vi/anh/%C4%83n-u%E1%BB%91ng-l%C3%A0nh-m%E1%BA%A1nh-%C4%91%C4%A9a-v%E1%BB%9Bi-th%E1%BB%B1c-ph%E1%BA%A9m-thu%E1%BA%A7n-chay-ho%E1%BA%B7c-chay-trong-tay-ph%E1%BB%A5-n%E1%BB%AF-ch%E1%BA%BF-%C4%91%E1%BB%99-%C4%83n-u%E1%BB%91ng-d%E1%BB%B1a.jpg?s=612x612&w=0&k=20&c=Z0BVb_z-mLjup_3f4Kvto5q0A0z8CqBjsHS7DSMaQ1k='}
+                                                alt={item.title}
                                             />
                                             <span className="category-badge">
                                                 {item.keyword}
@@ -195,7 +195,7 @@ const DietTypePage = () => {
                             </div>
                         )}
                     </div>
-                    
+
                     {/* Phân trang */}
                     {pagination.total > 0 && (
                         <div className="pagination-container">
@@ -219,7 +219,7 @@ const DietTypePage = () => {
                 </span>}
                 open={isModalVisible}
                 onCancel={handleCancel}
-                width={800}
+                width={1600}
                 centered
                 style={{
                     maxWidth: '90%',

@@ -17,7 +17,7 @@ const DietTypeForm = ({ form, onFinish, onCancel, initialValues, isEdit = false 
       if (fileList.length > 0) {
         setUploading(true);
         const file = convertAntdUploadFileToFile(fileList[0]);
-        
+
         if (file) {
           const uploadResult = await uploadImage(file, { folder: 'diet-types' });
           values.dietTypeImage = uploadResult.secure_url;
@@ -48,7 +48,7 @@ const DietTypeForm = ({ form, onFinish, onCancel, initialValues, isEdit = false 
       message.error('Bạn chỉ có thể tải lên file ảnh!');
       return false;
     }
-    
+
     const isLt2M = file.size / 1024 / 1024 < 2;
     if (!isLt2M) {
       message.error('Kích thước ảnh phải nhỏ hơn 2MB!');
@@ -86,44 +86,54 @@ const DietTypeForm = ({ form, onFinish, onCancel, initialValues, isEdit = false 
         researchSource: initialValues?.researchSource || ''
       }}
     >
-      <Row gutter={24}>
-        <Col span={16}>
-          <Card title="Thông tin chế độ ăn">
-            <Form.Item
-              name="keyword"
-              label="Từ khóa"
-              rules={[{ required: true, message: 'Vui lòng nhập từ khóa!' }]}
-            >
-              <Input placeholder="Nhập từ khóa, ví dụ: keto, vegan..." />
-            </Form.Item>
+      <Row gutter={16}>
+        <Col span={24}>
+          <Card>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="keyword"
+                  label="Từ khóa"
+                  rules={[{ required: true, message: 'Vui lòng nhập từ khóa!' }]}
+                >
+                  <Input placeholder="Nhập từ khóa, ví dụ: keto, vegan..." />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="title"
+                  label="Tiêu đề"
+                  rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
+                >
+                  <Input placeholder="Nhập tiêu đề hiển thị" />
+                </Form.Item>
+              </Col>
+            </Row>
 
-            <Form.Item
-              name="title"
-              label="Tiêu đề"
-              rules={[{ required: true, message: 'Vui lòng nhập tiêu đề!' }]}
-            >
-              <Input placeholder="Nhập tiêu đề hiển thị" />
-            </Form.Item>
-
-            <Form.Item
-              name="description"
-              label="Mô tả ngắn"
-            >
-              <TextArea
-                rows={3}
-                placeholder="Nhập mô tả ngắn về chế độ ăn"
-              />
-            </Form.Item>
-
-            <Form.Item
-              name="descriptionDetail"
-              label="Mô tả chi tiết"
-            >
-              <TextArea
-                rows={6}
-                placeholder="Nhập mô tả chi tiết về chế độ ăn"
-              />
-            </Form.Item>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name="description"
+                  label="Mô tả ngắn"
+                >
+                  <TextArea
+                    rows={3}
+                    placeholder="Nhập mô tả ngắn về chế độ ăn"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="descriptionDetail"
+                  label="Mô tả chi tiết"
+                >
+                  <TextArea
+                    rows={4}
+                    placeholder="Nhập mô tả chi tiết về chế độ ăn"
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
 
             <Form.Item
               name="researchSource"
@@ -131,35 +141,50 @@ const DietTypeForm = ({ form, onFinish, onCancel, initialValues, isEdit = false 
             >
               <Input placeholder="Nhập nguồn nghiên cứu" />
             </Form.Item>
-          </Card>
-        </Col>
 
-        <Col span={8}>
-          <Card title="Hình ảnh">
             <Form.Item label="Ảnh đại diện">
-              <Upload
-                name="dietTypeImage"
-                listType="picture-card"
-                showUploadList={true}
-                fileList={fileList}
-                beforeUpload={beforeUpload}
-                onChange={handleChange}
-                maxCount={1}
-                accept="image/*"
-              >
-                {fileList.length >= 1 ? null : uploadButton}
-              </Upload>
-              
-              {!fileList.length && imageUrl && (
-                <div style={{ marginTop: 16 }}>
-                  <p>Ảnh hiện tại:</p>
-                  <img 
-                    src={imageUrl} 
-                    alt="Current" 
-                    style={{ width: '100%', maxHeight: 200, objectFit: 'cover' }} 
-                  />
+              <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+                {/* Upload */}
+                <div style={{ textAlign: "center" }}>
+                  <Upload
+                    name="dietTypeImage"
+                    listType="picture-card"
+                    showUploadList={true}
+                    fileList={fileList}
+                    beforeUpload={beforeUpload}
+                    onChange={handleChange}
+                    maxCount={1}
+                    accept="image/*"
+                    style={{
+                      width: 120,
+                      height: 120,
+                      objectFit: "cover",
+                      borderRadius: 8,
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.15)"
+                    }}
+                  >
+                    {fileList.length >= 1 ? null : uploadButton}
+                  </Upload>
                 </div>
-              )}
+
+                {/* Ảnh hiện tại */}
+                {!fileList.length && imageUrl && (
+                  <div style={{ textAlign: "center" }}>
+                    <img
+                      src={imageUrl}
+                      alt="Current"
+                      style={{
+                        width: 120,
+                        height: 120,
+                        objectFit: "cover",
+                        borderRadius: 8,
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.15)"
+                      }}
+                    />
+                    <p style={{ marginTop: 8, fontSize: 13, color: "#888" }}>Ảnh hiện tại</p>
+                  </div>
+                )}
+              </div>
             </Form.Item>
           </Card>
         </Col>
