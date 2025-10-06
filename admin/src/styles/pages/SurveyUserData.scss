@@ -1,0 +1,57 @@
+.survey-user-data-page {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #333;
+    }
+  }
+
+  .statistics-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+
+    .ant-card {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: all 0.3s;
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+      }
+
+      .ant-statistic-title {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .ant-statistic-content {
+        color: #1890ff;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .table-actions {
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .ant-tabs-nav {
+    margin-bottom: 20px;
+  }
+}

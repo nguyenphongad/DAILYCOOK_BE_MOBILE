@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { MdDashboard, MdPeople, MdRestaurantMenu, MdShoppingBasket, MdInventory, MdInfo, MdLocalDining, MdKeyboardArrowDown, MdCategory, MdFoodBank, MdOutlineAssignment } from 'react-icons/md'
+import { MdDashboard, MdPeople, MdRestaurantMenu, MdShoppingBasket, MdInventory, MdInfo, MdLocalDining, MdKeyboardArrowDown, MdCategory, MdFoodBank, MdOutlineAssignment, MdQuestionAnswer, MdDataUsage } from 'react-icons/md'
 import { Modal } from 'antd'
 import logoImage from '../../assets/logo.png'
 import { BiSolidDuplicate } from "react-icons/bi";
@@ -14,22 +14,66 @@ const Menu = () => {
   const [expandedMenus, setExpandedMenus] = useState({})
 
   const [menuItems] = useState([
-    { path: '/', label: 'Trang chủ', icon: <MdDashboard /> },
+    { 
+      path: '/', 
+      label: 'Trang chủ', 
+      icon: <MdDashboard /> 
+    },
     {
-      path: '/manage_categorys', label: 'Quản lý danh mục', icon: <BiSolidDuplicate />,
+      path: '/manage_categorys', 
+      label: 'Quản lý danh mục', 
+      icon: <BiSolidDuplicate />,
       submenu: [
-        { path: '/manage_category/ingredients', label: 'Nguyên liệu', icon: <MdInventory /> },
-        { path: '/manage_category/meals', label: 'Món ăn', icon: <MdFoodBank /> },
+        { 
+          path: '/manage_category/ingredients', 
+          label: 'Nguyên liệu', 
+          icon: <MdInventory /> 
+        },
+        { 
+          path: '/manage_category/meals', 
+          label: 'Món ăn', 
+          icon: <MdFoodBank /> 
+        },
       ]
     },
-    { path: '/manage_diet_types', label: 'Quản lý chế độ ăn', icon: <MdLocalDining /> },
-    { path: '/manage_surveys', label: 'Quản lý khảo sát', icon: <MdOutlineAssignment /> },
     {
-      path: '/manage_meal', label: 'Quản lý món ăn', icon: <MdRestaurantMenu />,
+      path: '/manage_surveys', 
+      label: 'Quản lý khảo sát', 
+      icon: <MdOutlineAssignment />,
+      submenu: [
+        { 
+          path: '/manage_surveys/questions', 
+          label: 'Câu hỏi khảo sát', 
+          icon: <MdQuestionAnswer /> 
+        },
+        { 
+          path: '/manage_surveys/user_data', 
+          label: 'Dữ liệu người dùng', 
+          icon: <MdDataUsage /> 
+        },
+      ]
+    },
+    { 
+      path: '/manage_diet_types', 
+      label: 'Quản lý chế độ ăn', 
+      icon: <MdLocalDining /> 
+    },
+    {
+      path: '/manage_meal', 
+      label: 'Quản lý món ăn', 
+      icon: <MdRestaurantMenu />,
     },
     // { path: '/manage_recipes', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
-    { path: '/manage_ingredients', label: 'Quản lý nguyên liệu', icon: <MdInventory /> },
-    { path: '/manage_users', label: 'Quản lý người dùng', icon: <MdPeople /> },
+    { 
+      path: '/manage_ingredients', 
+      label: 'Quản lý nguyên liệu', 
+      icon: <MdInventory /> 
+    },
+    { 
+      path: '/manage_users', 
+      label: 'Quản lý người dùng', 
+      icon: <MdPeople /> 
+    },
   ])
 
   // Tìm menu item đang active dựa vào path
@@ -178,7 +222,7 @@ const Menu = () => {
           </div>
           <div className="info-section">
             <h4>Giảng viên hướng dẫn</h4>
-            <p>• ThS. Nguyễn Thị Thu Hà</p>
+            <p>• ThS. Nguyễn Trọng Tiến</p>
           </div>
           <div className="info-section">
             <h4>Công nghệ sử dụng</h4>

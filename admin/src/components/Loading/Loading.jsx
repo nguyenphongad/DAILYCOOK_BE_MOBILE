@@ -1,6 +1,7 @@
 import React from 'react';
 import { Spin } from 'antd';
-import loadingGif from '../../assets/loading.gif'; // Giả sử bạn có file gif loading
+import loadingGif from '../../assets/loading.gif';
+import '../../styles/components/Loading.scss';
 
 
 const Loading = ({ visible = false, useGif = true, text = 'Đang tải...' }) => {

@@ -16,6 +16,7 @@ import Recipes from './pages/Recipes/Recipes'
 import Loading from './components/Loading/Loading'
 import Ingredients1 from './pages/Ingredients/Ingredients1'
 import SurveyPage from './pages/Survey/SurveyPage'
+import SurveyUserData from './pages/Survey/SurveyUserData'
 
 import ManageIngredientCategories from "./pages/categories/ManageIngredientCategories"
 import ManageMealCategories from './pages/categories/ManageMealCategories'
@@ -74,9 +75,15 @@ function App() {
           <Layout>
             <PrivateRoute element={<DietTypePage />} />
           </Layout>} />
-        <Route path="/manage_surveys" element={
+        
+        {/* Survey Routes */}
+        <Route path="/manage_surveys/questions" element={
           <Layout>
             <PrivateRoute element={<SurveyPage />} />
+          </Layout>} />
+        <Route path="/manage_surveys/user_data" element={
+          <Layout>
+            <PrivateRoute element={<SurveyUserData />} />
           </Layout>} />
         
         {/* Thêm routes mới cho các submenu */}

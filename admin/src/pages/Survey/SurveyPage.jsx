@@ -5,6 +5,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper';
+import Loading from '../../components/Loading/Loading';
 import '../../styles/pages/SurveyPage.scss';
 
 const { Option } = Select;
@@ -69,23 +70,32 @@ const SurveyPage = () => {
     maxValue: null
   });
   const [ratingConfig, setRatingConfig] = useState({ maxStars: 5 });
+  const [questionType, setQuestionType] = useState('text');
 
   const showModal = (survey = null) => {
     setCurrentSurvey(survey);
     form.resetFields();
     
     if (survey) {
+      const surveyQuestionType = survey.questionType || 'text';
+      setQuestionType(surveyQuestionType);
+      
       form.setFieldsValue({
         title: survey.title,
         description: survey.description,
-        questionType: survey.questionType,
+        questionType: surveyQuestionType,
         isActive: survey.isActive,
         isRequired: survey.isRequired || false,
       });
       
       // Load question specific configuration
-      if (survey.options) {
+      if (survey.options && ['select', 'radio', 'checkbox'].includes(surveyQuestionType)) {
         setQuestionOptions(survey.options);
+      } else if(['select', 'radio', 'checkbox'].includes(surveyQuestionType)) {
+        setQuestionOptions([
+          { value: 'option_1', label: 'Lựa chọn 1' },
+          { value: 'option_2', label: 'Lựa chọn 2' }
+        ]);
       } else {
         setQuestionOptions([]);
       }
@@ -396,8 +406,6 @@ const SurveyPage = () => {
 
   // Render form dựa theo loại câu hỏi
   const renderQuestionValueForm = () => {
-    const questionType = form.getFieldValue('questionType');
-    
     switch (questionType) {
       case 'text':
         return (
@@ -544,20 +552,24 @@ const SurveyPage = () => {
     }
   };
 
-  // Initialize options if empty
-  useEffect(() => {
-    const questionType = form.getFieldValue('questionType');
-    if (['select', 'radio', 'checkbox'].includes(questionType) && questionOptions.length === 0) {
+  // Handler for changing question type
+  const handleQuestionTypeChange = (value) => {
+    setQuestionType(value);
+    
+    // Reset options when changing to selection types
+    if (['select', 'radio', 'checkbox'].includes(value) && questionOptions.length === 0) {
       setQuestionOptions([
         { value: 'option_1', label: 'Lựa chọn 1' },
         { value: 'option_2', label: 'Lựa chọn 2' }
       ]);
     }
-  }, [form.getFieldValue('questionType')]);
+  };
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="survey-page">
+        <Loading visible={loading} text="Đang tải dữ liệu khảo sát..." />
+        
         <div className="survey-header">
           <h1>Quản lý khảo sát</h1>
           <div className="survey-actions">
@@ -580,7 +592,7 @@ const SurveyPage = () => {
             moveRow,
           })}
           rowKey="id"
-          loading={loading}
+          loading={false} // Remove table's built-in loading since we're using our custom Loading component
           pagination={false}
           className="draggable-table"
         />
@@ -615,11 +627,14 @@ const SurveyPage = () => {
               {currentSurvey ? "Cập nhật" : "Tạo mới"}
             </Button>,
           ]}
-          width={900}
+          width={1300}
           centered
+          className="survey-detail-modal"
         >
+          <Loading visible={confirmLoading} text="Đang xử lý..." />
+          
           <Row gutter={24}>
-            <Col span={16}>
+            <Col span={15}>
               <div className="question-info-section">
                 <h3>Thông tin câu hỏi</h3>
                 <Form
@@ -653,15 +668,7 @@ const SurveyPage = () => {
                   >
                     <Select 
                       placeholder="Chọn loại câu hỏi"
-                      onChange={() => {
-                        // Reset options when changing question type
-                        if (['select', 'radio', 'checkbox'].includes(form.getFieldValue('questionType'))) {
-                          setQuestionOptions([
-                            { value: 'option_1', label: 'Lựa chọn 1' },
-                            { value: 'option_2', label: 'Lựa chọn 2' }
-                          ]);
-                        }
-                      }}
+                      onChange={handleQuestionTypeChange}
                     >
                       <Option value="text">Nhập text</Option>
                       <Option value="select">Chọn từ danh sách</Option>
@@ -701,7 +708,7 @@ const SurveyPage = () => {
               </div>
             </Col>
             
-            <Col span={8} className="question-value-container">
+            <Col span={9} className="question-value-container">
               <Divider type="vertical" className="divider-vertical" />
               {renderQuestionValueForm()}
             </Col>
