@@ -22,12 +22,4 @@ const IngredientCategorySchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-IngredientCategorySchema.pre("save", function (next) {
-    if (this.keyword) {
-        this.keyword = this.keyword.trim().toUpperCase();
-    }
-    next();
-});
-
-
 module.exports = mongoose.model("IngredientCategory", IngredientCategorySchema);

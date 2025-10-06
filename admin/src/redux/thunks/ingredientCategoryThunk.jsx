@@ -2,8 +2,15 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { get, post, put, del } from "../../services/api.service";
 import ENDPOINT from '../../constants/Endpoint';
 import { toast } from 'sonner';
-import { setError, setLoading } from '../slices/ingredientCategorySlice';
-import { addIngredientCategoryToList, removeIngredientCategoryFromList, setIngredientCategories, updateIngredientCategoryInList } from '../slices/ingredientCategorySlice';
+import {
+    setError,
+    setLoading,
+    setIngredientCategories,
+    addIngredientCategoryToList,
+    removeIngredientCategoryFromList,
+    updateIngredientCategoryInList,
+    setSelectedIngredientCategory
+} from '../slices/ingredientCategorySlice';
 
 // Lấy danh sách tất cả ingredient category
 export const fetchIngredientCategories = createAsyncThunk(
@@ -27,7 +34,7 @@ export const fetchIngredientCategories = createAsyncThunk(
                 return rejectWithValue(response.message);
             }
         } catch (error) {
-            const errorMessage = error.message || 'Lỗi kết nối đến server';
+            const errorMessage = error.response?.data?.message || error.message || 'Lỗi kết nối đến server';
             dispatch(setError(errorMessage));
             toast.error(errorMessage);
             return rejectWithValue(errorMessage);
@@ -49,7 +56,7 @@ export const fetchIngredientCategoryById = createAsyncThunk(
             );
 
             if (response.status) {
-                dispatch(setIngredientCategories(response.data));
+                dispatch(setSelectedIngredientCategory(response.data));
                 dispatch(setLoading(false));
                 return response.data;
             } else {
@@ -58,7 +65,7 @@ export const fetchIngredientCategoryById = createAsyncThunk(
                 return rejectWithValue(response.message);
             }
         } catch (error) {
-            const errorMessage = error.message || 'Lỗi kết nối đến server';
+            const errorMessage = error.response?.data?.message || error.message || 'Lỗi kết nối đến server';
             dispatch(setError(errorMessage));
             toast.error(errorMessage);
             return rejectWithValue(errorMessage);
@@ -89,7 +96,7 @@ export const addIngredientCategory = createAsyncThunk(
                 return rejectWithValue(response.message);
             }
         } catch (error) {
-            const errorMessage = error.message || 'Lỗi kết nối đến server';
+            const errorMessage = error.response?.data?.message || error.message || 'Lỗi kết nối đến server';
             dispatch(setError(errorMessage));
             toast.error(errorMessage);
             return rejectWithValue(errorMessage);
@@ -121,7 +128,7 @@ export const updateIngredientCategory = createAsyncThunk(
                 return rejectWithValue(response.message);
             }
         } catch (error) {
-            const errorMessage = error.message || 'Lỗi kết nối đến server';
+            const errorMessage = error.response?.data?.message || error.message || 'Lỗi kết nối đến server';
             dispatch(setError(errorMessage));
             toast.error(errorMessage);
             return rejectWithValue(errorMessage);

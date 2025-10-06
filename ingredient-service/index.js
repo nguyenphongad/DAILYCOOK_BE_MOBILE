@@ -56,4 +56,4 @@ app.use((err, req, res, next) => {
 });
 
 // Các routes khác
-app.use('/api/ingredient', IngredientRoute)
+app.use('/api/ingredients', IngredientRoute)

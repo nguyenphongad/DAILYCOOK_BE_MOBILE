@@ -39,7 +39,7 @@ const addMealCategory = async (req, res) => {
     catch (error) {
         return res.status(500).json({
             stype: "meal",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Thêm danh mục bữa ăn thất bại!",
             status: false,
             error: error.message
         });
@@ -109,7 +109,7 @@ const updateMealCategory = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "meal",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Cập nhật danh mục bữa ăn thất bại!",
             status: false,
             error: error.message
         });
@@ -137,7 +137,7 @@ const deleteMealCategory = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "meal",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Xóa danh mục bữa ăn thất bại!",
             status: false,
             error: error.message
         });
@@ -171,7 +171,7 @@ const getListMealCategories = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "meal",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Lấy danh mục bữa ăn thất bại!",
             status: false,
             error: error.message
         });
@@ -199,7 +199,7 @@ const findByIdMealCategory = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "meal",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Thông tin danh mục bữa ăn thất bại!",
             status: false,
             error: error.message
         });
