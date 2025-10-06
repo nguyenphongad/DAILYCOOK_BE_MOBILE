@@ -168,22 +168,27 @@ const deleteIngredientCategory = async (req, res) => {
 // Đưa ra danh sách danh mục nguyên liệu
 const getListIngredientCategories = async (req, res) => {
     try {
-        const ingredientCategories = await IngredientCategoryModel.find();
-        // Lấy tất cả danh mục nguyên liệu
-        if (!ingredientCategories) {
-            return res.status(404).json({
-                stype: "ingredient",
-                message: "Không tìm thấy danh sách danh mục nguyên liệu!",
-                status: false
-            })
-        } else {
-            return res.status(201).json({
-                stype: "ingredient",
-                message: "Danh sách danh mục nguyên liệu",
-                status: true,
-                data: ingredientCategories
-            })
-        }
+        let { page = 1, limit = 10 } = req.query;
+        page = parseInt(page);
+        limit = parseInt(limit);
+        const skip = (page - 1) * limit;
+        const total = await IngredientCategoryModel.countDocuments();
+        const ingredientCategories = await IngredientCategoryModel.find()
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 });
+        return res.status(200).json({
+            stype: "diet type",
+            message: "Lấy danh sách loại chế độ ăn uống thành công!",
+            status: true,
+            data: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                ingredientCategories
+            }
+        });
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",

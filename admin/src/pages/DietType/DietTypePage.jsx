@@ -81,7 +81,7 @@ const DietTypePage = () => {
     // Xử lý xóa chế độ ăn
     const handleDelete = (id) => {
         dispatch(deleteDietType(id));
-        setIsDietTypeDetailModalVisible(false);
+        handleCancel();
     };
 
     // Hiển thị modal chi tiết
@@ -138,14 +138,14 @@ const DietTypePage = () => {
                     {/* Bộ lọc tìm kiếm */}
                     <div className="container-filter">
                         <div className="search-bar">
-                            <Input
+                            <input 
                                 placeholder="Tìm kiếm chế độ ăn..."
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
                                 prefix={<SearchOutlined />}
                                 onPressEnter={handleSearch}
                             />
-                            <Button onClick={handleSearch} type="primary">Tìm</Button>
+                            <button onClick={handleSearch}>Tìm</button>
                         </div>
                         <div className="filters">
                             <select

@@ -117,7 +117,7 @@ const DietTypeForm = ({ form, onFinish, onCancel, initialValues, isEdit = false 
                   label="Mô tả ngắn"
                 >
                   <TextArea
-                    rows={3}
+                    rows={2}
                     placeholder="Nhập mô tả ngắn về chế độ ăn"
                   />
                 </Form.Item>
@@ -128,7 +128,7 @@ const DietTypeForm = ({ form, onFinish, onCancel, initialValues, isEdit = false 
                   label="Mô tả chi tiết"
                 >
                   <TextArea
-                    rows={4}
+                    rows={2}
                     placeholder="Nhập mô tả chi tiết về chế độ ăn"
                   />
                 </Form.Item>
