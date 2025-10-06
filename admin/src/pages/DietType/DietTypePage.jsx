@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ImportOutlined, SearchOutlined } from '@ant-design/icons';
-import { Modal, Form, Input, Button, Empty, Spin, Pagination } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
-
+import { ImportOutlined, SearchOutlined } from '@ant-design/icons';
+import { Modal, Form, Empty, Spin, Pagination } from 'antd';
 import Loading from '../../components/Loading/Loading';
 import DietTypeForm from '../../components/DietTypeForm/DietTypeForm';
 import DietTypeDetailModal from '../../components/DietTypeDetailModal/DietTypeDetailModal';
@@ -17,7 +16,6 @@ const DietTypePage = () => {
     const dispatch = useDispatch();
     const dietTypeState = useSelector(state => state.dietType);
 
-    // Đảm bảo dietTypes luôn là một mảng
     const { dietTypes = [], loading, pagination = { page: 1, limit: 9 } } = dietTypeState || {};
 
     const [isModalVisible, setIsModalVisible] = useState(false);
