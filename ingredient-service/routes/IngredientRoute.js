@@ -16,6 +16,7 @@ const {
     findByIdIngredient,
     getListIngredient,
 } = require('../controllers/IngredientController');
+const { getAllMeasurementUnits } = require('../controllers/MeasurementUnitsController');
 
 const router = express.Router();
 
@@ -80,5 +81,11 @@ router.get(
     IngredientMiddleware,
     findByIdIngredient
 );
+
+router.get(
+    '/measurement-units',
+    IngredientMiddleware,
+    getAllMeasurementUnits
+)
 
 module.exports = router;

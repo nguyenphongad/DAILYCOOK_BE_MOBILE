@@ -38,6 +38,9 @@ const ENDPOINT = {
     DELETE_INGREDIENT: 'ingredients/delete-ingredient',
     GET_LIST_INGREDIENT: 'ingredients',
     GET_INGREDIENT: 'ingredients/ingredient',
+
+    // MEASUREMENT UNITS
+    GET_LIST_MEASUREMENT_UNITS: 'ingredients/measurement-units',
 }
 
 export default ENDPOINT;

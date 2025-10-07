@@ -9,12 +9,11 @@ import {
     addIngredientToList,
     removeIngredientFromList,
     updateIngredientInList,
-    setIngredients
 } from '../slices/ingredientSlice';
 
 // Lấy danh sách tất cả ingredient 
-export const fetchIngredientCategories = createAsyncThunk(
-    'ingredients/fetchIngredientCategories',
+export const fetchIngredients = createAsyncThunk(
+    'ingredients/fetchIngrediens',
     async (params = { page: 1, limit: 10 }, { dispatch, getState, rejectWithValue }) => {
         try {
             dispatch(setLoading(true));

@@ -9,7 +9,8 @@ import {
     Upload,
     InputNumber,
     Divider,
-    Card
+    Card,
+    message
 } from 'antd';
 import { PlusOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 
@@ -20,16 +21,46 @@ const IngredientForm = ({
     form,
     onFinish,
     onCancel,
-    initialValues,
-    allIngredientCategories,
-    allMeasureUnits,
+    initialValues = {},
+    allIngredientCategories = [],
+    allMeasureUnits = [],
     isEdit = false
 }) => {
-    // State quản lý danh sách công dụng phổ biến
+    // State công dụng phổ biến
     const [commonUses, setCommonUses] = useState(initialValues?.commonUses || []);
     const [newUse, setNewUse] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
-    // Thêm công dụng mới
+    // Upload ảnh
+    const [fileList, setFileList] = useState([]);
+    const [imageUrl, setImageUrl] = useState(initialValues?.ingredientImage || '');
+
+    const beforeUpload = (file) => {
+        const isImage = file.type.startsWith('image/');
+        if (!isImage) {
+            message.error('Chỉ được upload file ảnh!');
+            return Upload.LIST_IGNORE;
+        }
+        return false; // chặn upload tự động
+    };
+
+    const handleChange = ({ fileList: newFileList }) => {
+        setFileList(newFileList);
+        if (newFileList.length > 0) {
+            const file = newFileList[0].originFileObj;
+            const previewUrl = URL.createObjectURL(file);
+            setImageUrl(previewUrl);
+        }
+    };
+
+    const uploadButton = (
+        <div>
+            <UploadOutlined />
+            <div style={{ marginTop: 8 }}>Tải ảnh</div>
+        </div>
+    );
+
+    // Thêm công dụng
     const addCommonUse = () => {
         if (newUse.trim()) {
             setCommonUses([...commonUses, newUse.trim()]);
@@ -37,18 +68,33 @@ const IngredientForm = ({
         }
     };
 
-    // Xóa công dụng theo index
+    // Xóa công dụng
     const removeCommonUse = (index) => {
         setCommonUses(commonUses.filter((_, i) => i !== index));
     };
 
-    // Xử lý submit form
-    const handleSubmit = (values) => {
-        const ingredientData = {
-            ...values,
-            commonUses, // merge thêm công dụng phổ biến
-        };
-        onFinish(ingredientData);
+    // Xử lý submit
+    const handleSubmit = async (values) => {
+        setSubmitting(true);
+        try {
+            const ingredientData = {
+                ...values,
+                nameIngredient: values.nameIngredient.trim(),
+                description: values.description?.trim() || '',
+                ingredientCategory: values.ingredientCategory,
+                defaultAmount: values.defaultAmount,
+                defaultUnit: values.defaultUnit,
+                nutrition: values.nutrition || {},
+                commonUses,
+                ingredientImage: fileList[0]?.originFileObj || imageUrl || null
+            };
+
+            await onFinish(ingredientData);
+        } catch (error) {
+            message.error(`Đã xảy ra lỗi: ${error.message}`);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -98,7 +144,7 @@ const IngredientForm = ({
                                     label="Số lượng mặc định"
                                     rules={[{ required: true, message: 'Vui lòng nhập số lượng mặc định' }]}
                                 >
-                                    <InputNumber style={{ width: '100%' }} placeholder="Nhập số lượng mặc định" />
+                                    <InputNumber style={{ width: '100%' }} min={0} placeholder="Nhập số lượng mặc định" />
                                 </Form.Item>
                             </Col>
 
@@ -110,8 +156,8 @@ const IngredientForm = ({
                                 >
                                     <Select placeholder="Chọn đơn vị">
                                         {allMeasureUnits.map((unit) => (
-                                            <Option key={unit.key} value={unit.value}>
-                                                {unit.title} ({unit.value})
+                                            <Option key={unit.key} value={unit.key}>
+                                                {unit.label} ({unit.key})
                                             </Option>
                                         ))}
                                     </Select>
@@ -124,27 +170,50 @@ const IngredientForm = ({
                             <TextArea rows={3} placeholder="Mô tả ngắn gọn về nguyên liệu" />
                         </Form.Item>
 
-                        {/* Ảnh nguyên liệu */}
-                        <Form.Item name="ingredientImage" label="Hình ảnh">
-                            <Upload
-                                listType="picture"
-                                maxCount={1}
-                                beforeUpload={() => false} // không upload ngay mà giữ file local
-                                defaultFileList={
-                                    initialValues?.image
-                                        ? [
-                                            {
-                                                uid: '-1',
-                                                name: 'image.png',
-                                                status: 'done',
-                                                url: initialValues.image,
-                                            },
-                                        ]
-                                        : []
-                                }
-                            >
-                                <Button icon={<UploadOutlined />}>Tải lên ảnh</Button>
-                            </Upload>
+                        {/* Ảnh */}
+                        <Form.Item label="Ảnh đại diện">
+                            <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+                                {/* Upload */}
+                                <div style={{ textAlign: "center" }}>
+                                    <Upload
+                                        name="dietTypeImage"
+                                        listType="picture-card"
+                                        showUploadList={true}
+                                        fileList={fileList}
+                                        beforeUpload={beforeUpload}
+                                        onChange={handleChange}
+                                        maxCount={1}
+                                        accept="image/*"
+                                        style={{
+                                            width: 120,
+                                            height: 120,
+                                            objectFit: "cover",
+                                            borderRadius: 8,
+                                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)"
+                                        }}
+                                    >
+                                        {fileList.length >= 1 ? null : uploadButton}
+                                    </Upload>
+                                </div>
+
+                                {/* Ảnh hiện tại */}
+                                {!fileList.length && imageUrl && (
+                                    <div style={{ textAlign: "center" }}>
+                                        <img
+                                            src={imageUrl}
+                                            alt="Current"
+                                            style={{
+                                                width: 120,
+                                                height: 120,
+                                                objectFit: "cover",
+                                                borderRadius: 8,
+                                                boxShadow: "0 2px 6px rgba(0,0,0,0.15)"
+                                            }}
+                                        />
+                                        <p style={{ marginTop: 8, fontSize: 13, color: "#888" }}>Ảnh hiện tại</p>
+                                    </div>
+                                )}
+                            </div>
                         </Form.Item>
                     </Card>
                 </Col>
@@ -234,7 +303,7 @@ const IngredientForm = ({
                 <Button style={{ marginRight: 8 }} onClick={onCancel}>
                     Hủy
                 </Button>
-                <Button type="primary" htmlType="submit">
+                <Button type="primary" htmlType="submit" loading={submitting}>
                     {isEdit ? 'Lưu thay đổi' : 'Thêm nguyên liệu'}
                 </Button>
             </div>
