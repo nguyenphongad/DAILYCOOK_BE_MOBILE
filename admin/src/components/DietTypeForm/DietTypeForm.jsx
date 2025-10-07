@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Upload, message, Row, Col, Card } from 'antd';
-import { UploadOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { uploadImage, convertAntdUploadFileToFile } from '../../utils/cloudinaryUpload';
 
 const { TextArea } = Input;

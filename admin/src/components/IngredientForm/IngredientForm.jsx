@@ -12,7 +12,8 @@ import {
     Card,
     message
 } from 'antd';
-import { PlusOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, LoadingOutlined } from '@ant-design/icons';
+import { uploadImage, convertAntdUploadFileToFile } from '../../utils/cloudinaryUpload';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -35,31 +36,6 @@ const IngredientForm = ({
     const [fileList, setFileList] = useState([]);
     const [imageUrl, setImageUrl] = useState(initialValues?.ingredientImage || '');
 
-    const beforeUpload = (file) => {
-        const isImage = file.type.startsWith('image/');
-        if (!isImage) {
-            message.error('Chỉ được upload file ảnh!');
-            return Upload.LIST_IGNORE;
-        }
-        return false; // chặn upload tự động
-    };
-
-    const handleChange = ({ fileList: newFileList }) => {
-        setFileList(newFileList);
-        if (newFileList.length > 0) {
-            const file = newFileList[0].originFileObj;
-            const previewUrl = URL.createObjectURL(file);
-            setImageUrl(previewUrl);
-        }
-    };
-
-    const uploadButton = (
-        <div>
-            <UploadOutlined />
-            <div style={{ marginTop: 8 }}>Tải ảnh</div>
-        </div>
-    );
-
     // Thêm công dụng
     const addCommonUse = () => {
         if (newUse.trim()) {
@@ -77,6 +53,20 @@ const IngredientForm = ({
     const handleSubmit = async (values) => {
         setSubmitting(true);
         try {
+            // Nếu có file ảnh mới, upload lên Cloudinary trước
+            if (fileList.length > 0) {
+                setSubmitting(true);
+                const file = convertAntdUploadFileToFile(fileList[0]);
+
+                if (file) {
+                    const uploadResult = await uploadImage(file, { folder: 'ingredient' });
+                    values.ingredientImage = uploadResult.secure_url;
+                }
+            } else if (imageUrl) {
+                // Giữ nguyên URL ảnh cũ nếu không có ảnh mới
+                values.ingredientImage = imageUrl;
+            }
+
             const ingredientData = {
                 ...values,
                 nameIngredient: values.nameIngredient.trim(),
@@ -86,7 +76,7 @@ const IngredientForm = ({
                 defaultUnit: values.defaultUnit,
                 nutrition: values.nutrition || {},
                 commonUses,
-                ingredientImage: fileList[0]?.originFileObj || imageUrl || null
+                ingredientImage: values.ingredientImage || null
             };
 
             await onFinish(ingredientData);
@@ -96,6 +86,43 @@ const IngredientForm = ({
             setSubmitting(false);
         }
     };
+
+    // Xử lý thay đổi file
+    const handleChange = ({ fileList: newFileList }) => {
+        setFileList(newFileList);
+    };
+
+    // Xử lý trước khi upload để preview
+    const beforeUpload = (file) => {
+        const isImage = file.type.startsWith('image/');
+        if (!isImage) {
+            message.error('Bạn chỉ có thể tải lên file ảnh!');
+            return false;
+        }
+
+        const isLt2M = file.size / 1024 / 1024 < 2;
+        if (!isLt2M) {
+            message.error('Kích thước ảnh phải nhỏ hơn 2MB!');
+            return false;
+        }
+
+        // Tạo URL xem trước
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            setImageUrl(reader.result);
+        };
+
+        return false; // Prevent default upload behavior
+    };
+
+    // Cấu hình cho Upload component
+    const uploadButton = (
+        <div>
+            {submitting ? <LoadingOutlined /> : <PlusOutlined />}
+            <div style={{ marginTop: 8 }}>Tải lên</div>
+        </div>
+    );
 
     return (
         <Form
@@ -176,7 +203,7 @@ const IngredientForm = ({
                                 {/* Upload */}
                                 <div style={{ textAlign: "center" }}>
                                     <Upload
-                                        name="dietTypeImage"
+                                        name="ingredientImage"
                                         listType="picture-card"
                                         showUploadList={true}
                                         fileList={fileList}
