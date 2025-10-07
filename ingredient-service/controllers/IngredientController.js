@@ -26,12 +26,13 @@ const addIngredient = async (req, res) => {
         }
 
         // Tìm danh mục theo keyword hoặc title (không phân biệt chữ hoa thường)
-        const category = await IngredientCategoryModel.findOne({
-            $or: [
-                { keyword: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } },
-                { title: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } }
-            ]
-        });
+        // const category = await IngredientCategoryModel.findOne({
+        //     $or: [
+        //         { keyword: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } },
+        //         { title: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } }
+        //     ]
+        // });
+        const category = await IngredientCategoryModel.findById(ingredientCategory);
         if (!category) {
             return res.status(400).json({
                 stype: "ingredient",
@@ -88,7 +89,7 @@ const addIngredient = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Thêm nguyên liệu thất bại!",
+            message: "Thêm nguyên liệu thất bại!" +  error.message,
             status: false,
             error: error.message
         });
@@ -241,7 +242,7 @@ const getListIngredient = async (req, res) => {
         limit = parseInt(limit);
         const skip = (page - 1) * limit;
         const total = await IngredientModel.countDocuments();
-        const meals = await IngredientModel.find()
+        const ingredients = await IngredientModel.find()
             .skip(skip)
             .limit(limit)
             .sort({ createdAt: -1 });
@@ -253,7 +254,7 @@ const getListIngredient = async (req, res) => {
                 total,
                 page,
                 limit,
-                meals
+                ingredients
             }
         });
     }

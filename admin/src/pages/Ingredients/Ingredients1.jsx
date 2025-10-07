@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 
 const Ingredients1 = () => {
     const dispatch = useDispatch();
-    const ingredientState = useSelector((state) => state.ingredient);
+    const ingredientState = useSelector((state) => state.ingredients);
     const ingredientCategoryState = useSelector((state) => state.ingredientCategory);
     const measurementUnitsState = useSelector((state) => state.measurementUnits)
 
@@ -41,18 +41,16 @@ const Ingredients1 = () => {
     }, [dispatch]);
 
     // Filter
-    const filteredIngredients = (ingredients || []).filter(
-        (item) =>
-            (item.title || '').toLowerCase().includes(searchKeyword.toLowerCase()) ||
-            (item.keyword || '').toLowerCase().includes(searchKeyword.toLowerCase())
+    const filteredIngredients = (ingredients || []).filter((item) =>
+        (item.nameIngredient || '').toLowerCase().includes(searchKeyword.toLowerCase())
     );
 
     // Sort
     const sortedIngredients = [...filteredIngredients].sort((a, b) => {
         if (sortOrder === 'name_asc') {
-            return (a.title || '').localeCompare(b.title || '');
+            return (a.nameIngredient || '').localeCompare(b.nameIngredient || '');
         } else if (sortOrder === 'name_desc') {
-            return (b.title || '').localeCompare(a.title || '');
+            return (b.nameIngredient || '').localeCompare(a.nameIngredient || '');
         }
         return 0;
     });
@@ -128,6 +126,18 @@ const Ingredients1 = () => {
 
     const handleSearch = () => { };
 
+    // Lấy tên danh mục dựa trên ID
+    const getCategoryTitle = (categoryId) => {
+        const found = ingredientCategories.find(cat => cat._id === categoryId);
+        return found ? found.title || found.nameCategory : 'Chưa phân loại';
+    };
+
+    // Hiển thị chi tiết nguyên liệu
+    const showIngredientDetail = (ingredient) => {
+        setSelectedIngredient(ingredient);
+        setIsIngredientDetailModalVisible(true);
+    };
+
     // --- RENDER ---
     return (
         <div className="ingredients-container">
@@ -177,17 +187,34 @@ const Ingredients1 = () => {
                                     <div
                                         key={ingredient._id}
                                         className="ingredient-card"
-                                        onClick={() => handleCardClick(ingredient)}
+                                        onClick={() => showIngredientDetail(ingredient)}
                                     >
-                                        <div className="ingredient-keyword">
-                                            <span className="ingredient-badge">{ingredient.keyword}</span>
+                                        <div className="ingredient-image">
+                                            <img src={ingredient.ingredientImage} alt={ingredient.nameIngredient} />
+                                            <span className="category-badge">
+                                                {getCategoryTitle(ingredient.ingredientCategory)}
+                                            </span>
                                         </div>
                                         <div className="ingredient-content">
-                                            <h3>{ingredient.title}</h3>
+                                            <h3>{ingredient.nameIngredient}</h3>
                                             <p className="description">{ingredient.description}</p>
-                                            <p className="category">
-                                                Danh mục: {ingredient.category?.title || 'Chưa phân loại'}
-                                            </p>
+                                            <div className="ingredient-info">
+                                                {Array.isArray(ingredient.commonUses) && ingredient.commonUses.length > 0 ? (
+                                                    <div className="ingredient-commonUses-container">
+                                                        {ingredient.commonUses.map((use, index) => (
+                                                            <span key={index} className="ingredient-commonUse">
+                                                                {use}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="ingredient-commonUses-container">
+                                                        <span className="ingredient-commonUse">
+                                                            Không có công dụng phổ biến
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

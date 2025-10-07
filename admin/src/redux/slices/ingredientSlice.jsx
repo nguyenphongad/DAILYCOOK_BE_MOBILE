@@ -32,12 +32,12 @@ const ingredientSlice = createSlice({
         setSuccess: (state, action) => {
             state.success = action.payload;
         },
-
+        
         setIngredients: (state, action) => {
             if (action.payload && action.payload.data) {
-                const { total, page, limit, totalPages, ingredientCategories } = action.payload.data;
+                const { total, page, limit, totalPages, ingredients } = action.payload.data;
 
-                state.ingredientCategories = ingredientCategories || [];
+                state.ingredients = ingredients || [];
                 state.pagination = {
                     total: total || 0,
                     page: page || 1,
@@ -45,7 +45,7 @@ const ingredientSlice = createSlice({
                     totalPages: totalPages || 1
                 }
             } else {
-                state.ingredientCategories = [];
+                state.ingredients = [];
             }
             state.loading = false;
         },
@@ -55,16 +55,16 @@ const ingredientSlice = createSlice({
         },
 
         addIngredientToList: (state, action) => {
-            state.ingredientCategories = [action.payload, ...state.ingredientCategories];
+            state.ingredients = [action.payload, ...state.ingredients];
             state.pagination.total += 1;
             state.loading = false;
             state.success = true;
         },
 
         updateIngredientInList: (state, action) => {
-            const index = state.ingredientCategories.findIndex(item => item._id === action.payload._id);
+            const index = state.ingredients.findIndex(item => item._id === action.payload._id);
             if (index !== -1) {
-                state.ingredientCategories[index] = action.payload;
+                state.ingredients[index] = action.payload;
             }
             if (state.selectedIngredient && state.selectedIngredient._id === action.payload._id) {
                 state.selectedIngredient = action.payload;
@@ -74,7 +74,7 @@ const ingredientSlice = createSlice({
         },
 
         removeIngredientFromList: (state, action) => {
-            state.ingredientCategories = state.ingredientCategories.filter(item => item._id !== action.payload);
+            state.ingredients = state.ingredients.filter(item => item._id !== action.payload);
             if (state.selectedIngredient && state.selectedIngredient._id === action.payload) {
                 state.selectedIngredient = null;
             }

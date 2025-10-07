@@ -13,9 +13,7 @@ export const fetchMeasurementUnits = createAsyncThunk(
             const { token } = getState().auth;
 
             const response = await get(`${ENDPOINT.GET_LIST_MEASUREMENT_UNITS}`, token);
-
-            console.log('fetchMeasurementUnits response:', response);
-
+            
             if (response && response.status) {
                 // response.data === [{ key, label }, ...]
                 dispatch(setMeasurementUnits(response.data));

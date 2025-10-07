@@ -50,7 +50,7 @@ export const fetchIngredientById = createAsyncThunk(
 
             const { token } = getState().auth;
             const response = await get(
-                `${ENDPOINT.GET_INGREDIENT}/${id}}`,
+                `${ENDPOINT.GET_INGREDIENT}/${id}`,
                 token
             );
 

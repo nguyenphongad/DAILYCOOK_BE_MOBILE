@@ -41,7 +41,7 @@ const IngredientSchema = new mongoose.Schema(
         // Đơn vị mặc định (lấy từ MeasurementUnits)
         defaultUnit: {
             type: String,
-            enum: Object.values(MeasurementUnits), // dùng tất cả giá trị trong MeasurementUnits
+            enum: Object.keys(MeasurementUnits), // dùng tất cả giá trị trong MeasurementUnits
             default: MeasurementUnits.GRAM
         },
         // Thông tin dinh dưỡng
