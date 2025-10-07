@@ -27,16 +27,16 @@ const IngredientForm = ({
     allMeasureUnits = [],
     isEdit = false
 }) => {
-    // State công dụng phổ biến
-    const [commonUses, setCommonUses] = useState(initialValues?.commonUses || []);
-    const [newUse, setNewUse] = useState('');
-    const [submitting, setSubmitting] = useState(false);
+    // ==================== STATE ====================
+    const [commonUses, setCommonUses] = useState(initialValues?.commonUses || []); // danh sách công dụng
+    const [newUse, setNewUse] = useState(''); // công dụng mới
+    const [submitting, setSubmitting] = useState(false); // trạng thái submit
+    const [fileList, setFileList] = useState([]); // danh sách file upload
+    const [imageUrl, setImageUrl] = useState(initialValues?.ingredientImage || ''); // URL ảnh hiện tại
 
-    // Upload ảnh
-    const [fileList, setFileList] = useState([]);
-    const [imageUrl, setImageUrl] = useState(initialValues?.ingredientImage || '');
+    // ==================== HÀM XỬ LÝ ====================
 
-    // Thêm công dụng
+    // Thêm công dụng mới
     const addCommonUse = () => {
         if (newUse.trim()) {
             setCommonUses([...commonUses, newUse.trim()]);
@@ -44,33 +44,32 @@ const IngredientForm = ({
         }
     };
 
-    // Xóa công dụng
+    // Xóa công dụng theo index
     const removeCommonUse = (index) => {
         setCommonUses(commonUses.filter((_, i) => i !== index));
     };
 
-    // Xử lý submit
+    // Xử lý submit form
     const handleSubmit = async (values) => {
         setSubmitting(true);
         try {
-            // Nếu có file ảnh mới, upload lên Cloudinary trước
+            // Upload ảnh nếu có file mới
             if (fileList.length > 0) {
-                setSubmitting(true);
                 const file = convertAntdUploadFileToFile(fileList[0]);
-
                 if (file) {
                     const uploadResult = await uploadImage(file, { folder: 'ingredient' });
                     values.ingredientImage = uploadResult.secure_url;
                 }
             } else if (imageUrl) {
-                // Giữ nguyên URL ảnh cũ nếu không có ảnh mới
+                // giữ nguyên ảnh cũ nếu không upload file mới
                 values.ingredientImage = imageUrl;
             }
 
+            // Chuẩn hóa dữ liệu trước khi gửi
             const ingredientData = {
                 ...values,
                 nameIngredient: values.nameIngredient.trim(),
-                description: values.description?.trim() || '',
+                description: values.description?.trim() || 'Không có mô tả',
                 ingredientCategory: values.ingredientCategory,
                 defaultAmount: values.defaultAmount,
                 defaultUnit: values.defaultUnit,
@@ -79,7 +78,7 @@ const IngredientForm = ({
                 ingredientImage: values.ingredientImage || null
             };
 
-            await onFinish(ingredientData);
+            await onFinish(ingredientData); // gọi callback từ parent
         } catch (error) {
             message.error(`Đã xảy ra lỗi: ${error.message}`);
         } finally {
@@ -87,12 +86,14 @@ const IngredientForm = ({
         }
     };
 
-    // Xử lý thay đổi file
+    // ==================== XỬ LÝ UPLOAD ====================
+
+    // Khi file thay đổi
     const handleChange = ({ fileList: newFileList }) => {
         setFileList(newFileList);
     };
 
-    // Xử lý trước khi upload để preview
+    // Trước khi upload (check type & size)
     const beforeUpload = (file) => {
         const isImage = file.type.startsWith('image/');
         if (!isImage) {
@@ -106,17 +107,16 @@ const IngredientForm = ({
             return false;
         }
 
-        // Tạo URL xem trước
+        // Preview ảnh
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = () => {
             setImageUrl(reader.result);
         };
 
-        return false; // Prevent default upload behavior
+        return false; // prevent default upload
     };
 
-    // Cấu hình cho Upload component
     const uploadButton = (
         <div>
             {submitting ? <LoadingOutlined /> : <PlusOutlined />}
@@ -124,6 +124,7 @@ const IngredientForm = ({
         </div>
     );
 
+    // ==================== RENDER ====================
     return (
         <Form
             form={form}
@@ -133,12 +134,9 @@ const IngredientForm = ({
             className="ingredient-form"
         >
             <Row gutter={24}>
-                {/* ================== CỘT TRÁI: Thông tin nguyên liệu ================== */}
+                {/* ================== CỘT TRÁI: Thông tin cơ bản ================== */}
                 <Col span={14}>
-                    <Card
-                        title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Thông tin nguyên liệu</span>}
-                        variant="bordered"
-                    >
+                    <Card title={<strong>Thông tin nguyên liệu</strong>} variant="bordered">
                         {/* Tên nguyên liệu */}
                         <Form.Item
                             name="nameIngredient"
@@ -148,14 +146,14 @@ const IngredientForm = ({
                             <Input placeholder="Nhập tên nguyên liệu" />
                         </Form.Item>
 
-                        {/* Danh mục nguyên liệu */}
+                        {/* Danh mục */}
                         <Form.Item
                             name="ingredientCategory"
                             label="Danh mục"
                             rules={[{ required: true, message: 'Vui lòng chọn danh mục' }]}
                         >
                             <Select placeholder="Chọn danh mục nguyên liệu">
-                                {allIngredientCategories.map((cat) => (
+                                {allIngredientCategories.map(cat => (
                                     <Option key={cat._id} value={cat._id}>
                                         {cat.title}
                                     </Option>
@@ -163,7 +161,7 @@ const IngredientForm = ({
                             </Select>
                         </Form.Item>
 
-                        {/* Số lượng + đơn vị */}
+                        {/* Số lượng & đơn vị */}
                         <Row gutter={16}>
                             <Col span={12}>
                                 <Form.Item
@@ -174,7 +172,6 @@ const IngredientForm = ({
                                     <InputNumber style={{ width: '100%' }} min={0} placeholder="Nhập số lượng mặc định" />
                                 </Form.Item>
                             </Col>
-
                             <Col span={12}>
                                 <Form.Item
                                     name="defaultUnit"
@@ -182,7 +179,7 @@ const IngredientForm = ({
                                     rules={[{ required: true, message: 'Vui lòng chọn đơn vị đo lường' }]}
                                 >
                                     <Select placeholder="Chọn đơn vị">
-                                        {allMeasureUnits.map((unit) => (
+                                        {allMeasureUnits.map(unit => (
                                             <Option key={unit.key} value={unit.key}>
                                                 {unit.label} ({unit.key})
                                             </Option>
@@ -197,45 +194,31 @@ const IngredientForm = ({
                             <TextArea rows={3} placeholder="Mô tả ngắn gọn về nguyên liệu" />
                         </Form.Item>
 
-                        {/* Ảnh */}
+                        {/* Upload ảnh */}
                         <Form.Item label="Ảnh đại diện">
                             <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
-                                {/* Upload */}
-                                <div style={{ textAlign: "center" }}>
-                                    <Upload
-                                        name="ingredientImage"
-                                        listType="picture-card"
-                                        showUploadList={true}
-                                        fileList={fileList}
-                                        beforeUpload={beforeUpload}
-                                        onChange={handleChange}
-                                        maxCount={1}
-                                        accept="image/*"
-                                        style={{
-                                            width: 120,
-                                            height: 120,
-                                            objectFit: "cover",
-                                            borderRadius: 8,
-                                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)"
-                                        }}
-                                    >
-                                        {fileList.length >= 1 ? null : uploadButton}
-                                    </Upload>
-                                </div>
+                                {/* Upload mới */}
+                                <Upload
+                                    name="ingredientImage"
+                                    listType="picture-card"
+                                    showUploadList={true}
+                                    fileList={fileList}
+                                    beforeUpload={beforeUpload}
+                                    onChange={handleChange}
+                                    maxCount={1}
+                                    accept="image/*"
+                                    style={{ width: 120, height: 120, borderRadius: 8 }}
+                                >
+                                    {fileList.length >= 1 ? null : uploadButton}
+                                </Upload>
 
-                                {/* Ảnh hiện tại */}
+                                {/* Preview ảnh hiện tại */}
                                 {!fileList.length && imageUrl && (
                                     <div style={{ textAlign: "center" }}>
                                         <img
                                             src={imageUrl}
                                             alt="Current"
-                                            style={{
-                                                width: 120,
-                                                height: 120,
-                                                objectFit: "cover",
-                                                borderRadius: 8,
-                                                boxShadow: "0 2px 6px rgba(0,0,0,0.15)"
-                                            }}
+                                            style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8 }}
                                         />
                                         <p style={{ marginTop: 8, fontSize: 13, color: "#888" }}>Ảnh hiện tại</p>
                                     </div>
@@ -248,10 +231,7 @@ const IngredientForm = ({
                 {/* ================== CỘT PHẢI: Dinh dưỡng + Công dụng ================== */}
                 <Col span={10}>
                     {/* Thông tin dinh dưỡng */}
-                    <Card
-                        title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Thông tin dinh dưỡng (tùy chọn)</span>}
-                        variant="bordered"
-                    >
+                    <Card title={<strong>Thông tin dinh dưỡng (tùy chọn)</strong>} variant="bordered">
                         <Row gutter={16}>
                             <Col span={12}>
                                 <Form.Item name={['nutrition', 'calories']} label="Calories">
@@ -281,11 +261,8 @@ const IngredientForm = ({
                     <Divider />
 
                     {/* Công dụng phổ biến */}
-                    <Card
-                        title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Công dụng phổ biến</span>}
-                        variant="bordered"
-                    >
-                        {/* Input thêm công dụng */}
+                    <Card title={<strong>Công dụng phổ biến</strong>} variant="bordered">
+                        {/* Thêm công dụng */}
                         <Row gutter={8} style={{ marginBottom: 12 }}>
                             <Col span={18}>
                                 <Input

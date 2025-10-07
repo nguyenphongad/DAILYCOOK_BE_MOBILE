@@ -89,7 +89,7 @@ const addIngredient = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Thêm nguyên liệu thất bại!" +  error.message,
+            message: "Thêm nguyên liệu thất bại!" + error.message,
             status: false,
             error: error.message
         });
@@ -143,12 +143,13 @@ const updateIngredient = async (req, res) => {
 
         // Xử lý category nếu có
         if (ingredientCategory) {
-            const category = await IngredientCategoryModel.findOne({
-                $or: [
-                    { keyword: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } },
-                    { title: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } }
-                ]
-            });
+            // const category = await IngredientCategoryModel.findOne({
+            //     $or: [
+            //         { keyword: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } },
+            //         { title: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } }
+            //     ]
+            // });
+            const category = await IngredientCategoryModel.findById(ingredientCategory);
             if (!category) {
                 return res.status(400).json({
                     stype: "ingredient",
@@ -193,7 +194,7 @@ const updateIngredient = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Cập nhật nguyên liệu thất bại!",
+            message: "Cập nhật nguyên liệu thất bại!" + error.message,
             status: false,
             error: error.message
         });

@@ -87,7 +87,7 @@ export const addIngredient = createAsyncThunk(
 
             if (response.status) {
                 dispatch(addIngredientToList(response.data));
-                toast.success(response.message || 'Thêm danh mục nguyên liệu thành công');
+                toast.success(response.message || 'Thêm nguyên liệu thành công!');
                 return response.data;
             } else {
                 dispatch(setError(response.message));
@@ -119,7 +119,7 @@ export const updateIngredient = createAsyncThunk(
 
             if (response.status) {
                 dispatch(updateIngredientInList(response.data));
-                toast.success(response.message || 'Cập nhật thành công');
+                toast.success(response.message || 'Cập nhật nguyên liệu thành công!');
                 return response.data;
             } else {
                 dispatch(setError(response.message));
@@ -149,7 +149,7 @@ export const deleteIngredient = createAsyncThunk(
 
             if (response.status) {
                 dispatch(removeIngredientFromList(id));
-                toast.success(response.message || 'Xóa thành công');
+                toast.success(response.message || 'Xóa nguyên liệu thành công!');
                 return id;
             } else {
                 dispatch(setError(response.message));
