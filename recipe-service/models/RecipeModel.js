@@ -44,9 +44,6 @@ const recipeSchema = new mongoose.Schema({
     recipeImage: {
         type: String
     },
-    servings: {
-        type: Number
-    },
     prepTimeMinutes: {
         type: Number
     },

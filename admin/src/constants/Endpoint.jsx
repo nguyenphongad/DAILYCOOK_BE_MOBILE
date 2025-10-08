@@ -41,6 +41,9 @@ const ENDPOINT = {
 
     // MEASUREMENT UNITS
     GET_LIST_MEASUREMENT_UNITS: 'ingredients/measurement-units',
+
+    // RECIPE
+    GET_RECIPE: 'recipes/'
 }
 
 export default ENDPOINT;

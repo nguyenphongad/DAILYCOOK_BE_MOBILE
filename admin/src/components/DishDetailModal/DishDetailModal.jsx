@@ -14,43 +14,15 @@ import DishForm from '../DishForm/DishForm';
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
 
-const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngredients }) => {
+const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngredients, mealCategories }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [form] = Form.useForm();
   const [modal, contextHolder] = Modal.useModal();
+  
 
-  if (!dish) return null;
+  if (!meal) return null;
 
-  // Dữ liệu mẫu để hiển thị (trong thực tế sẽ lấy từ API)
-  const mockIngredients = [
-    { id: 1, name: "Thịt gà", amount: "500g" },
-    { id: 2, name: "Xả", amount: "3 cây" },
-    { id: 3, name: "Ớt", amount: "2 quả" },
-    { id: 4, name: "Hành khô", amount: "2 củ" },
-    { id: 5, name: "Nước mắm", amount: "2 muỗng canh" },
-    { id: 6, name: "Đường", amount: "1 muỗng cà phê" },
-    { id: 7, name: "Dầu ăn", amount: "2 muỗng canh" },
-    { id: 8, name: "Tỏi", amount: "3 tép" }
-  ];
-
-  const mockSteps = [
-    {
-      title: "Sơ chế nguyên liệu",
-      content: "Thịt gà rửa sạch, thái miếng vừa ăn. Xả, tỏi, ớt băm nhỏ."
-    },
-    {
-      title: "Ướp thịt",
-      content: "Ướp thịt gà với xả, tỏi, ớt, nước mắm, đường trong 15-20 phút."
-    },
-    {
-      title: "Xào thịt",
-      content: "Đun nóng dầu, phi thơm hành khô, cho thịt gà vào xào đến khi chín."
-    },
-    {
-      title: "Hoàn thành",
-      content: "Nêm nếm lại cho vừa ăn, rắc thêm hành lá, ớt, rau mùi. Dọn ra đĩa."
-    }
-  ];
+  console.log("meal", meal)
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -63,29 +35,34 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
 
   const handleSaveEdit = (values) => {
     if (onEdit) {
-      onEdit({ ...values, id: dish.id });
+      onEdit({ ...values, id: meal.id });
     }
     setIsEditing(false);
   };
 
   // Xóa nguyên liệu (hiện modal confirm)
   const handleDelete = () => {
-    if (!dish) return;
+    if (!meal) return;
 
     modal.confirm({
       title: 'Xác nhận xóa',
-      content: `Bạn có chắc chắn muốn xóa nguyên liệu "${dish.name}" không?`,
+      content: `Bạn có chắc chắn muốn xóa nguyên liệu "${meal.name}" không?`,
       okText: 'Xóa',
       okType: 'danger',
       cancelText: 'Hủy',
       centered: true,
       onOk: () => {
         if (onDelete) {
-          onDelete(dish._id);
+          onDelete(meal._id);
         }
         onClose();
       }
     });
+  };
+
+  const getCategoryTitle = (categoryId) => {
+    const found = mealCategories.find(cat => cat._id === categoryId);
+    return found ? found.title || found.nameCategory : 'Chưa phân loại';
   };
 
   // Nếu đang trong chế độ chỉnh sửa, hiển thị form thay vì thông tin chi tiết
@@ -106,7 +83,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
       >
         <DishForm
           form={form}
-          initialValues={dish}
+          initialValues={meal}
           onFinish={handleSaveEdit}
           onCancel={handleCancelEdit}
           allIngredients={allIngredients || []}
@@ -156,24 +133,26 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
               <Col span={10}>
                 <div className="dish-image-container">
                   <Image
-                    src={dish.image}
-                    alt={dish.name}
+                    src={meal.mealImage}
+                    alt={meal.nameMeal}
                     className="dish-image"
                     style={{ width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'cover' }}
                   />
                 </div>
               </Col>
               <Col span={14}>
-                <Title level={3}>{dish.name}</Title>
-                <Tag color="#4CAF50" style={{ marginBottom: 16 }}>{dish.category}</Tag>
-                <Paragraph>{dish.description}</Paragraph>
+                <Title level={3}>{meal.nameMeal}</Title>
+                <Tag color="#4CAF50" style={{ marginBottom: 16 }}>
+                  {getCategoryTitle(meal.mealCategory)}
+                </Tag>
+                <Paragraph>{meal.description}</Paragraph>
 
                 <Descriptions column={1} size="small">
                   <Descriptions.Item label={<strong>Thời gian nấu</strong>}>
-                    <ClockCircleOutlined style={{ marginRight: 8 }} />{dish.cooking_time}
+                    <ClockCircleOutlined style={{ marginRight: 8 }} />{meal.cooking_time}
                   </Descriptions.Item>
                   <Descriptions.Item label={<strong>Số thành phần</strong>}>
-                    {dish.ingredients_count} nguyên liệu
+                    {meal.ingredients_count} nguyên liệu
                   </Descriptions.Item>
                   <Descriptions.Item label={<strong>Khẩu phần</strong>}>
                     <TeamOutlined style={{ marginRight: 8 }} />4 người
@@ -195,7 +174,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
             title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Nguyên liệu</span>}
             variant="bordered"
           >
-            <List
+            {/* <List
               bordered
               dataSource={mockIngredients}
               renderItem={item => (
@@ -207,7 +186,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
                   </div>
                 </List.Item>
               )}
-            />
+            /> */}
           </Card>
         </Col>
 
@@ -221,7 +200,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
               <Text strong style={{ fontSize: '15px', marginBottom: 16, display: 'block' }}>
                 Các bước thực hiện
               </Text>
-              <Steps
+              {/* <Steps
                 direction="vertical"
                 size="small"
                 current={mockSteps.length}
@@ -234,7 +213,7 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
                     description={<Paragraph>{step.content}</Paragraph>}
                   />
                 ))}
-              </Steps>
+              </Steps> */}
             </div>
 
             <Divider>
@@ -244,14 +223,14 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
             <Row gutter={16}>
               <Col span={12}>
                 <Card size="small" title="Calories" variant="bordered">
-                  <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
+                  <div style={{ textAlign: 'center' }}>
                     450 kcal
                   </div>
                 </Card>
               </Col>
               <Col span={12}>
                 <Card size="small" title="Protein" variant="bordered">
-                  <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
+                  <div style={{ textAlign: 'center' }}>
                     30g
                   </div>
                 </Card>
@@ -260,14 +239,14 @@ const DishDetailModal = ({ isVisible, onClose, dish, onEdit, onDelete, allIngred
             <Row gutter={16} style={{ marginTop: 16 }}>
               <Col span={12}>
                 <Card size="small" title="Carbs" variant="bordered">
-                  <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
+                  <div style={{ textAlign: 'center' }}>
                     40g
                   </div>
                 </Card>
               </Col>
               <Col span={12}>
                 <Card size="small" title="Fat" variant="bordered">
-                  <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
+                  <div style={{ textAlign: 'center' }}>
                     15g
                   </div>
                 </Card>

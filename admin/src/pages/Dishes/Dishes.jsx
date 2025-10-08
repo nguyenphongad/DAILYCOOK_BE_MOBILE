@@ -161,24 +161,27 @@ const Dishes = () => {
           <div className="dishes-grid-container">
             {sortedMeals.length > 0 ? (
               <div className="dishes-grid">
-                {sortedMeals.map((meal) => (
-                  <div key={meal.id} className="dish-card" onClick={() => showDishDetail(meal)}>
-                    <div className="dish-image">
-                      <img src={meal.mealImage} alt={meal.nameMeal} />
-                      <span className="category-badge">
-                        {getCategoryTitle(meal.mealCategory)}
-                      </span>
-                    </div>
-                    <div className="dish-content">
-                      <h3>{meal.nameMeal}</h3>
-                      <p className="description">{meal.description}</p>
-                      <div className="dish-info">
-                        <span className="ingredients-count">{meal.ingredients.length} thành phần</span>
-                        <span className="cooking-time">{meal.cookTimeMinutes} phút</span>
+                {sortedMeals.map((meal) => {
+                  const recipe = meal.recipe || {};
+                  return (
+                    <div key={meal.id} className="dish-card" onClick={() => showMealDetail(meal)}>
+                      <div className="dish-image">
+                        <img src={meal.mealImage} alt={meal.nameMeal} />
+                        <span className="category-badge">
+                          {getCategoryTitle(meal.mealCategory)}
+                        </span>
+                      </div>
+                      <div className="dish-content">
+                        <h3>{meal.nameMeal}</h3>
+                        <p className="description">{meal.description}</p>
+                        <div className="dish-info">
+                          <span className="ingredients-count">{meal.ingredients.length} thành phần</span>
+                          <span className="cooking-time">{recipe.cookTimeMinutes || 'N/A'} phút</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <div className="empty-state">
@@ -239,10 +242,11 @@ const Dishes = () => {
       <DishDetailModal
         isVisible={isDetailModalOpen}
         onClose={closeMealDetail}
-        dish={selectedMeal}
+        meal={selectedMeal}
         onEdit={handleEditMeal}
         onDelete={handleDeleteMeal}
         allIngredients={ingredients}
+        mealCategories={mealCategories}
       />
     </div>
   );
