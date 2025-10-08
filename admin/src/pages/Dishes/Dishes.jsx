@@ -1,223 +1,251 @@
-import { useState, useEffect } from 'react'
-import { Modal, Form } from 'antd'
-import { ImportOutlined } from '@ant-design/icons'
-import sampleData from '../../assets/data_sample_meal.json'
-import ImportFileModal from '../../components/ImportFileModal/ImportFileModal'
-import DishDetailModal from '../../components/DishDetailModal/DishDetailModal'
-import DishForm from '../../components/DishForm/DishForm'
-import Loading from '../../components/Loading/Loading'
+import { useState, useEffect } from 'react';
+import { Modal, Form, Pagination, Empty } from 'antd';
+import { ImportOutlined, SearchOutlined } from '@ant-design/icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'sonner';
+
+import ImportFileModal from '../../components/ImportFileModal/ImportFileModal';
+import DishDetailModal from '../../components/DishDetailModal/DishDetailModal';
+import DishForm from '../../components/DishForm/DishForm';
+import Loading from '../../components/Loading/Loading';
+
+import { fetchMeals } from '../../redux/thunks/mealThunk';
+import { fetchMealCategories } from '../../redux/thunks/mealCategoryThunk';
+import { fetchIngredients } from '../../redux/thunks/ingredientThunk';
 
 const Dishes = () => {
-  const [dishes, setDishes] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [isModalVisible, setIsModalVisible] = useState(false)
-  const [isImportModalVisible, setIsImportModalVisible] = useState(false)
-  const [form] = Form.useForm()
-  const [allIngredients, setAllIngredients] = useState([])
-  
-  // State cho modal chi tiết món ăn
-  const [isDishDetailModalVisible, setIsDishDetailModalVisible] = useState(false)
-  const [selectedDish, setSelectedDish] = useState(null)
-  
+  const dispatch = useDispatch();
+
+  // --- Redux state ---
+  const mealState = useSelector((state) => state.meals);
+  const ingredientsState = useSelector((state) => state.ingredients);
+  const mealCategoryState = useSelector((state) => state.mealCategory);
+
+  const { meals = [], loading, pagination = { page: 1, limit: 9, total: 0 } } = mealState || {};
+  const { ingredients = [] } = ingredientsState || {};
+  const { mealCategories } = mealCategoryState || {};
+
+  // --- Local state ---
+  const [isMealFormModalOpen, setIsMealFormModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState(null);
+  const [form] = Form.useForm();
+
+  // --- Filter + Pagination ---
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [sortOrder, setSortOrder] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // --- Fetch dữ liệu ---
   useEffect(() => {
-    // Giả lập việc lấy danh sách món ăn
-    const fetchDishes = () => {
-      setLoading(true)
-      
-      // Giả lập API call bằng cách sử dụng dữ liệu từ JSON
-      setTimeout(() => {
-        setDishes(sampleData.dishes)
-        setAllIngredients(sampleData.ingredients)
-        setLoading(false)
-      }, 1000)
-    }
-    
-    fetchDishes()
-  }, [])
-  
-  const showModal = () => {
-    setIsModalVisible(true)
-  }
+    dispatch(fetchMeals({ page: currentPage, limit: 9 }));
+    dispatch(fetchIngredients({ page: 1, limit: 50 }));
+    dispatch(fetchMealCategories());
+  }, [dispatch, currentPage]);
 
-  const handleCancel = () => {
-    form.resetFields()
-    setIsModalVisible(false)
-  }
+  // --- Tìm kiếm + Sắp xếp ---
+  const filteredMeals = meals.filter((meal) =>
+    (meal.nameMeal || '').toLowerCase().includes(searchKeyword.toLowerCase())
+  );
 
-  const handleSubmit = (values) => {
-    console.log('Form submitted:', values)
-    // Thêm món ăn mới vào danh sách
-    const newDish = {
-      id: Date.now(),
-      name: values.nameRecipe,
-      description: values.description,
-      ingredients_count: values.ingredients.length,
-      cooking_time: `${values.cookTimeMinutes} phút`,
-      category: "Món chính", // Giả sử category
-      image: values.image || "https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg"
-    };
-    
-    setDishes(prev => [...prev, newDish]);
-    handleCancel();
-  }
+  const sortedMeals = [...filteredMeals].sort((a, b) => {
+    if (sortOrder === 'name_asc') return a.nameMeal.localeCompare(b.nameMeal);
+    if (sortOrder === 'name_desc') return b.nameMeal.localeCompare(a.nameMeal);
+    return 0;
+  });
 
-  const showImportModal = () => {
-    setIsImportModalVisible(true);
+  // --- Helper functions ---
+  const getCategoryTitle = (categoryId) => {
+    const found = mealCategories.find(cat => cat._id === categoryId);
+    return found ? found.title || found.nameCategory : 'Chưa phân loại';
   };
 
-  const handleImportCancel = () => {
-    setIsImportModalVisible(false);
+  // --- Mở modal thêm món ăn ---
+  const openMealFormModal = () => {
+    form.resetFields();
+    setSelectedMeal(null);
+    setIsMealFormModalOpen(true);
   };
 
+  const closeMealFormModal = () => {
+    form.resetFields();
+    setIsMealFormModalOpen(false);
+  };
+
+  // --- Mở modal import ---
+  const openImportModal = () => setIsImportModalOpen(true);
+  const closeImportModal = () => setIsImportModalOpen(false);
+
+  // --- Import file ---
   const handleImport = (importedData) => {
-    // Xử lý dữ liệu import ở đây
     console.log('Imported data:', importedData);
-    
-    // Ở đây bạn có thể xử lý dữ liệu để thêm vào danh sách món ăn
-    // Ví dụ:
-    // const newDishes = importedData.map(item => ({
-    //   id: Date.now() + Math.random(),
-    //   name: item.name || item.nameRecipe || 'Món ăn không tên',
-    //   description: item.description || '',
-    //   ingredients_count: parseInt(item.ingredients_count) || 0,
-    //   cooking_time: item.cooking_time || '0 phút',
-    //   category: item.category || 'Khác',
-    //   image: item.image || 'https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg?cs=srgb&dl=pexels-jang-699953.jpg&fm=jpg',
-    // }));
-    // setDishes(prev => [...prev, ...newDishes]);
+    toast.success('Import thành công!');
   };
-  
-  // Xử lý hiển thị modal chi tiết món ăn
-  const showDishDetail = (dish) => {
-    setSelectedDish(dish);
-    setIsDishDetailModalVisible(true);
+
+  // --- Modal chi tiết món ăn ---
+  const showMealDetail = (meal) => {
+    setSelectedMeal(meal);
+    setIsDetailModalOpen(true);
   };
-  
-  const handleDishDetailClose = () => {
-    setIsDishDetailModalVisible(false);
-    setSelectedDish(null);
+
+  const closeMealDetail = () => {
+    setSelectedMeal(null);
+    setIsDetailModalOpen(false);
   };
-  
-  // Xử lý chỉnh sửa món ăn
-  const handleEditDish = (editedDish) => {
-    setDishes(prev => prev.map(dish => 
-      dish.id === editedDish.id ? { ...dish, ...editedDish } : dish
-    ));
+
+  // --- Submit form thêm/sửa món ăn ---
+  const handleSubmit = async (values) => {
+    console.log('Meal form values:', values);
+    // TODO: Gọi dispatch(addMeal) hoặc updateMeal tại đây
   };
-  
-  // Xử lý xóa món ăn
-  const handleDeleteDish = (id) => {
-    setDishes(prev => prev.filter(dish => dish.id !== id));
+
+  // --- Chỉnh sửa trong modal chi tiết ---
+  const handleEditMeal = (updatedMeal) => {
+    setSelectedMeal((prev) => ({ ...prev, ...updatedMeal }));
+    toast.success('Cập nhật món ăn thành công!');
   };
-  
+
+  // --- Xóa món ăn ---
+  const handleDeleteMeal = (id) => {
+    toast.info(`Xóa món có ID: ${id}`);
+  };
+
+  // --- Đổi trang ---
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  // --- JSX ---
   return (
     <div className="dishes-container">
-      {/* Sử dụng Loading component */}
       <Loading visible={loading} text="Đang tải dữ liệu..." />
-      
+
       <div className="content-area">
         <div className="content">
+          {/* Header */}
           <div className="page-header">
             <h1>Quản lý món ăn</h1>
             <div className="action-buttons">
-              <button className="import-button" onClick={showImportModal}>
+              <button className="import-button" onClick={openImportModal}>
                 <ImportOutlined /> Import File
               </button>
-              <button className="add-button" onClick={showModal}>+ Thêm món ăn</button>
+              <button className="add-button" onClick={openMealFormModal}>
+                + Thêm món ăn
+              </button>
             </div>
           </div>
-          
-          <div className="dishes-filter">
+
+          {/* Filter + Search */}
+          <div className="container-filter">
             <div className="search-bar">
-              <input type="text" placeholder="Tìm kiếm món ăn..." />
-              <button>Tìm</button>
+              <input
+                placeholder="Tìm kiếm món ăn..."
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+              />
+              <button>
+                <SearchOutlined /> Tìm
+              </button>
             </div>
             <div className="filters">
-              <select>
-                <option value="">Tất cả danh mục</option>
-                <option value="main">Món chính</option>
-                <option value="soup">Canh</option>
-                <option value="dessert">Tráng miệng</option>
-              </select>
-              <select>
+              <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
                 <option value="">Sắp xếp theo</option>
                 <option value="name_asc">Tên (A-Z)</option>
                 <option value="name_desc">Tên (Z-A)</option>
-                <option value="time_asc">Thời gian nấu (Tăng dần)</option>
-                <option value="time_desc">Thời gian nấu (Giảm dần)</option>
               </select>
             </div>
           </div>
-          
+
+          {/* Grid hiển thị món ăn */}
           <div className="dishes-grid-container">
-            {loading ? (
-              <Loading visible={true} text="Đang tải món ăn..." />
-            ) : (
+            {sortedMeals.length > 0 ? (
               <div className="dishes-grid">
-                {dishes.map(dish => (
-                  <div key={dish.id} className="dish-card" onClick={() => showDishDetail(dish)}>
+                {sortedMeals.map((meal) => (
+                  <div key={meal.id} className="dish-card" onClick={() => showDishDetail(meal)}>
                     <div className="dish-image">
-                      <img src={dish.image} alt={dish.name} />
-                      <span className="category-badge">{dish.category}</span>
+                      <img src={meal.mealImage} alt={meal.nameMeal} />
+                      <span className="category-badge">
+                        {getCategoryTitle(meal.mealCategory)}
+                      </span>
                     </div>
                     <div className="dish-content">
-                      <h3>{dish.name}</h3>
-                      <p className="description">{dish.description}</p>
+                      <h3>{meal.nameMeal}</h3>
+                      <p className="description">{meal.description}</p>
                       <div className="dish-info">
-                        <span className="ingredients-count">{dish.ingredients_count} thành phần</span>
-                        <span className="cooking-time">{dish.cooking_time}</span>
+                        <span className="ingredients-count">{meal.ingredients.length} thành phần</span>
+                        <span className="cooking-time">{meal.cookTimeMinutes} phút</span>
                       </div>
                     </div>
-                    
-                    {/* Đã xóa nút xóa */}
                   </div>
                 ))}
               </div>
+            ) : (
+              <div className="empty-state">
+                <Empty description="Không có món ăn nào" />
+              </div>
             )}
           </div>
-          
-          {/* Modal Thêm Món Ăn */}
-          <Modal
-            title={<span style={{ fontWeight: 700, fontSize: '18px' }}>Thêm món ăn mới</span>}
-            open={isModalVisible}
-            onCancel={handleCancel}
-            width={1600}
-            style={{ 
-              top: 10,
-              maxWidth: '90%',
-              margin: '0 auto'
-            }}
-            footer={null}
-          >
-            <DishForm
-              form={form}
-              onFinish={handleSubmit}
-              onCancel={handleCancel}
-              allIngredients={allIngredients}
-              isEdit={false}
-            />
-          </Modal>
 
-          {/* Modal Import File */}
-          <ImportFileModal 
-            isVisible={isImportModalVisible}
-            onCancel={handleImportCancel}
-            onImport={handleImport}
-          />
-          
-          {/* Modal Chi tiết món ăn */}
-          <DishDetailModal
-            isVisible={isDishDetailModalVisible}
-            onClose={handleDishDetailClose}
-            dish={selectedDish}
-            onEdit={handleEditDish}
-            onDelete={handleDeleteDish}
-            allIngredients={allIngredients}
-          />
+          {/* Phân trang */}
+          {pagination.total > 0 && (
+            <div className="pagination-container">
+              <Pagination
+                current={pagination.page}
+                total={pagination.total}
+                pageSize={pagination.limit}
+                onChange={handlePageChange}
+                showSizeChanger={false}
+                showTotal={(total, range) =>
+                  `${range[0]}-${range[1]} của ${total} món`
+                }
+              />
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  )
-}
 
-export default Dishes
+      {/* Modal Thêm / Sửa món ăn */}
+      <Modal
+        title={
+          <span style={{ fontWeight: 700, fontSize: '18px' }}>
+            {selectedMeal ? 'Chỉnh sửa món ăn' : 'Thêm món ăn mới'}
+          </span>
+        }
+        open={isMealFormModalOpen}
+        onCancel={closeMealFormModal}
+        width={1600}
+        style={{ top: 10, maxWidth: '90%', margin: '0 auto' }}
+        footer={null}
+      >
+        <DishForm
+          form={form}
+          onFinish={handleSubmit}
+          onCancel={closeMealFormModal}
+          allIngredients={ingredients}
+          isEdit={!!selectedMeal}
+          initialValues={selectedMeal}
+        />
+      </Modal>
+
+      {/* Modal Import File */}
+      <ImportFileModal
+        isVisible={isImportModalOpen}
+        onCancel={closeImportModal}
+        onImport={handleImport}
+      />
+
+      {/* Modal Chi tiết món ăn */}
+      <DishDetailModal
+        isVisible={isDetailModalOpen}
+        onClose={closeMealDetail}
+        dish={selectedMeal}
+        onEdit={handleEditMeal}
+        onDelete={handleDeleteMeal}
+        allIngredients={ingredients}
+      />
+    </div>
+  );
+};
+
+export default Dishes;

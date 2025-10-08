@@ -120,7 +120,7 @@ export const updateIngredientCategory = createAsyncThunk(
 
             if (response.status) {
                 dispatch(updateIngredientCategoryInList(response.data));
-                toast.success(response.message || 'Cập nhật thành công');
+                toast.success(response.message || 'Cập nhật danh mục nguyên liệu thành công');
                 return response.data;
             } else {
                 dispatch(setError(response.message));
@@ -150,7 +150,7 @@ export const deleteIngredientCategory = createAsyncThunk(
 
             if (response.status) {
                 dispatch(removeIngredientCategoryFromList(id));
-                toast.success(response.message || 'Xóa thành công');
+                toast.success(response.message || 'Xóa danh mục nguyên liệu thành công');
                 return id;
             } else {
                 dispatch(setError(response.message));

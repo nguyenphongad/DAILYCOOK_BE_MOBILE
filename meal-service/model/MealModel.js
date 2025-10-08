@@ -25,23 +25,19 @@ const mealSchema = new mongoose.Schema(
             default: "",
         },
 
-        // Khẩu phần ăn tiêu chuẩn (chỉ dùng khi isFamily = true)
-        portionSize: {
-            amount: {
-                type: Number,
-                min: 1,
-                default: 1,
-            },
-            unit: {
-                type: String,
-                enum: ["phần"], // hoặc "serving"
-                default: "phần",
-            },
-        },
-
         dietaryCompatibility: [
             { type: mongoose.Schema.Types.ObjectId, ref: "DietType" },
         ],
+
+        prepTimeMinutes: {
+            type: Number,
+            default: "10"
+        },
+
+        cookTimeMinutes: {
+            type: Number,
+            default: "10"
+        },
 
         ingredients: [
             {

@@ -1,7 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    Modal, Row, Col, Image, Typography, Divider,
-    Descriptions, Tag, Card, List, Button, Form
+    Modal,
+    Row,
+    Col,
+    Image,
+    Typography,
+    Divider,
+    Descriptions,
+    Tag,
+    Card,
+    List,
+    Button,
+    Form
 } from 'antd';
 import {
     EditOutlined,
@@ -12,118 +22,94 @@ import IngredientForm from '../IngredientForm/IngredientForm';
 
 const { Title, Paragraph } = Typography;
 
+/**
+ * Modal hiển thị chi tiết nguyên liệu
+ * Bao gồm 2 chế độ:
+ * 1. Xem chi tiết
+ * 2. Chỉnh sửa (edit)
+ */
 const IngredientDetailModal = ({
-    isVisible,                 // Trạng thái hiển thị modal
-    onClose,                   // Hàm đóng modal
-    ingredient,                // Nguyên liệu được chọn
-    onEdit,                    // Callback chỉnh sửa
-    onDelete,                  // Callback xóa
-    allIngredientCategories,   // Danh mục nguyên liệu
-    allMeasureUnits            // Đơn vị đo lường
+    isVisible,                  // Trạng thái mở/đóng modal
+    onClose,                    // Hàm đóng modal
+    ingredient,                 // Nguyên liệu được chọn
+    onEdit,                     // Hàm cập nhật nguyên liệu
+    onDelete,                   // Hàm xóa nguyên liệu
+    allIngredientCategories,    // Danh sách tất cả danh mục
+    allMeasureUnits             // Danh sách đơn vị đo lường
 }) => {
-    // State quản lý chế độ chỉnh sửa
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditing, setIsEditing] = useState(false); // Chế độ edit
     const [form] = Form.useForm();
-    const [modal, contextHolder] = Modal.useModal();
+    const [modal, contextHolder] = Modal.useModal(); // Modal confirm xóa
 
-    // Nếu chưa có nguyên liệu → không render
-    if (!ingredient) return null;
+    // Khi bật chế độ edit, đồng bộ form với ingredient hiện tại
+    useEffect(() => {
+        if (isEditing && ingredient) {
+            form.setFieldsValue({
+                ...ingredient,
+                nutrition: ingredient.nutrition || {}
+            });
+        }
+    }, [isEditing, ingredient, form]);
 
-    // Lookup category theo id
-    const category = allIngredientCategories?.find(
-        cat => cat._id === ingredient.ingredientCategory
-    );
+    /** Mở chế độ edit */
+    const handleEditClick = () => setIsEditing(true);
 
-    // --- HANDLER FUNCTIONS ---
-
-    // Mở form chỉnh sửa
-    const handleEditClick = () => {
-        setIsEditing(true);
-    };
-
-    // Hủy chỉnh sửa
+    /** Hủy edit, reset form và trở về chế độ xem chi tiết */
     const handleCancelEdit = () => {
         setIsEditing(false);
         form.resetFields();
     };
 
-    // Lưu chỉnh sửa
-    const handleSaveEdit = (values) => {
-        if (onEdit) {
-            onEdit({ ...values, _id: ingredient._id });
-        }
+    /** Lưu thông tin edit, gọi onEdit từ parent */
+    const handleSaveEdit = async (values) => {
+        await onEdit(values);
         setIsEditing(false);
     };
 
-    // Xóa nguyên liệu (hiện modal confirm)
+    /** Xóa nguyên liệu với confirm */
     const handleDelete = () => {
         if (!ingredient) return;
 
         modal.confirm({
             title: 'Xác nhận xóa',
-            content: `Bạn có chắc chắn muốn xóa nguyên liệu "${ingredient.nameIngredient}" không?`,
+            content: `Bạn có chắc chắn muốn xóa nguyên liệu "${ingredient?.nameIngredient || ''}" không?`,
             okText: 'Xóa',
             okType: 'danger',
             cancelText: 'Hủy',
             centered: true,
             onOk: () => {
-                if (onDelete) {
-                    onDelete(ingredient._id);
-                }
+                if (onDelete) onDelete(ingredient._id);
                 onClose();
             }
         });
     };
 
-    // --- RENDER ---
+    // Nếu chưa có nguyên liệu được chọn, không render modal
+    if (!ingredient) return null;
 
-    // Nếu đang ở chế độ chỉnh sửa → render form
-    if (isEditing) {
-        return (
-            <Modal
-                title={<span style={{ fontWeight: 700, fontSize: '18px' }}>Chỉnh sửa nguyên liệu</span>}
-                open={isVisible}
-                onCancel={handleCancelEdit}
-                width={1600}
-                style={{
-                    top: 10,
-                    maxWidth: '90%',
-                    margin: '0 auto'
-                }}
-                footer={null}
-                className="ingredient-detail-modal editing"
-            >
-                <IngredientForm
-                    form={form}
-                    onFinish={handleSaveEdit}
-                    onCancel={handleCancelEdit}
-                    initialValues={ingredient}
-                    allIngredientCategories={allIngredientCategories || []}
-                    allMeasureUnits={allMeasureUnits || []}
-                    isEdit={true}
-                />
-            </Modal>
-        );
-    }
+    // Lấy danh mục của nguyên liệu
+    const category = allIngredientCategories?.find(
+        cat => cat._id === ingredient.ingredientCategory
+    );
 
-    // Nếu đang xem chi tiết → render thông tin nguyên liệu
     return (
         <Modal
-            title={<span style={{ fontWeight: 700, fontSize: '18px' }}>Chi tiết nguyên liệu</span>}
+            title={
+                <span style={{ fontWeight: 700, fontSize: '18px' }}>
+                    {isEditing ? 'Chỉnh sửa nguyên liệu' : 'Chi tiết nguyên liệu'}
+                </span>
+            }
             open={isVisible}
-            onCancel={onClose}
+            onCancel={isEditing ? handleCancelEdit : onClose}
             width={1600}
-            style={{
-                top: 20,
-                maxWidth: '90%',
-                margin: '0 auto'
-            }}
-            footer={
+            style={{ top: 20, maxWidth: '90%', margin: '0 auto' }}
+            footer={isEditing ? null : (
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     {/* Nút xóa nguyên liệu */}
                     <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
                         Xóa nguyên liệu
                     </Button>
+
                     <div>
                         {/* Nút đóng modal */}
                         <Button style={{ marginRight: 8 }} onClick={onClose}>
@@ -135,88 +121,110 @@ const IngredientDetailModal = ({
                         </Button>
                     </div>
                 </div>
-            }
+            )}
             className="ingredient-detail-modal"
         >
-            <Card variant="bordered">
-                <Row gutter={24}>
-                    {/*  ================== BÊN TRÁI: Hình ảnh + thông tin cơ bản  ================== */}
-                    <Col span={10}>
-                        <Image
-                            src={ingredient.ingredientImage}
-                            alt={ingredient.nameIngredient}
-                            style={{ width: '100%', height: 280, objectFit: 'cover', borderRadius: 8 }}
-                        />
-                        <Title level={4} style={{ marginTop: 16 }}>{ingredient.nameIngredient}</Title>
-                        <Tag color="#4CAF50" style={{ marginBottom: 16 }}>
-                            {category ? category.title : 'Không rõ danh mục'}
-                        </Tag>
-                        <Paragraph>{ingredient.description}</Paragraph>
-                        <Descriptions column={1} size="small">
-                            <Descriptions.Item label={<strong>Khối lượng mặc định</strong>}>
-                                {ingredient.defaultAmount} {ingredient.defaultUnit}
-                            </Descriptions.Item>
-                        </Descriptions>
-                    </Col>
+            {isEditing ? (
+                // ================== Chế độ chỉnh sửa ==================
+                <IngredientForm
+                    form={form}
+                    onFinish={handleSaveEdit}
+                    onCancel={handleCancelEdit}
+                    initialValues={{
+                        ...ingredient,
+                        nutrition: ingredient.nutrition || {}
+                    }}
+                    allIngredientCategories={allIngredientCategories || []}
+                    allMeasureUnits={allMeasureUnits || []}
+                    isEdit={true}
+                />
+            ) : (
+                // ================== Chế độ xem chi tiết ==================
+                <Card variant="bordered">
+                    <Row gutter={24}>
+                        {/* Cột trái: hình ảnh, tên, danh mục, mô tả, khối lượng */}
+                        <Col span={10}>
+                            <Image
+                                src={ingredient?.ingredientImage || '/default-image.png'}
+                                alt={ingredient?.nameIngredient || ''}
+                                style={{
+                                    width: '100%',
+                                    height: 280,
+                                    objectFit: 'cover',
+                                    borderRadius: 8
+                                }}
+                            />
+                            <Title level={4} style={{ marginTop: 16 }}>
+                                {ingredient?.nameIngredient || 'Không rõ'}
+                            </Title>
+                            <Tag color="#4CAF50" style={{ marginBottom: 16 }}>
+                                {category ? category.title : 'Không rõ danh mục'}
+                            </Tag>
+                            <Paragraph>{ingredient?.description || 'Không có mô tả'}</Paragraph>
+                            <Descriptions column={1} size="small">
+                                <Descriptions.Item label={<strong>Khối lượng mặc định</strong>}>
+                                    {ingredient?.defaultAmount || 0} {ingredient?.defaultUnit || ''}
+                                </Descriptions.Item>
+                            </Descriptions>
+                        </Col>
 
-                    {/*  ================== BÊN PHẢI: Thông tin dinh dưỡng + công dụng  ================== */}
-                    <Col span={14}>
-                        <Divider>
-                            Thông tin dinh dưỡng trên {ingredient.defaultAmount}/{ingredient.defaultUnit}
-                        </Divider>
+                        {/* Cột phải: thông tin dinh dưỡng + công dụng */}
+                        <Col span={14}>
+                            <Divider>
+                                Thông tin dinh dưỡng trên {ingredient?.defaultAmount || 0}/{ingredient?.defaultUnit || ''}
+                            </Divider>
 
-                        {/* Nutrition cards */}
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Card size="small" title="Calories">
-                                    <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
-                                        {ingredient.nutrition?.calories || 0} kcal
-                                    </div>
-                                </Card>
-                            </Col>
-                            <Col span={12}>
-                                <Card size="small" title="Protein">
-                                    <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
-                                        {ingredient.nutrition?.protein || 0} g
-                                    </div>
-                                </Card>
-                            </Col>
-                        </Row>
+                            <Row gutter={16}>
+                                <Col span={12}>
+                                    <Card size="small" title="Calories">
+                                        <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
+                                            {ingredient.nutrition?.calories || 0} kcal
+                                        </div>
+                                    </Card>
+                                </Col>
+                                <Col span={12}>
+                                    <Card size="small" title="Protein">
+                                        <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
+                                            {ingredient.nutrition?.protein || 0} g
+                                        </div>
+                                    </Card>
+                                </Col>
+                            </Row>
 
-                        <Row gutter={16} style={{ marginTop: 16 }}>
-                            <Col span={12}>
-                                <Card size="small" title="Carbs">
-                                    <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
-                                        {ingredient.nutrition?.carbs || 0} g
-                                    </div>
-                                </Card>
-                            </Col>
-                            <Col span={12}>
-                                <Card size="small" title="Fat">
-                                    <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
-                                        {ingredient.nutrition?.fat || 0} g
-                                    </div>
-                                </Card>
-                            </Col>
-                        </Row>
+                            <Row gutter={16} style={{ marginTop: 16 }}>
+                                <Col span={12}>
+                                    <Card size="small" title="Carbs">
+                                        <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
+                                            {ingredient.nutrition?.carbs || 0} g
+                                        </div>
+                                    </Card>
+                                </Col>
+                                <Col span={12}>
+                                    <Card size="small" title="Fat">
+                                        <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
+                                            {ingredient.nutrition?.fat || 0} g
+                                        </div>
+                                    </Card>
+                                </Col>
+                            </Row>
 
-                        {/* Common uses */}
-                        <Divider>Công dụng phổ biến</Divider>
-                        <List
-                            dataSource={ingredient.commonUses || []}
-                            renderItem={use => (
-                                <List.Item>
-                                    <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-                                    {use}
-                                </List.Item>
-                            )}
-                        />
-                    </Col>
-                </Row>
-            </Card>
+                            <Divider>Công dụng phổ biến</Divider>
+                            <List
+                                dataSource={ingredient?.commonUses || []}
+                                renderItem={use => (
+                                    <List.Item>
+                                        <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
+                                        {use}
+                                    </List.Item>
+                                )}
+                                locale={{ emptyText: 'Không có công dụng phổ biến' }}
+                            />
+                        </Col>
+                    </Row>
+                </Card>
+            )}
 
-            {/* Quan trọng: phải render contextHolder để confirm modal hoạt động */}
-            {contextHolder}
+            {contextHolder} {/* Dùng để hiển thị confirm modal */}
         </Modal>
     );
 };

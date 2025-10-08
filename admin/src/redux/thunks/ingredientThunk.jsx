@@ -9,12 +9,11 @@ import {
     addIngredientToList,
     removeIngredientFromList,
     updateIngredientInList,
-    setIngredients
 } from '../slices/ingredientSlice';
 
 // Lấy danh sách tất cả ingredient 
-export const fetchIngredientCategories = createAsyncThunk(
-    'ingredients/fetchIngredientCategories',
+export const fetchIngredients = createAsyncThunk(
+    'ingredients/fetchIngrediens',
     async (params = { page: 1, limit: 10 }, { dispatch, getState, rejectWithValue }) => {
         try {
             dispatch(setLoading(true));
@@ -51,7 +50,7 @@ export const fetchIngredientById = createAsyncThunk(
 
             const { token } = getState().auth;
             const response = await get(
-                `${ENDPOINT.GET_INGREDIENT}/${id}}`,
+                `${ENDPOINT.GET_INGREDIENT}/${id}`,
                 token
             );
 
@@ -88,7 +87,7 @@ export const addIngredient = createAsyncThunk(
 
             if (response.status) {
                 dispatch(addIngredientToList(response.data));
-                toast.success(response.message || 'Thêm danh mục nguyên liệu thành công');
+                toast.success(response.message || 'Thêm nguyên liệu thành công!');
                 return response.data;
             } else {
                 dispatch(setError(response.message));
@@ -120,7 +119,7 @@ export const updateIngredient = createAsyncThunk(
 
             if (response.status) {
                 dispatch(updateIngredientInList(response.data));
-                toast.success(response.message || 'Cập nhật thành công');
+                toast.success(response.message || 'Cập nhật nguyên liệu thành công!');
                 return response.data;
             } else {
                 dispatch(setError(response.message));
@@ -150,7 +149,7 @@ export const deleteIngredient = createAsyncThunk(
 
             if (response.status) {
                 dispatch(removeIngredientFromList(id));
-                toast.success(response.message || 'Xóa thành công');
+                toast.success(response.message || 'Xóa nguyên liệu thành công!');
                 return id;
             } else {
                 dispatch(setError(response.message));

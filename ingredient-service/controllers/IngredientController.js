@@ -26,12 +26,13 @@ const addIngredient = async (req, res) => {
         }
 
         // Tìm danh mục theo keyword hoặc title (không phân biệt chữ hoa thường)
-        const category = await IngredientCategoryModel.findOne({
-            $or: [
-                { keyword: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } },
-                { title: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } }
-            ]
-        });
+        // const category = await IngredientCategoryModel.findOne({
+        //     $or: [
+        //         { keyword: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } },
+        //         { title: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } }
+        //     ]
+        // });
+        const category = await IngredientCategoryModel.findById(ingredientCategory);
         if (!category) {
             return res.status(400).json({
                 stype: "ingredient",
@@ -88,7 +89,7 @@ const addIngredient = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Thêm nguyên liệu thất bại!" + error.message,
             status: false,
             error: error.message
         });
@@ -142,12 +143,13 @@ const updateIngredient = async (req, res) => {
 
         // Xử lý category nếu có
         if (ingredientCategory) {
-            const category = await IngredientCategoryModel.findOne({
-                $or: [
-                    { keyword: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } },
-                    { title: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } }
-                ]
-            });
+            // const category = await IngredientCategoryModel.findOne({
+            //     $or: [
+            //         { keyword: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } },
+            //         { title: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } }
+            //     ]
+            // });
+            const category = await IngredientCategoryModel.findById(ingredientCategory);
             if (!category) {
                 return res.status(400).json({
                     stype: "ingredient",
@@ -192,7 +194,7 @@ const updateIngredient = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Cập nhật nguyên liệu thất bại!" + error.message,
             status: false,
             error: error.message
         });
@@ -226,7 +228,7 @@ const deleteIngredient = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Xóa nguyên liệu thất bại",
             status: false,
             error: error.message
         });
@@ -236,24 +238,31 @@ const deleteIngredient = async (req, res) => {
 // Đưa ra danh sách nguyên liệu
 const getListIngredient = async (req, res) => {
     try {
-        const ingredients = await IngredientModel.find();
-        if (!ingredients) {
-            return res.status(404).json({
-                stype: "ingredient",
-                message: "Không tìm thấy danh sách nguyên liệu!",
-                status: false
-            })
-        }
+        let { page = 1, limit = 10 } = req.query;
+        page = parseInt(page);
+        limit = parseInt(limit);
+        const skip = (page - 1) * limit;
+        const total = await IngredientModel.countDocuments();
+        const ingredients = await IngredientModel.find()
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 });
         return res.status(200).json({
             stype: "ingredient",
-            message: "Danh sách nguyên liệu",
+            message: "Lấy danh sách món ăn thành công!",
             status: true,
-            data: ingredients
-        })
-    } catch (error) {
+            data: {
+                total,
+                page,
+                limit,
+                ingredients
+            }
+        });
+    }
+    catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Lấy danh sách món ăn thất bại!",
             status: false,
             error: error.message
         });
@@ -282,7 +291,7 @@ const findByIdIngredient = async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Lỗi server, vui lòng thử lại sau!",
+            message: "Lấy nguyên liệu thất bại!",
             status: false,
             error: error.message
         });

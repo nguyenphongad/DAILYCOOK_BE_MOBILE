@@ -1,109 +1,141 @@
 import { useState, useEffect } from 'react';
-import { Modal, Form } from 'antd';
-import { ImportOutlined } from '@ant-design/icons';
-
-import sampleData from '../../assets/data_sample_ingredient.json';
+import { Modal, Form, Pagination, Empty } from 'antd';
+import { ImportOutlined, SearchOutlined } from '@ant-design/icons';
 import Loading from '../../components/Loading/Loading';
 import IngredientForm from '../../components/IngredientForm/IngredientForm';
 import IngredientDetailModal from '../../components/IngredientDetailModal/IngredientDetailModal';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchIngredientCategories } from '../../redux/thunks/ingredientCategoryThunk';
+import { fetchMeasurementUnits } from '../../redux/thunks/measurementUnitsThunk';
+import {
+    addIngredient,
+    updateIngredient,
+    deleteIngredient,
+    fetchIngredients,
+} from '../../redux/thunks/ingredientThunk';
+import { toast } from 'sonner';
 
 const Ingredients1 = () => {
-    // --- STATE QUẢN LÝ ---
-    const [ingredients, setIngredients] = useState([]);                     // Danh sách nguyên liệu
-    const [loading, setLoading] = useState(true);                           // Trạng thái loading
-    const [allIngredientCategories, setAllIngredientCategories] = useState([]); // Danh mục nguyên liệu
-    const [allMeasureUnits, setAllMeasureUnits] = useState([]);             // Đơn vị đo lường
+    const dispatch = useDispatch();
 
-    // Modal thêm nguyên liệu
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    // ==================== STATE ====================
+    const ingredientState = useSelector((state) => state.ingredients);
+    const ingredientCategoryState = useSelector((state) => state.ingredientCategory);
+    const measurementUnitsState = useSelector((state) => state.measurementUnits);
+
+    const { ingredients = [], loading, pagination = { page: 1, limit: 9, total: 0 } } = ingredientState || {};
+    const { ingredientCategories = [] } = ingredientCategoryState || {};
+    const { measurementUnits = [] } = measurementUnitsState || {};
+
+    // ====================LOCAL STATE ====================
+    const [isModalVisible, setIsModalVisible] = useState(false); // Modal thêm nguyên liệu
+    const [isIngredientDetailModalVisible, setIsIngredientDetailModalVisible] = useState(false); // Modal chi tiết
+    const [selectedIngredient, setSelectedIngredient] = useState(null); // Nguyên liệu đang chọn
     const [form] = Form.useForm();
+    const [searchKeyword, setSearchKeyword] = useState('');
+    const [sortOrder, setSortOrder] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
 
-    // Modal chi tiết nguyên liệu
-    const [isIngredientDetailModalVisible, setIsIngredientDetailModalVisible] = useState(false);
-    const [selectedIngredient, setSelectedIngredient] = useState(null);
-
-    // --- HOOKS ---
+    // --- Fetch dữ liệu khi mount ---
     useEffect(() => {
-        // Giả lập việc lấy dữ liệu từ API
-        const fetchIngredients = () => {
-            setLoading(true);
-            setTimeout(() => {
-                setIngredients(sampleData.ingredients);
-                setAllIngredientCategories(sampleData.ingredientCategories);
-                setAllMeasureUnits(sampleData.measurementUnits);
-                setLoading(false);
-            }, 1000);
-        };
-        fetchIngredients();
-    }, []);
+        dispatch(fetchIngredients({ page: 1, limit: 9 }));
+        dispatch(fetchIngredientCategories({ page: 1, limit: 50 }));
+        dispatch(fetchMeasurementUnits());
+    }, [dispatch]);
 
-    // --- HELPER ---
-    // Lấy tên danh mục từ ID
-    const getCategoryTitle = (id) => {
-        const cat = allIngredientCategories.find(c => c._id === id);
-        return cat ? cat.title : id;
+    // --- Filter + Sort ---
+    const filteredIngredients = (ingredients || []).filter((item) =>
+        (item.nameIngredient || '').toLowerCase().includes(searchKeyword.toLowerCase())
+    );
+
+    const sortedIngredients = [...filteredIngredients].sort((a, b) => {
+        if (sortOrder === 'name_asc') {
+            return (a.nameIngredient || '').localeCompare(b.nameIngredient || '');
+        } else if (sortOrder === 'name_desc') {
+            return (b.nameIngredient || '').localeCompare(a.nameIngredient || '');
+        }
+        return 0;
+    });
+
+    // --- Helper functions ---
+    const getCategoryTitle = (categoryId) => {
+        const found = ingredientCategories.find(cat => cat._id === categoryId);
+        return found ? found.title || found.nameCategory : 'Chưa phân loại';
     };
 
-    // --- HANDLERS ---
-    // Mở modal chi tiết nguyên liệu
+    // --- Modal handlers ---
+    const showModalAddIngredient = () => {
+        setSelectedIngredient(null); // Reset khi thêm mới
+        form.resetFields();
+        setIsModalVisible(true);
+    };
+
+    const handleCancel = () => {
+        form.resetFields();
+        setSelectedIngredient(null);
+        setIsModalVisible(false);
+    };
+
     const showIngredientDetail = (ingredient) => {
         setSelectedIngredient(ingredient);
         setIsIngredientDetailModalVisible(true);
     };
 
-    // Đóng modal chi tiết nguyên liệu
     const handleIngredientDetailClose = () => {
         setIsIngredientDetailModalVisible(false);
-        setSelectedIngredient(null);
+    };
+    
+    // ==================== HÀM XỬ LÝ ====================
+    // Thêm nguyên liệu mới
+    const handleSubmit = async (values) => {
+        try {
+            await dispatch(addIngredient(values)).unwrap();
+            handleCancel();
+        } catch (error) {
+            console.error(error);
+            toast.error(error?.message || 'Thao tác thất bại, vui lòng thử lại!');
+        }
     };
 
-    // Mở modal thêm nguyên liệu
-    const showModalAddIngredient = () => {
-        setIsModalVisible(true);
-    };
+    // Cập nhật nguyên liệu từ modal chi tiết
+    const handleEditFromDetail = async (updatedIngredientData) => {
+        if (!selectedIngredient) return;
 
-    // Submit form thêm nguyên liệu mới
-    const handleSubmit = (values) => {
-        console.log('Form submitted:', values);
+        try {
+            await dispatch(updateIngredient({
+                id: selectedIngredient._id,
+                ingredientData: updatedIngredientData,
+            })).unwrap();
 
-        const newIngredient = {
-            _id: Date.now().toString(),
-            nameIngredient: values.nameIngredient,
-            ingredientCategory: values.ingredientCategory, // ID danh mục
-            description: values.description,
-            commonUses: values.commonUses || [],
-            defaultAmount: values.defaultAmount,
-            defaultUnit: values.defaultUnit, // Đơn vị đo lường (g/ml/…)
-            ingredientImage: values.ingredientImage || "https://images.pexels.com/photos/699953/pexels-photo-699953.jpeg",
-            nutrition: values.nutrition || {}
-        };
-
-        setIngredients(prev => [...prev, newIngredient]);
-        handleCancel();
-    };
-
-    // Chỉnh sửa nguyên liệu
-    const handleEditIngredient = (updatedIngredient) => {
-        setIngredients(prev =>
-            prev.map(ing => ing._id === updatedIngredient._id ? updatedIngredient : ing)
-        );
+            // Cập nhật local state để modal hiển thị thông tin mới
+            setSelectedIngredient(prev => ({
+                ...prev,
+                ...updatedIngredientData
+            }));
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     // Xóa nguyên liệu
-    const handleDeleteIngredient = (ingredientId) => {
-        setIngredients(prev => prev.filter(ing => ing._id !== ingredientId));
+    const handleDelete = async (id) => {
+        try {
+            await dispatch(deleteIngredient(id)).unwrap();
+            setIsIngredientDetailModalVisible(false);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    // Đóng modal thêm nguyên liệu
-    const handleCancel = () => {
-        form.resetFields();
-        setIsModalVisible(false);
+    // Phân trang
+    const handlePageChange = (page) => {
+        setCurrentPage(page);
+        dispatch(fetchIngredients({ page, limit: pagination.limit }));
     };
 
     // --- RENDER ---
     return (
         <div className="ingredients-container">
-            {/* Loading overlay */}
             <Loading visible={loading} text="Đang tải dữ liệu..." />
 
             <div className="content-area">
@@ -121,25 +153,23 @@ const Ingredients1 = () => {
                         </div>
                     </div>
 
-                    {/* Bộ lọc tìm kiếm */}
+                    {/* Filter + Search */}
                     <div className="container-filter">
                         <div className="search-bar">
-                            <input type="text" placeholder="Tìm kiếm nguyên liệu..." />
-                            <button>Tìm</button>
+                            <input
+                                placeholder="Tìm kiếm nguyên liệu..."
+                                value={searchKeyword}
+                                onChange={(e) => setSearchKeyword(e.target.value)}
+                            />
+                            <button>
+                                <SearchOutlined /> Tìm
+                            </button>
                         </div>
                         <div className="filters">
-                            <select>
-                                <option value="">Tất cả danh mục</option>
-                                <option value="main">Rau</option>
-                                <option value="soup">Thịt</option>
-                                <option value="dessert">Trái cây</option>
-                            </select>
-                            <select>
+                            <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
                                 <option value="">Sắp xếp theo</option>
                                 <option value="name_asc">Tên (A-Z)</option>
                                 <option value="name_desc">Tên (Z-A)</option>
-                                <option value="time_asc">Calo (Tăng dần)</option>
-                                <option value="time_desc">Calo (Giảm dần)</option>
                             </select>
                         </div>
                     </div>
@@ -147,10 +177,10 @@ const Ingredients1 = () => {
                     {/* Danh sách nguyên liệu */}
                     <div className="ingredients-grid-container">
                         {loading ? (
-                            <Loading visible={true} text="Đang tải nguyên liệu..." />
-                        ) : (
+                            <Loading visible={true} text="Đang tải danh sách nguyên liệu..." />
+                        ) : sortedIngredients.length > 0 ? (
                             <div className="ingredients-grid">
-                                {ingredients.map(ingredient => (
+                                {sortedIngredients.map((ingredient) => (
                                     <div
                                         key={ingredient._id}
                                         className="ingredient-card"
@@ -166,20 +196,46 @@ const Ingredients1 = () => {
                                             <h3>{ingredient.nameIngredient}</h3>
                                             <p className="description">{ingredient.description}</p>
                                             <div className="ingredient-info">
-                                                <div className="ingredient-commonUses-container">
-                                                    {ingredient.commonUses.map((use, index) => (
-                                                        <span key={index} className="ingredient-commonUse">
-                                                            {use}
+                                                {Array.isArray(ingredient.commonUses) && ingredient.commonUses.length > 0 ? (
+                                                    <div className="ingredient-commonUses-container">
+                                                        {ingredient.commonUses.map((use, index) => (
+                                                            <span key={index} className="ingredient-commonUse">
+                                                                {use}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="ingredient-commonUses-container">
+                                                        <span className="ingredient-commonUse">
+                                                            Không có công dụng phổ biến
                                                         </span>
-                                                    ))}
-                                                </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+                        ) : (
+                            <div className="empty-state">
+                                <Empty description="Không có nguyên liệu nào" />
+                            </div>
                         )}
                     </div>
+
+                    {/* Phân trang */}
+                    {pagination.total > 0 && (
+                        <div className="pagination-container">
+                            <Pagination
+                                current={pagination.page}
+                                total={pagination.total}
+                                pageSize={pagination.limit}
+                                onChange={handlePageChange}
+                                showSizeChanger={false}
+                                showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} mục`}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -198,10 +254,10 @@ const Ingredients1 = () => {
             >
                 <IngredientForm
                     form={form}
-                    onFinish={handleSubmit}
+                    onFinish={handleSubmit} // chỉ thêm mới
                     onCancel={handleCancel}
-                    allIngredientCategories={allIngredientCategories}
-                    allMeasureUnits={allMeasureUnits}
+                    allIngredientCategories={ingredientCategories || []}
+                    allMeasureUnits={Array.isArray(measurementUnits) ? measurementUnits : []}
                     isEdit={false}
                 />
             </Modal>
@@ -211,10 +267,10 @@ const Ingredients1 = () => {
                 isVisible={isIngredientDetailModalVisible}
                 onClose={handleIngredientDetailClose}
                 ingredient={selectedIngredient}
-                onEdit={handleEditIngredient}
-                onDelete={handleDeleteIngredient}
-                allIngredientCategories={allIngredientCategories}
-                allMeasureUnits={allMeasureUnits}
+                onEdit={handleEditFromDetail} // chỉ update
+                onDelete={handleDelete}
+                allIngredientCategories={ingredientCategories || []}
+                allMeasureUnits={Array.isArray(measurementUnits) ? measurementUnits : []}
             />
         </div>
     );

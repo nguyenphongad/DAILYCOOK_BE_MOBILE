@@ -15,4 +15,4 @@ const MeasurementUnits = {
     PINCH: "nhúm",        // Nhúm
 }
 
-module.export = MeasurementUnits;
+module.exports = MeasurementUnits;
