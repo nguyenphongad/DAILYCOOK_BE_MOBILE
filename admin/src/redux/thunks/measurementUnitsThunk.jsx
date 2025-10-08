@@ -17,7 +17,10 @@ export const fetchMeasurementUnits = createAsyncThunk(
             if (response && response.status) {
                 // response.data === [{ key, label }, ...]
                 dispatch(setMeasurementUnits(response.data));
-                return response.data;
+                // Chỉ trả về dữ liệu cần thiết
+                return {
+                    data: response.data
+                };
             } else {
                 const err = response?.message || 'Không thể tải danh sách đơn vị đo';
                 dispatch(setError(err));

@@ -27,7 +27,15 @@ export const fetchMeals = createAsyncThunk(
 
             if (response.status) {
                 dispatch(setMeals(response.data));
-                return response;
+                // Chỉ trả về dữ liệu cần thiết
+                return {
+                    data: response.data,
+                    pagination: {
+                        page: params.page,
+                        limit: params.limit,
+                        total: response.total || 0
+                    }
+                };
             } else {
                 dispatch(setError(response.message));
                 toast.error(response.message || 'Không thể tải danh sách');
@@ -42,7 +50,7 @@ export const fetchMeals = createAsyncThunk(
     }
 );
 
-// Lấy meal  bằng id
+// Lấy meal bằng id
 export const fetchMealById = createAsyncThunk(
     'meals/fetchMeal',
     async (id, { dispatch, getState, rejectWithValue }) => {
@@ -73,7 +81,7 @@ export const fetchMealById = createAsyncThunk(
     }
 )
 
-// Thêm meal  mới với hỗ trợ upload ảnh
+// Thêm meal mới với hỗ trợ upload ảnh
 export const addMeal = createAsyncThunk(
     'meals/addMeal',
     async (mealData, { dispatch, getState, rejectWithValue }) => {

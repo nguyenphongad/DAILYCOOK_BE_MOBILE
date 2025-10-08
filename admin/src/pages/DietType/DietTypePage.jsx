@@ -141,7 +141,7 @@ const DietTypePage = () => {
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
                                 prefix={<SearchOutlined />}
-                                onPressEnter={handleSearch}
+                                // onPressEnter={handleSearch}
                             />
                             <button onClick={handleSearch}>Tìm</button>
                         </div>

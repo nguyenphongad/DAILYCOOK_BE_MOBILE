@@ -2,7 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { get} from "../../services/api.service";
 import ENDPOINT from '../../constants/Endpoint';
 import { toast } from 'sonner';
-import { setSelectedRecipe } from '../slices/recipeSlice';
+import { setSelectedRecipe, setLoading, setError } from '../slices/recipeSlice';
 
 export const fetchRecipeById = createAsyncThunk(
     'recipe/fetchRecipe',
@@ -19,6 +19,7 @@ export const fetchRecipeById = createAsyncThunk(
             if (response.status) {
                 dispatch(setSelectedRecipe(response.data));
                 dispatch(setLoading(false));
+                // Chỉ trả về dữ liệu cần thiết
                 return response.data;
             } else {
                 dispatch(setError(response.message));
