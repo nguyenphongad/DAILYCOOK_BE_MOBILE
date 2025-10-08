@@ -12,10 +12,8 @@ import {
     removeMealFromList,
 } from '../slices/mealSlice';
 
-
-
 // Lấy danh sách tất cả meal 
-export const fetchMealCategories = createAsyncThunk(
+export const fetchMeals = createAsyncThunk(
     'meals/fetchMealCategories',
     async (params = { page: 1, limit: 10 }, { dispatch, getState, rejectWithValue }) => {
         try {
