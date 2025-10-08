@@ -10,15 +10,20 @@ import DishForm from '../../components/DishForm/DishForm';
 import Loading from '../../components/Loading/Loading';
 
 import { fetchMeals } from '../../redux/thunks/mealThunk';
+import { fetchMealCategories } from '../../redux/thunks/mealCategoryThunk';
 import { fetchIngredients } from '../../redux/thunks/ingredientThunk';
 
 const Dishes = () => {
   const dispatch = useDispatch();
 
   // --- Redux state ---
-  const { meals = [], loading, pagination = { page: 1, limit: 9, total: 0 } } =
-    useSelector((state) => state.meals) || {};
-  const { ingredients = [] } = useSelector((state) => state.ingredients) || {};
+  const mealState = useSelector((state) => state.meals);
+  const ingredientsState = useSelector((state) => state.ingredients);
+  const mealCategoryState = useSelector((state) => state.mealCategory);
+
+  const { meals = [], loading, pagination = { page: 1, limit: 9, total: 0 } } = mealState || {};
+  const { ingredients = [] } = ingredientsState || {};
+  const { mealCategories } = mealCategoryState || {};
 
   // --- Local state ---
   const [isMealFormModalOpen, setIsMealFormModalOpen] = useState(false);
@@ -36,6 +41,7 @@ const Dishes = () => {
   useEffect(() => {
     dispatch(fetchMeals({ page: currentPage, limit: 9 }));
     dispatch(fetchIngredients({ page: 1, limit: 50 }));
+    dispatch(fetchMealCategories());
   }, [dispatch, currentPage]);
 
   // --- Tìm kiếm + Sắp xếp ---
@@ -48,6 +54,12 @@ const Dishes = () => {
     if (sortOrder === 'name_desc') return b.nameMeal.localeCompare(a.nameMeal);
     return 0;
   });
+
+  // --- Helper functions ---
+  const getCategoryTitle = (categoryId) => {
+    const found = mealCategories.find(cat => cat._id === categoryId);
+    return found ? found.title || found.nameCategory : 'Chưa phân loại';
+  };
 
   // --- Mở modal thêm món ăn ---
   const openMealFormModal = () => {
@@ -150,30 +162,19 @@ const Dishes = () => {
             {sortedMeals.length > 0 ? (
               <div className="dishes-grid">
                 {sortedMeals.map((meal) => (
-                  <div
-                    key={meal._id}
-                    className="dish-card"
-                    onClick={() => showMealDetail(meal)}
-                  >
+                  <div key={meal.id} className="dish-card" onClick={() => showDishDetail(meal)}>
                     <div className="dish-image">
-                      <img
-                        src={meal.mealImage || '/no-image.jpg'}
-                        alt={meal.nameMeal}
-                      />
+                      <img src={meal.mealImage} alt={meal.nameMeal} />
                       <span className="category-badge">
-                        {meal.mealCategory?.title || 'Không có danh mục'}
+                        {getCategoryTitle(meal.mealCategory)}
                       </span>
                     </div>
                     <div className="dish-content">
                       <h3>{meal.nameMeal}</h3>
-                      <p className="description">{meal.description || '...'}</p>
+                      <p className="description">{meal.description}</p>
                       <div className="dish-info">
-                        <span className="ingredients-count">
-                          {meal.ingredients?.length || 0} nguyên liệu
-                        </span>
-                        <span className="cooking-time">
-                          {meal.portionSize || 1} phần ăn
-                        </span>
+                        <span className="ingredients-count">{meal.ingredients.length} thành phần</span>
+                        <span className="cooking-time">{meal.cookTimeMinutes} phút</span>
                       </div>
                     </div>
                   </div>
