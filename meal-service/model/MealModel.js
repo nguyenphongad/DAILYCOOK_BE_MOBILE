@@ -29,16 +29,6 @@ const mealSchema = new mongoose.Schema(
             { type: mongoose.Schema.Types.ObjectId, ref: "DietType" },
         ],
 
-        prepTimeMinutes: {
-            type: Number,
-            default: "10"
-        },
-
-        cookTimeMinutes: {
-            type: Number,
-            default: "10"
-        },
-
         ingredients: [
             {
                 ingredient_id: {

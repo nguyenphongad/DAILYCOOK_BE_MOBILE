@@ -6,6 +6,7 @@ import ingredientCategoryReducer from './slices/ingredientCategorySlice'
 import mealReducer from './slices/mealSlice'
 import mealCategoryReducer from './slices/mealCategorySlice'
 import measurementUnitsReducer from './slices/measurementUnitsSlice'
+import recipeReducer from './slices/recipeSlice'
 
 const store = configureStore({
   reducer: {
@@ -15,7 +16,8 @@ const store = configureStore({
     ingredientCategory: ingredientCategoryReducer,
     meals: mealReducer,
     mealCategory: mealCategoryReducer,
-    measurementUnits: measurementUnitsReducer
+    measurementUnits: measurementUnitsReducer,
+    recipes: recipeReducer
   },
 })
 
