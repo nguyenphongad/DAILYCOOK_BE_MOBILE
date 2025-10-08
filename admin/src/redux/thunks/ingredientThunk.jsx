@@ -26,7 +26,15 @@ export const fetchIngredients = createAsyncThunk(
 
             if (response.status) {
                 dispatch(setIngredients(response.data));
-                return response;
+                // Chỉ trả về dữ liệu cần thiết
+                return {
+                    data: response.data,
+                    pagination: {
+                        page: params.page,
+                        limit: params.limit,
+                        total: response.total || 0
+                    }
+                };
             } else {
                 dispatch(setError(response.message));
                 toast.error(response.message || 'Không thể tải danh sách');

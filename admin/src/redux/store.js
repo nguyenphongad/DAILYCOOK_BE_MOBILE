@@ -19,6 +19,16 @@ const store = configureStore({
     measurementUnits: measurementUnitsReducer,
     recipes: recipeReducer
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        // Bỏ qua việc kiểm tra cho các action không tuần tự hóa được
+        ignoredActions: [
+          /.*\/fulfilled$/,  // Tạm thời bỏ qua tất cả các action fulfilled
+          /.*\/rejected$/    // Bỏ qua tất cả các action rejected
+        ],
+      },
+    }),
 })
 
 export default store
