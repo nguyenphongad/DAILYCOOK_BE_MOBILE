@@ -13,6 +13,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRecipeById } from '../../redux/thunks/recipeThunk';
 import DishForm from '../DishForm/DishForm';
+import NutritionChart from './NutritionChart';
 
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
@@ -266,48 +267,11 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
               </Row>
             </Card>
 
-            <Card 
-              title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Thông tin dinh dưỡng</span>}
-              variant="bordered"
-              style={{ marginBottom: 16 }}
-            >
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Card size="small" title="Calories" variant="bordered">
-                    <div style={{ textAlign: 'center' }}>
-                      <div>{finalNutrition.calories} kcal</div>
-                      <small>Giữ lại: {meal.recipe?.cookingEffect?.calo || 100}%</small>
-                    </div>
-                  </Card>
-                </Col>
-                <Col span={12}>
-                  <Card size="small" title="Protein" variant="bordered">
-                    <div style={{ textAlign: 'center' }}>
-                      <div>{finalNutrition.protein}g</div>
-                      <small>Giữ lại: {meal.recipe?.cookingEffect?.protein || 100}%</small>
-                    </div>
-                  </Card>
-                </Col>
-              </Row>
-              <Row gutter={16} style={{ marginTop: 16 }}>
-                <Col span={12}>
-                  <Card size="small" title="Carbs" variant="bordered">
-                    <div style={{ textAlign: 'center' }}>
-                      <div>{finalNutrition.carbs}g</div>
-                      <small>Giữ lại: {meal.recipe?.cookingEffect?.carb || 100}%</small>
-                    </div>
-                  </Card>
-                </Col>
-                <Col span={12}>
-                  <Card size="small" title="Fat" variant="bordered">
-                    <div style={{ textAlign: 'center' }}>
-                      <div>{finalNutrition.fat}g</div>
-                      <small>Giữ lại: {meal.recipe?.cookingEffect?.fat || 100}%</small>
-                    </div>
-                  </Card>
-                </Col>
-              </Row>
-            </Card>
+            {/* Thay thế Card Thông tin dinh dưỡng bằng component NutritionChart */}
+            <NutritionChart 
+              nutrition={finalNutrition} 
+              cookingEffect={meal.recipe?.cookingEffect}
+            />
 
             <Card
               title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Nguyên liệu</span>}
