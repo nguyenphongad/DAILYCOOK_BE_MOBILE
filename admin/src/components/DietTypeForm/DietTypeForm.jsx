@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Upload, message, Row, Col, Card } from 'antd';
+import { Form, Input, Button, Upload, message, Row, Col, Card, Divider, InputNumber } from 'antd';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { uploadImage, convertAntdUploadFileToFile } from '../../utils/cloudinaryUpload';
 
@@ -83,7 +83,14 @@ const DietTypeForm = ({ form, onFinish, onCancel, initialValues, isEdit = false 
         title: initialValues?.title || '',
         description: initialValues?.description || '',
         descriptionDetail: initialValues?.descriptionDetail || '',
-        researchSource: initialValues?.researchSource || ''
+        researchSource: initialValues?.researchSource || '',
+        // Khởi tạo giá trị dinh dưỡng từ initialValues
+        nutrition: {
+          calories: initialValues?.nutrition?.calories || 0,
+          protein: initialValues?.nutrition?.protein || 0,
+          carbs: initialValues?.nutrition?.carbs || 0,
+          fat: initialValues?.nutrition?.fat || 0
+        }
       }}
     >
       <Row gutter={16}>
@@ -186,6 +193,64 @@ const DietTypeForm = ({ form, onFinish, onCancel, initialValues, isEdit = false 
                 )}
               </div>
             </Form.Item>
+
+            {/* Thêm vào form hiện tại phần nhập thông tin dinh dưỡng */}
+            <Divider>
+              <span style={{ fontWeight: 600 }}>Thông tin dinh dưỡng khuyến nghị</span>
+            </Divider>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name={['nutrition', 'calories']}
+                  label="Calories (kcal)"
+                  initialValue={0}
+                >
+                  <InputNumber
+                    min={0}
+                    style={{ width: '100%' }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name={['nutrition', 'protein']}
+                  label="Protein (g)"
+                  initialValue={0}
+                >
+                  <InputNumber
+                    min={0}
+                    style={{ width: '100%' }}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name={['nutrition', 'carbs']}
+                  label="Carbs (g)"
+                  initialValue={0}
+                >
+                  <InputNumber
+                    min={0}
+                    style={{ width: '100%' }}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name={['nutrition', 'fat']}
+                  label="Fat (g)"
+                  initialValue={0}
+                >
+                  <InputNumber
+                    min={0}
+                    style={{ width: '100%' }}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
           </Card>
         </Col>
       </Row>
