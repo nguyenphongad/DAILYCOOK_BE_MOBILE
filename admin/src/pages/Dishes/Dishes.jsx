@@ -19,8 +19,8 @@ const Dishes = () => {
   // --- Redux state ---
   const mealState = useSelector((state) => state.meals);
   const ingredientsState = useSelector((state) => state.ingredients);
-  const mealCategoriesState = useSelector((state) => state.mealCategories); // Sửa lại tên state
-
+  const mealCategoriesState = useSelector((state) => state.mealCategories);
+  
   const { meals = [], loading, pagination = { page: 1, limit: 9, total: 0 } } = mealState || {};
   const { ingredients = [] } = ingredientsState || {};
   
@@ -88,7 +88,6 @@ const Dishes = () => {
 
   // --- Import file ---
   const handleImport = (importedData) => {
-    console.log('Imported data:', importedData);
     toast.success('Import thành công!');
   };
 
@@ -234,7 +233,7 @@ const Dishes = () => {
         <DishForm
           form={form}
           onFinish={handleSubmit}
-          onCancel={closeMealFormModal}
+          onCancel={closeMealFormModal} // Truyền hàm đóng modal vào component
           allIngredients={ingredients}
           isEdit={!!selectedMeal}
           initialValues={selectedMeal}

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Modal, Row, Col, Image, Typography, Divider, Descriptions, Tag, Card, List, Steps, Button, Form } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Modal, Row, Col, Image, Typography, Divider, Descriptions, Tag, Card, List, Steps, Button, Form, Avatar, Spin } from 'antd';
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
@@ -9,20 +9,102 @@ import {
   EditOutlined,
   DeleteOutlined
 } from '@ant-design/icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchRecipeById } from '../../redux/thunks/recipeThunk';
 import DishForm from '../DishForm/DishForm';
 
 const { Title, Text, Paragraph } = Typography;
 const { Step } = Steps;
 
 const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngredients, mealCategories }) => {
+  const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
   const [form] = Form.useForm();
   const [modal, contextHolder] = Modal.useModal();
+  const [ingredientDetails, setIngredientDetails] = useState([]);
+  const [fetchingRecipe, setFetchingRecipe] = useState(false);
   
+  // Lấy chi tiết công thức từ Redux store
+  const { selectedRecipe, loading: recipeLoading } = useSelector(state => state.recipes);
+  
+  // Debug dữ liệu recipe được fetch
+  console.log("Redux selectedRecipe:", selectedRecipe);
+  
+  // Fetch công thức khi meal thay đổi và có recipe_id
+  useEffect(() => {
+    if (meal && meal.recipe && meal.recipe.recipe_id && isVisible) {
+      setFetchingRecipe(true);
+      
+      dispatch(fetchRecipeById(meal.recipe.recipe_id))
+        .then(response => {
+          setFetchingRecipe(false);
+        })
+        .catch(error => {
+          setFetchingRecipe(false);
+        });
+    }
+  }, [meal, isVisible, dispatch]);
+  
+  // Tìm thông tin chi tiết của các nguyên liệu dựa trên ingredient_id
+  useEffect(() => {
+    if (meal && meal.ingredients && Array.isArray(allIngredients)) {
+      const details = meal.ingredients.map(ing => {
+        const ingredientInfo = allIngredients.find(i => i._id === ing.ingredient_id);
+        return {
+          id: ing.ingredient_id,
+          name: ingredientInfo?.nameIngredient || 'Nguyên liệu không xác định',
+          quantity: ing.quantity || 0,
+          unit: ing.unit || 'g',
+          image: ingredientInfo?.ingredientImage || ''
+        };
+      });
+      setIngredientDetails(details);
+    }
+  }, [meal, allIngredients]);
+
+  // Tính toán tổng dinh dưỡng từ tất cả nguyên liệu
+  const calculateTotalNutrition = () => {
+    if (!Array.isArray(ingredientDetails) || ingredientDetails.length === 0) {
+      return { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    }
+    
+    const totals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    
+    ingredientDetails.forEach(ingredient => {
+      const ingredientInfo = allIngredients.find(i => i._id === ingredient.id);
+      if (!ingredientInfo || !ingredientInfo.nutrition) return;
+      
+      const ratio = ingredient.quantity / (ingredientInfo.defaultAmount || 100);
+      
+      totals.calories += (ingredientInfo.nutrition?.calories || 0) * ratio;
+      totals.protein += (ingredientInfo.nutrition?.protein || 0) * ratio;
+      totals.carbs += (ingredientInfo.nutrition?.carbs || 0) * ratio;
+      totals.fat += (ingredientInfo.nutrition?.fat || 0) * ratio;
+    });
+    
+    return totals;
+  };
+
+  // Tính dinh dưỡng sau khi áp dụng cooking effect
+  const calculateFinalNutrition = () => {
+    const totalNutrition = calculateTotalNutrition();
+    const cookingEffect = meal?.recipe?.cookingEffect || { calo: 100, protein: 100, carb: 100, fat: 100 };
+    
+    return {
+      calories: (totalNutrition.calories * (cookingEffect.calo / 100)).toFixed(1),
+      protein: (totalNutrition.protein * (cookingEffect.protein / 100)).toFixed(1),
+      carbs: (totalNutrition.carbs * (cookingEffect.carb / 100)).toFixed(1),
+      fat: (totalNutrition.fat * (cookingEffect.fat / 100)).toFixed(1)
+    };
+  };
+  
+  const finalNutrition = calculateFinalNutrition();
 
   if (!meal) return null;
 
-  console.log("meal", meal)
+  console.log("meal", meal);
+  console.log("selectedRecipe", selectedRecipe);
+  console.log("ingredient details", ingredientDetails);
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -148,17 +230,28 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
                 <Paragraph>{meal.description}</Paragraph>
 
                 <Descriptions column={1} size="small">
+                  <Descriptions.Item label={<strong>Thời gian chuẩn bị</strong>}>
+                    <ClockCircleOutlined style={{ marginRight: 8 }} />
+                    {selectedRecipe?.data?.prepTimeMinutes || 'N/A'} phút
+                  </Descriptions.Item>
                   <Descriptions.Item label={<strong>Thời gian nấu</strong>}>
-                    <ClockCircleOutlined style={{ marginRight: 8 }} />{meal.cooking_time}
+                    <ClockCircleOutlined style={{ marginRight: 8 }} />
+                    {selectedRecipe?.data?.cookTimeMinutes || 'N/A'} phút
+                  </Descriptions.Item>
+                  <Descriptions.Item label={<strong>Tổng thời gian</strong>}>
+                    <ClockCircleOutlined style={{ marginRight: 8 }} />
+                    {selectedRecipe?.data ? 
+                      `${(selectedRecipe.data.prepTimeMinutes || 0) + (selectedRecipe.data.cookTimeMinutes || 0)} phút` 
+                      : 'N/A'}
                   </Descriptions.Item>
                   <Descriptions.Item label={<strong>Số thành phần</strong>}>
-                    {meal.ingredients_count} nguyên liệu
-                  </Descriptions.Item>
-                  <Descriptions.Item label={<strong>Khẩu phần</strong>}>
-                    <TeamOutlined style={{ marginRight: 8 }} />4 người
+                    {ingredientDetails.length} nguyên liệu
                   </Descriptions.Item>
                   <Descriptions.Item label={<strong>Độ khó</strong>}>
-                    <StarOutlined style={{ marginRight: 8 }} />Trung bình
+                    <StarOutlined style={{ marginRight: 8 }} />
+                    {selectedRecipe?.data?.difficulty === 'easy' ? 'Dễ' :
+                     selectedRecipe?.data?.difficulty === 'medium' ? 'Trung bình' :
+                     selectedRecipe?.data?.difficulty === 'hard' ? 'Khó' : 'Không xác định'}
                   </Descriptions.Item>
                   <Descriptions.Item label={<strong>Calories</strong>}>
                     <FireOutlined style={{ marginRight: 8 }} />~450 kcal/khẩu phần
@@ -174,19 +267,30 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
             title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Nguyên liệu</span>}
             variant="bordered"
           >
-            {/* <List
+            <List
               bordered
-              dataSource={mockIngredients}
+              dataSource={ingredientDetails}
               renderItem={item => (
                 <List.Item>
-                  <div className="ingredient-item">
-                    <CheckCircleOutlined className="check-icon" />
-                    <span className="ingredient-name">{item.name}</span>
-                    <span className="ingredient-amount">{item.amount}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <Avatar 
+                      size={32} 
+                      src={item.image} 
+                      shape="square"
+                      style={{ marginRight: 8 }}
+                    >
+                      {!item.image && item.name?.charAt(0)}
+                    </Avatar>
+                    <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 10 }} />
+                    <div style={{ flex: 1 }}>{item.name}</div>
+                    <div>
+                      <Text strong>{item.quantity} {item.unit}</Text>
+                    </div>
                   </div>
                 </List.Item>
               )}
-            /> */}
+              locale={{ emptyText: 'Không có nguyên liệu nào' }}
+            />
           </Card>
         </Col>
 
@@ -200,20 +304,60 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
               <Text strong style={{ fontSize: '15px', marginBottom: 16, display: 'block' }}>
                 Các bước thực hiện
               </Text>
-              {/* <Steps
-                direction="vertical"
-                size="small"
-                current={mockSteps.length}
-                className="cooking-steps"
-              >
-                {mockSteps.map((step, index) => (
-                  <Step
-                    key={index}
-                    title={<Text strong>{step.title}</Text>}
-                    description={<Paragraph>{step.content}</Paragraph>}
-                  />
-                ))}
-              </Steps> */}
+              
+              {fetchingRecipe || recipeLoading ? (
+                <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                  <Spin tip="Đang tải công thức..." />
+                </div>
+              ) : (
+                selectedRecipe && selectedRecipe.data && 
+                selectedRecipe.data.steps && 
+                Array.isArray(selectedRecipe.data.steps) && 
+                selectedRecipe.data.steps.length > 0 ? (
+                  <Steps
+                    direction="vertical"
+                    size="small"
+                    current={selectedRecipe.data.steps.length}
+                    className="cooking-steps"
+                    progressDot={(iconDot, { index }) => (
+                      <div className="step-number-icon" style={{
+                        width: '24px',
+                        height: '24px',
+                        backgroundColor: '#1890ff',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        color: 'white',
+                        fontWeight: 'bold'
+                      }}>
+                        {selectedRecipe.data.steps[index].stepNumber || (index + 1)}
+                      </div>
+                    )}
+                  >
+                    {selectedRecipe.data.steps.map((step, index) => (
+                      <Step
+                        key={index}
+                        title={<Text strong>{step.title || `Bước ${step.stepNumber || (index+1)}`}</Text>}
+                        description={(
+                          <>
+                            <Paragraph>{step.description}</Paragraph>
+                            {step.image && (
+                              <Image 
+                                src={step.image} 
+                                alt={`Bước ${step.stepNumber || (index+1)}`} 
+                                style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'cover' }} 
+                              />
+                            )}
+                          </>
+                        )}
+                      />
+                    ))}
+                  </Steps>
+                ) : (
+                  <Text type="secondary">Không có thông tin về các bước thực hiện</Text>
+                )
+              )}
             </div>
 
             <Divider>
@@ -224,14 +368,16 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
               <Col span={12}>
                 <Card size="small" title="Calories" variant="bordered">
                   <div style={{ textAlign: 'center' }}>
-                    450 kcal
+                    <div>{finalNutrition.calories} kcal</div>
+                    <small>Giữ lại: {meal.recipe?.cookingEffect?.calo || 100}%</small>
                   </div>
                 </Card>
               </Col>
               <Col span={12}>
                 <Card size="small" title="Protein" variant="bordered">
                   <div style={{ textAlign: 'center' }}>
-                    30g
+                    <div>{finalNutrition.protein}g</div>
+                    <small>Giữ lại: {meal.recipe?.cookingEffect?.protein || 100}%</small>
                   </div>
                 </Card>
               </Col>
@@ -240,14 +386,16 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
               <Col span={12}>
                 <Card size="small" title="Carbs" variant="bordered">
                   <div style={{ textAlign: 'center' }}>
-                    40g
+                    <div>{finalNutrition.carbs}g</div>
+                    <small>Giữ lại: {meal.recipe?.cookingEffect?.carb || 100}%</small>
                   </div>
                 </Card>
               </Col>
               <Col span={12}>
                 <Card size="small" title="Fat" variant="bordered">
                   <div style={{ textAlign: 'center' }}>
-                    15g
+                    <div>{finalNutrition.fat}g</div>
+                    <small>Giữ lại: {meal.recipe?.cookingEffect?.fat || 100}%</small>
                   </div>
                 </Card>
               </Col>

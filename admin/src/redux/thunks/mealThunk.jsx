@@ -83,61 +83,56 @@ export const fetchMealById = createAsyncThunk(
 
 // Thêm meal mới với hỗ trợ upload ảnh
 export const addMeal = createAsyncThunk(
-    'meals/addMeal',
-    async (mealData, { dispatch, getState, rejectWithValue }) => {
-        try {
-            dispatch(setLoading(true));
-            const { token } = getState().auth;
-            
-            // In ra thông tin debugging
-            console.log("Token:", token ? "Exists" : "Missing");
-            console.log("Starting meal creation with data:", JSON.stringify(mealData, null, 2));
-            
-            // Kiểm tra dữ liệu trước khi gửi
-            if (!mealData || typeof mealData !== 'object') {
-                throw new Error('Dữ liệu không hợp lệ');
-            }
-            
-            if (!mealData.nameMeal) {
-                throw new Error('Thiếu tên món ăn (nameMeal)');
-            }
+  'meals/addMeal',
+  async (mealData, { dispatch, getState, rejectWithValue }) => {
+    try {
+      dispatch(setLoading(true));
+      const { token } = getState().auth;
+      
+      // Kiểm tra dữ liệu trước khi gửi
+      if (!mealData || typeof mealData !== 'object') {
+        throw new Error('Dữ liệu không hợp lệ');
+      }
+      
+      if (!mealData.nameMeal) {
+        throw new Error('Thiếu tên món ăn (nameMeal)');
+      }
 
-            // Gọi API
-            console.log("Calling API:", ENDPOINT.ADD_MEAL);
-            const response = await post(
-                ENDPOINT.ADD_MEAL,
-                mealData,
-                token
-            );
-            
-            console.log("API response:", response);
+      // Đảm bảo mealImage và recipeImage là string (dù rỗng)
+      if (mealData.mealImage === undefined || mealData.mealImage === null) {
+        mealData.mealImage = "";
+      }
+      
+      if (mealData.recipe && (mealData.recipe.recipeImage === undefined || mealData.recipe.recipeImage === null)) {
+        mealData.recipe.recipeImage = "";
+      }
 
-            if (response && response.status) {
-                dispatch(addMealToList(response.data));
-                toast.success(response.message || 'Thêm món ăn thành công');
-                return response.data;
-            } else {
-                const errorMessage = response?.message || 'Không thể thêm món ăn';
-                dispatch(setError(errorMessage));
-                toast.error(errorMessage);
-                return rejectWithValue(errorMessage);
-            }
-        } catch (error) {
-            console.error('Error in addMeal thunk:', error);
-            console.error('Error details:', {
-                response: error.response,
-                message: error.message,
-                stack: error.stack
-            });
-            
-            const errorMessage = error.response?.data?.message || error.message || 'Lỗi kết nối đến server';
-            dispatch(setError(errorMessage));
-            toast.error(errorMessage);
-            return rejectWithValue(errorMessage);
-        } finally {
-            dispatch(setLoading(false));
-        }
+      // Gọi API
+      const response = await post(
+        ENDPOINT.ADD_MEAL,
+        mealData,
+        token
+      );
+
+      if (response && response.status) {
+        dispatch(addMealToList(response.data));
+        toast.success(response.message || 'Thêm món ăn thành công');
+        return response.data;
+      } else {
+        const errorMessage = response?.message || 'Không thể thêm món ăn';
+        dispatch(setError(errorMessage));
+        toast.error(errorMessage);
+        return rejectWithValue(errorMessage);
+      }
+    } catch (error) {      
+      const errorMessage = error.response?.data?.message || error.message || 'Lỗi kết nối đến server';
+      dispatch(setError(errorMessage));
+      toast.error(errorMessage);
+      return rejectWithValue(errorMessage);
+    } finally {
+      dispatch(setLoading(false));
     }
+  }
 );
 
 // Cập meal ingredient 

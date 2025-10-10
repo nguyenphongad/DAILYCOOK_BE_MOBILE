@@ -28,15 +28,9 @@ export const post = async (uri, data, token, isFormData = false) => {
             headers['Content-Type'] = 'application/json';
         }
         
-        console.log('API Request URL:', uri);
-        console.log('API Request Headers:', headers);
-        console.log('API Request Data:', isFormData ? 'FormData (binary)' : JSON.stringify(data, null, 2));
-        
         const res = await apiServiceInstance.post(uri, data, { headers });
         return res.data; // Đảm bảo trả về res.data
     } catch (error) {
-        console.error('API Error:', error);
-        console.error('API Error Response:', error.response?.data);
         throw error;
     }
 };
@@ -82,5 +76,4 @@ export const patch = async (uri, data, token) => {
         throw error;
     }
 };
-
 
