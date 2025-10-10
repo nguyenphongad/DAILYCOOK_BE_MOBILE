@@ -19,11 +19,17 @@ const Dishes = () => {
   // --- Redux state ---
   const mealState = useSelector((state) => state.meals);
   const ingredientsState = useSelector((state) => state.ingredients);
-  const mealCategoryState = useSelector((state) => state.mealCategory);
+  const mealCategoriesState = useSelector((state) => state.mealCategories); // Sửa lại tên state
 
   const { meals = [], loading, pagination = { page: 1, limit: 9, total: 0 } } = mealState || {};
   const { ingredients = [] } = ingredientsState || {};
-  const { mealCategories } = mealCategoryState || {};
+  
+  // Lấy mealCategories một cách an toàn
+  const mealCategories = mealCategoriesState?.mealCategories || []; // Thêm null check và default value
+  
+  // Log debug
+  console.log('mealCategoriesState:', mealCategoriesState);
+  console.log('mealCategories array:', mealCategories);
 
   // --- Local state ---
   const [isMealFormModalOpen, setIsMealFormModalOpen] = useState(false);
@@ -41,7 +47,7 @@ const Dishes = () => {
   useEffect(() => {
     dispatch(fetchMeals({ page: currentPage, limit: 9 }));
     dispatch(fetchIngredients({ page: 1, limit: 50 }));
-    dispatch(fetchMealCategories());
+    dispatch(fetchMealCategories({ page: 1, limit: 100 })); // Thêm params
   }, [dispatch, currentPage]);
 
   // --- Tìm kiếm + Sắp xếp ---
@@ -57,6 +63,9 @@ const Dishes = () => {
 
   // --- Helper functions ---
   const getCategoryTitle = (categoryId) => {
+    if (!Array.isArray(mealCategories)) {
+      return 'Chưa phân loại';
+    }
     const found = mealCategories.find(cat => cat._id === categoryId);
     return found ? found.title || found.nameCategory : 'Chưa phân loại';
   };
@@ -164,11 +173,12 @@ const Dishes = () => {
                 {sortedMeals.map((meal) => {
                   const recipe = meal.recipe || {};
                   return (
-                    <div key={meal.id} className="dish-card" onClick={() => showMealDetail(meal)}>
+                    <div key={meal._id || meal.id} className="dish-card" onClick={() => showMealDetail(meal)}>
                       <div className="dish-image">
                         <img src={meal.mealImage} alt={meal.nameMeal} />
                         <span className="category-badge">
-                          {getCategoryTitle(meal.mealCategory)}
+                          {/* Thêm kiểm tra nếu meal.mealCategory tồn tại */}
+                          {meal.mealCategory ? getCategoryTitle(meal.mealCategory) : 'Chưa phân loại'}
                         </span>
                       </div>
                       <div className="dish-content">

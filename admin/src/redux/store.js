@@ -15,7 +15,7 @@ const store = configureStore({
     ingredients: ingredientReducer,
     ingredientCategory: ingredientCategoryReducer,
     meals: mealReducer,
-    mealCategory: mealCategoryReducer,
+    mealCategories: mealCategoryReducer, // Thêm reducer này
     measurementUnits: measurementUnitsReducer,
     recipes: recipeReducer
   },

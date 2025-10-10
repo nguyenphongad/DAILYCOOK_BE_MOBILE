@@ -87,27 +87,55 @@ export const addMeal = createAsyncThunk(
     async (mealData, { dispatch, getState, rejectWithValue }) => {
         try {
             dispatch(setLoading(true));
-
             const { token } = getState().auth;
+            
+            // In ra thông tin debugging
+            console.log("Token:", token ? "Exists" : "Missing");
+            console.log("Starting meal creation with data:", JSON.stringify(mealData, null, 2));
+            
+            // Kiểm tra dữ liệu trước khi gửi
+            if (!mealData || typeof mealData !== 'object') {
+                throw new Error('Dữ liệu không hợp lệ');
+            }
+            
+            if (!mealData.nameMeal) {
+                throw new Error('Thiếu tên món ăn (nameMeal)');
+            }
+
+            // Gọi API
+            console.log("Calling API:", ENDPOINT.ADD_MEAL);
             const response = await post(
                 ENDPOINT.ADD_MEAL,
                 mealData,
-                token);
+                token
+            );
+            
+            console.log("API response:", response);
 
-            if (response.status) {
+            if (response && response.status) {
                 dispatch(addMealToList(response.data));
-                toast.success(response.message || 'Thêm danh mục món ăn thành công');
+                toast.success(response.message || 'Thêm món ăn thành công');
                 return response.data;
             } else {
-                dispatch(setError(response.message));
-                toast.error(response.message);
-                return rejectWithValue(response.message);
+                const errorMessage = response?.message || 'Không thể thêm món ăn';
+                dispatch(setError(errorMessage));
+                toast.error(errorMessage);
+                return rejectWithValue(errorMessage);
             }
         } catch (error) {
+            console.error('Error in addMeal thunk:', error);
+            console.error('Error details:', {
+                response: error.response,
+                message: error.message,
+                stack: error.stack
+            });
+            
             const errorMessage = error.response?.data?.message || error.message || 'Lỗi kết nối đến server';
             dispatch(setError(errorMessage));
             toast.error(errorMessage);
             return rejectWithValue(errorMessage);
+        } finally {
+            dispatch(setLoading(false));
         }
     }
 );

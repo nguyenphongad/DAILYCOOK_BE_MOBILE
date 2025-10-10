@@ -13,7 +13,7 @@ import {
 
 const ManageMealCategories = () => {
     const dispatch = useDispatch();
-    const mealCategoryState = useSelector(state => state.mealCategory);
+    const mealCategoryState = useSelector(state => state.mealCategories); // THAY ĐỔI NÀY - từ mealCategory thành mealCategories cho khớp với tên trong store
 
     const { mealCategories = [], loading, pagination = { page: 1, limit: 9 } } = mealCategoryState || {};
 

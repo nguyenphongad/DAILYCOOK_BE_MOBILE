@@ -12,10 +12,10 @@ const initialState = {
         limit: 10,
         totalPages: 1
     }
-}
+};
 
 const mealCategorySlice = createSlice({
-    name: 'mealCategory',
+    name: 'mealCategories',
     initialState,
     reducers: {
         // Các reducers chung
@@ -43,7 +43,7 @@ const mealCategorySlice = createSlice({
                     page: page || 1,
                     limit: limit || 10,
                     totalPages: totalPages || 1
-                }
+                };
             } else {
                 state.mealCategories = [];
             }
