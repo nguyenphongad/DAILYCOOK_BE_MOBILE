@@ -165,32 +165,55 @@ const Dishes = () => {
             </div>
           </div>
 
-          {/* Grid hiển thị món ăn */}
-          <div className="dishes-grid-container">
+          {/* Grid hiển thị món ăn - THAY THẾ phần này bằng bảng */}
+          <div className="dishes-table-container">
             {sortedMeals.length > 0 ? (
-              <div className="dishes-grid">
-                {sortedMeals.map((meal) => {
-                  const recipe = meal.recipe || {};
-                  return (
-                    <div key={meal._id || meal.id} className="dish-card" onClick={() => showMealDetail(meal)}>
-                      <div className="dish-image">
-                        <img src={meal.mealImage} alt={meal.nameMeal} />
-                        <span className="category-badge">
-                          {/* Thêm kiểm tra nếu meal.mealCategory tồn tại */}
-                          {meal.mealCategory ? getCategoryTitle(meal.mealCategory) : 'Chưa phân loại'}
-                        </span>
-                      </div>
-                      <div className="dish-content">
-                        <h3>{meal.nameMeal}</h3>
-                        <p className="description">{meal.description}</p>
-                        <div className="dish-info">
-                          <span className="ingredients-count">{meal.ingredients.length} thành phần</span>
-                          <span className="cooking-time">{recipe.cookTimeMinutes || 'N/A'} phút</span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+              <div className="dishes-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style={{ width: '50px' }}>STT</th>
+                      <th style={{ width: '80px' }}>Ảnh</th>
+                      <th style={{ width: '40%' }}>Tên món</th>
+                      <th style={{ width: '25%' }}>Danh mục</th>
+                      <th style={{ width: '100px' }}>Số thành phần</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedMeals.map((meal, index) => {
+                      return (
+                        <tr 
+                          key={meal._id || meal.id} 
+                          className="dish-row" 
+                          onClick={() => showMealDetail(meal)}
+                        >
+                          <td className="text-left">{index + 1 + (pagination.page - 1) * pagination.limit}</td>
+                          <td className="dish-image-cell text-left">
+                            <img 
+                              src={meal.mealImage || 'https://via.placeholder.com/50'} 
+                              alt={meal.nameMeal} 
+                              className="dish-thumbnail"
+                            />
+                          </td>
+                          <td>
+                            <div className="dish-name">{meal.nameMeal}</div>
+                            {meal.description && (
+                              <div className="dish-description">{meal.description.slice(0, 60)}...</div>
+                            )}
+                          </td>
+                          <td>
+                            <span className="category-badge">
+                              {meal.mealCategory ? getCategoryTitle(meal.mealCategory) : 'Chưa phân loại'}
+                            </span>
+                          </td>
+                          <td className="text-left">
+                            {meal.ingredients?.length || 0}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             ) : (
               <div className="empty-state">

@@ -57,6 +57,7 @@ const StepCard = React.memo(({ step, index, updateStep, removeStep }) => {
         maxCount={1}
         beforeUpload={() => false}
         onChange={handleImageChange}
+        accept="image/*" // Add this to restrict to image files only
         defaultFileList={step.image ? [
           {
             uid: `-${index}`,
@@ -138,11 +139,12 @@ const DishForm = ({ form = Form.useForm()[0], initialValues = null, isEdit = fal
         prepTimeMinutes: initialValues.recipe?.prepTimeMinutes || 15,
         cookTimeMinutes: initialValues.recipe?.cookTimeMinutes || 30,
         description: initialValues.description || '',
+        // Chỉ lưu phần trăm dinh dưỡng giữ lại sau khi nấu
         nutrition: {
-          calories: initialValues.recipe?.cookingEffect?.calo || 0,
-          protein: initialValues.recipe?.cookingEffect?.protein || 0,
-          carbs: initialValues.recipe?.cookingEffect?.carb || 0,
-          fat: initialValues.recipe?.cookingEffect?.fat || 0
+          calories: initialValues.recipe?.cookingEffect?.calo || 100,
+          protein: initialValues.recipe?.cookingEffect?.protein || 100,
+          carbs: initialValues.recipe?.cookingEffect?.carb || 100,
+          fat: initialValues.recipe?.cookingEffect?.fat || 100
         }
       });
       
@@ -380,12 +382,12 @@ const DishForm = ({ form = Form.useForm()[0], initialValues = null, isEdit = fal
         unit: ingredient.unit || ""
       }));
       
-      // Lấy tỉ lệ giảm dinh dưỡng từ form
-      const nutritionEffectPercentages = {
-        calories: formValues.nutrition?.calories || 100,
-        protein: formValues.nutrition?.protein || 100, 
-        carbs: formValues.nutrition?.carbs || 100,
-        fat: formValues.nutrition?.fat || 100
+      // Lấy tỉ lệ giảm dinh dưỡng từ form - chỉ lấy giá trị phần trăm, không tính toán
+      const nutritionPercentages = {
+        calories: currentValues.nutrition?.calories || 100,
+        protein: currentValues.nutrition?.protein || 100, 
+        carbs: currentValues.nutrition?.carbs || 100,
+        fat: currentValues.nutrition?.fat || 100
       };
       
       // Chuẩn bị dữ liệu món ăn
@@ -405,11 +407,12 @@ const DishForm = ({ form = Form.useForm()[0], initialValues = null, isEdit = fal
           cookTimeMinutes: currentValues.cookTimeMinutes || 0,
           difficulty: currentValues.difficulty || 'medium',
           steps: processedSteps,
-          cookingEffect: {
-            calo: nutritionEffectPercentages.calories,
-            protein: nutritionEffectPercentages.protein, 
-            carb: nutritionEffectPercentages.carbs,
-            fat: nutritionEffectPercentages.fat
+          // Truyền phần trăm dinh dưỡng giữ lại thay vì giá trị đã tính toán
+          nutrition: {
+            calories: nutritionPercentages.calories,
+            protein: nutritionPercentages.protein,
+            carbs: nutritionPercentages.carbs,
+            fat: nutritionPercentages.fat
           }
         },
         popularity: 0,
@@ -650,6 +653,7 @@ const DishForm = ({ form = Form.useForm()[0], initialValues = null, isEdit = fal
                     fileList={fileList}
                     onChange={handleImageChange}
                     beforeUpload={() => false}
+                    accept="image/*" // Add this to restrict to image files only
                   >
                     {fileList.length >= 1 ? null : (
                       <div>
