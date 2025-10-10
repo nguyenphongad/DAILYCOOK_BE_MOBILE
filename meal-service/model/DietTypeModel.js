@@ -1,5 +1,13 @@
 const mongoose = require("mongoose");
 
+// Thêm schema riêng cho thông tin dinh dưỡng
+const NutritionSchema = new mongoose.Schema({
+    calories: { type: Number, default: 0 }, // Calo (kcal)
+    protein: { type: Number, default: 0 },  // Protein (g)
+    carbs: { type: Number, default: 0 },    // Carbohydrate (g)
+    fat: { type: Number, default: 0 }       // Chất béo (g)
+}, { _id: false });
+
 const DietTypeSchema = new mongoose.Schema(
     {
         // ví dụ: "keto", "vegan"
@@ -32,6 +40,16 @@ const DietTypeSchema = new mongoose.Schema(
         researchSource: {
             type: String,
             default: ""
+        },
+        // Thông tin dinh dưỡng khuyến nghị cho chế độ ăn
+        nutrition: {
+            type: NutritionSchema,
+            default: () => ({
+                calories: 0,
+                protein: 0,
+                carbs: 0,
+                fat: 0
+            })
         }
     },
     { timestamps: true }

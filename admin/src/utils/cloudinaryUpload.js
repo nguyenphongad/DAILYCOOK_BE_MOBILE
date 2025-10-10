@@ -34,16 +34,15 @@ export const uploadImage = async (file, options = {}) => {
       method: 'POST',
       body: formData,
     });
-
+    
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || 'Lỗi khi upload ảnh');
+      throw new Error(error.message || `Lỗi khi upload ảnh: ${response.status}`);
     }
 
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error('Upload image error:', error);
     throw error;
   }
 };
@@ -75,19 +74,30 @@ export const uploadMultipleImages = async (files, options = {}) => {
  * @returns {File|null} - File đã chuyển đổi hoặc null nếu không thành công
  */
 export const convertAntdUploadFileToFile = (fileObj) => {
-  if (!fileObj) return null;
-  
-  // Nếu đã là File hoặc Blob, trả về ngay
-  if (fileObj instanceof File || fileObj instanceof Blob) {
-    return fileObj;
+  try {
+    if (!fileObj) {
+      return null;
+    }
+    
+    // Nếu đã là File hoặc Blob, trả về ngay
+    if (fileObj instanceof File || fileObj instanceof Blob) {
+      return fileObj;
+    }
+    
+    // Nếu là đối tượng từ Ant Design Upload
+    if (fileObj.originFileObj) {
+      return fileObj.originFileObj;
+    }
+    
+    // Kiểm tra các thuộc tính khác có thể chứa file thật
+    if (fileObj.file instanceof File || fileObj.file instanceof Blob) {
+      return fileObj.file;
+    }
+    
+    return null;
+  } catch (error) {
+    return null;
   }
-  
-  // Nếu là đối tượng từ Ant Design Upload
-  if (fileObj.originFileObj) {
-    return fileObj.originFileObj;
-  }
-  
-  return null;
 };
 
 export default {

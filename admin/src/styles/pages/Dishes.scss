@@ -245,4 +245,125 @@
     font-size: 18px;
     color: #666;
   }
+
+  // Thêm mới các style cho bảng
+  .dishes-table-container {
+    margin-bottom: 20px;
+    overflow-x: auto;
+    
+    .dishes-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        
+        th, td {
+          padding: 12px;
+          border-bottom: 1px solid #f0f0f0;
+          text-align: left;
+        }
+        
+        th {
+          background-color: #fafafa;
+          font-weight: 500;
+          color: #333;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+        
+        .text-center {
+          text-align: center;
+        }
+        
+        .dish-row {
+          cursor: pointer;
+          transition: all 0.3s ease;
+          
+          &:hover {
+            background-color: #f5f5f5;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+          }
+          
+          td {
+            vertical-align: middle;
+          }
+          
+          .dish-image-cell {
+            width: 80px;
+            
+            .dish-thumbnail {
+              width: 50px;
+              height: 50px;
+              object-fit: cover;
+              border-radius: 4px;
+              border: 1px solid #eee;
+            }
+          }
+          
+          .dish-name {
+            font-weight: 500;
+            color: #1890ff;
+          }
+          
+          .dish-description {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+          }
+          
+          .category-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 2px;
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+            color: #1890ff;
+            font-size: 12px;
+          }
+        }
+      }
+    }
+    
+    .empty-state {
+      padding: 40px;
+      text-align: center;
+    }
+  }
+  
+  // Thêm một số style responsive
+  @media (max-width: 768px) {
+    .dishes-table-container {
+      .dishes-table {
+        table {
+          th, td {
+            padding: 8px;
+            font-size: 14px;
+          }
+          
+          .dish-description {
+            display: none; // Ẩn mô tả trên thiết bị nhỏ
+          }
+        }
+      }
+    }
+    
+    .page-header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+      
+      .action-buttons {
+        width: 100%;
+      }
+    }
+  }
 }

@@ -16,13 +16,18 @@ export const get = async (uri, token, params) => {
     }
 };
 
-export const post = async (uri, data, token) => {
+export const post = async (uri, data, token, isFormData = false) => {
     try {
         const headers = {};
         if (token) {
             headers.Authorization = `Bearer ${token}`;
         }
-        console.log(apiServiceInstance)
+        
+        // Thêm Content-Type nếu không phải FormData
+        if (!isFormData) {
+            headers['Content-Type'] = 'application/json';
+        }
+        
         const res = await apiServiceInstance.post(uri, data, { headers });
         return res.data; // Đảm bảo trả về res.data
     } catch (error) {
@@ -71,5 +76,4 @@ export const patch = async (uri, data, token) => {
         throw error;
     }
 };
-
 

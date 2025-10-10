@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
-    Modal, Row, Col, Image, Typography, Tag, Card, Button, Form
+    Modal, Row, Col, Image, Typography, Tag, Card, Button, Form, Statistic
 } from 'antd';
 import {
     EditOutlined,
     DeleteOutlined,
 } from '@ant-design/icons';
 import DietTypeForm from '../DietTypeForm/DietTypeForm';
+import NutritionPieChart from './NutritionPieChart';
 
 const { Title, Paragraph } = Typography;
 
@@ -35,7 +36,13 @@ const DietTypeDetailModal = ({
             dietTypeImage: dietType?.dietTypeImage || '',
             description: dietType?.description || '',
             descriptionDetail: dietType?.descriptionDetail || '',
-            researchSource: dietType?.researchSource || ''
+            researchSource: dietType?.researchSource || '',
+            nutrition: {
+                calories: dietType?.nutrition?.calories || 0,
+                protein: dietType?.nutrition?.protein || 0,
+                carbs: dietType?.nutrition?.carbs || 0,
+                fat: dietType?.nutrition?.fat || 0
+            }
         });
         setIsEditing(true);
     };
@@ -105,7 +112,7 @@ const DietTypeDetailModal = ({
         );
     }
 
-    // Nếu đang xem chi tiết → render thông tin chế độ ăn
+    // Nếu đang xem chi tiết → render thông tin chế độ ăn với layout mới
     return (
         <Modal
             title={<span style={{ fontWeight: 700, fontSize: '18px' }}>Chi tiết chế độ ăn</span>}
@@ -135,33 +142,91 @@ const DietTypeDetailModal = ({
                     </div>
                 </div>
             }
-            className="ingredient-detail-modal"
+            className="diet-type-detail-modal"
         >
-            <Card variant="bordered">
-                <Row gutter={16}>
-                    {/*  ================== BÊN TRÁI: Hình ảnh + thông tin cơ bản  ================== */}
-                    <Col span={12}>
-                        <Image
-                            src={dietType.dietTypeImage || 'https://media.istockphoto.com/id/1433432507/vi/anh/%C4%83n-u%E1%BB%91ng-l%C3%A0nh-m%E1%BA%A1nh-%C4%91%C4%A9a-v%E1%BB%9Bi-th%E1%BB%B1c-ph%E1%BA%A9m-thu%E1%BA%A7n-chay-ho%E1%BA%B7c-chay-trong-tay-ph%E1%BB%A5-n%E1%BB%83-ch%E1%BA%BF-%C4%91%E1%BB%99-%C4%83n-u%E1%BB%91ng-d%E1%BB%B1a.jpg?s=612x612&w=0&k=20&c=Z0BVb_z-mLjup_3f4Kvto5q0A0z8CqBjsHS7DSMaQ1k='}
-                            alt={dietType.title}
-                            style={{ width: '100%', height: 280, objectFit: 'cover', borderRadius: 8 }}
-                            fallback="https://media.istockphoto.com/id/1433432507/vi/anh/%C4%83n-u%E1%BB%91ng-l%C3%A0nh-m%E1%BA%A1nh-%C4%91%C4%A9a-v%E1%BB%9Bi-th%E1%BB%B1c-ph%E1%BA%A9m-thu%E1%BA%A7n-chay-ho%E1%BA%B7c-chay-trong-tay-ph%E1%BB%A5-n%E1%BB%83-ch%E1%BA%BF-%C4%91%E1%BB%99-%C4%83n-u%E1%BB%91ng-d%E1%BB%B1a.jpg?s=612x612&w=0&k=20&c=Z0BVb_z-mLjup_3f4Kvto5q0A0z8CqBjsHS7DSMaQ1k="
-                        />
-                    </Col>
-                    <Col span={12}>
-                        <Title level={4} style={{ marginTop: 16 }}>{dietType.title}</Title>
-                        <Tag color="#4CAF50" style={{ marginBottom: 16 }}>
-                            {dietType.keyword || 'Không rõ'}
-                        </Tag>
-                        <Paragraph strong>Mô tả:</Paragraph>
-                        <Paragraph>{dietType.description || 'Không có mô tả'}</Paragraph>
-                        <Paragraph strong>Chi tiết:</Paragraph>
-                        <Paragraph>{dietType.descriptionDetail || 'Không có mô tả chi tiết'}</Paragraph>
-                        <Paragraph strong>Nguồn nghiên cứu:</Paragraph>
-                        <Paragraph>{dietType.researchSource || 'Không có thông tin'}</Paragraph>
-                    </Col>
-                </Row>
-            </Card>
+            <Row gutter={24}>
+                {/* Cột bên trái: Thông tin chế độ ăn */}
+                <Col span={14}>
+                    <Card variant="bordered" style={{ height: '100%' }}>
+                        <Row gutter={16}>
+                            {/* Hình ảnh chế độ ăn */}
+                            <Col span={10}>
+                                <Image
+                                    src={dietType.dietTypeImage || 'https://media.istockphoto.com/id/1433432507/vi/anh/%C4%83n-u%E1%BB%91ng-l%C3%A0nh-m%E1%BA%A1nh-%C4%91%C4%A9a-v%E1%BB%9Bi-th%E1%BB%B1c-ph%E1%BA%A9m-thu%E1%BA%A7n-chay-ho%E1%BA%B7c-chay-trong-tay-ph%E1%BB%A5-n%E1%BB%83-ch%E1%BA%BF-%C4%91%E1%BB%99-%C4%83n-u%E1%BB%91ng-d%E1%BB%B1a.jpg?s=612x612&w=0&k=20&c=Z0BVb_z-mLjup_3f4Kvto5q0A0z8CqBjsHS7DSMaQ1k='}
+                                    alt={dietType.title}
+                                    style={{ width: '100%', height: 220, objectFit: 'cover', borderRadius: 8 }}
+                                    fallback="https://media.istockphoto.com/id/1433432507/vi/anh/%C4%83n-u%E1%BB%91ng-l%C3%A0nh-m%E1%BA%A1nh-%C4%91%C4%A9a-v%E1%BB%9Bi-th%E1%BB%B1c-ph%E1%BA%A9m-thu%E1%BA%A7n-chay-ho%E1%BA%B7c-chay-trong-tay-ph%E1%BB%A5-n%E1%BB%83-ch%E1%BA%BF-%C4%91%E1%BB%99-%C4%83n-u%E1%BB%91ng-d%E1%BB%B1a.jpg?s=612x612&w=0&k=20&c=Z0BVb_z-mLjup_3f4Kvto5q0A0z8CqBjsHS7DSMaQ1k="
+                                />
+                            </Col>
+                            
+                            {/* Thông tin cơ bản */}
+                            <Col span={14}>
+                                <Title level={4} style={{ marginTop: 0 }}>{dietType.title}</Title>
+                                <Tag color="#4CAF50" style={{ marginBottom: 16 }}>
+                                    {dietType.keyword || 'Không rõ'}
+                                </Tag>
+                                <Paragraph strong>Mô tả:</Paragraph>
+                                <Paragraph>{dietType.description || 'Không có mô tả'}</Paragraph>
+
+                                {/* Hiển thị thông tin dinh dưỡng dạng số liệu */}
+                                <div style={{ marginTop: 16 }}>
+                                    <Title level={5} style={{ marginBottom: 16 }}>Dinh dưỡng khuyến nghị:</Title>
+                                    <Row gutter={16}>
+                                        <Col span={12}>
+                                            <Statistic 
+                                                title="Calories" 
+                                                value={dietType.nutrition?.calories || 0} 
+                                                suffix="kcal"
+                                                valueStyle={{ color: '#FF6B3D', fontSize: '18px' }}
+                                            />
+                                        </Col>
+                                        <Col span={12}>
+                                            <Statistic 
+                                                title="Protein" 
+                                                value={dietType.nutrition?.protein || 0} 
+                                                suffix="g"
+                                                valueStyle={{ color: '#0088FE', fontSize: '18px' }}
+                                            />
+                                        </Col>
+                                    </Row>
+                                    <Row gutter={16} style={{ marginTop: 16 }}>
+                                        <Col span={12}>
+                                            <Statistic 
+                                                title="Carbs" 
+                                                value={dietType.nutrition?.carbs || 0} 
+                                                suffix="g"
+                                                valueStyle={{ color: '#00C49F', fontSize: '18px' }}
+                                            />
+                                        </Col>
+                                        <Col span={12}>
+                                            <Statistic 
+                                                title="Fat" 
+                                                value={dietType.nutrition?.fat || 0} 
+                                                suffix="g"
+                                                valueStyle={{ color: '#FFBB28', fontSize: '18px' }}
+                                            />
+                                        </Col>
+                                    </Row>
+                                </div>
+                            </Col>
+                        </Row>
+                        
+                        {/* Thông tin chi tiết và nguồn nghiên cứu */}
+                        <div style={{ marginTop: 24 }}>
+                            <Paragraph strong>Chi tiết chế độ ăn:</Paragraph>
+                            <Paragraph style={{ maxHeight: '150px', overflowY: 'auto' }}>{dietType.descriptionDetail || 'Không có mô tả chi tiết'}</Paragraph>
+                            
+                            <Paragraph strong style={{ marginTop: 16 }}>Nguồn nghiên cứu:</Paragraph>
+                            <Paragraph>{dietType.researchSource || 'Không có thông tin'}</Paragraph>
+                        </div>
+                    </Card>
+                </Col>
+                
+                {/* Cột bên phải: Biểu đồ dinh dưỡng */}
+                <Col span={10}>
+                    <NutritionPieChart nutrition={dietType.nutrition} />
+                </Col>
+            </Row>
 
             {/* Quan trọng: phải render contextHolder để confirm modal hoạt động */}
             {contextHolder}

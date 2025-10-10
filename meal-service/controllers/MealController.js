@@ -33,11 +33,59 @@ const addMeal = async (req, res) => {
             });
         }
 
-        // Kiểm tra các trường bắt buộc
-        if (!nameMeal || !mealCategory || !Array.isArray(ingredients) || ingredients.length === 0 || !recipe) {
+        // Kiểm tra chi tiết các trường bắt buộc và trả về thông báo cụ thể
+        const missingFields = [];
+        
+        if (!nameMeal) missingFields.push("nameMeal");
+        if (!mealCategory) missingFields.push("mealCategory");
+        
+        // Kiểm tra nguyên liệu
+        if (!ingredients) {
+            missingFields.push("ingredients");
+        } else if (!Array.isArray(ingredients)) {
             return res.status(400).json({
                 stype: "meal",
-                message: "Thiếu trường bắt buộc",
+                message: "Trường 'ingredients' phải là một mảng",
+                status: false
+            });
+        } else if (ingredients.length === 0) {
+            return res.status(400).json({
+                stype: "meal",
+                message: "Danh sách nguyên liệu không thể để trống",
+                status: false
+            });
+        }
+        
+        // Kiểm tra công thức
+        if (!recipe) {
+            missingFields.push("recipe");
+        } else {
+            if (!recipe.steps || !Array.isArray(recipe.steps) || recipe.steps.length === 0) {
+                return res.status(400).json({
+                    stype: "meal",
+                    message: "Công thức phải chứa ít nhất một bước (recipe.steps)",
+                    status: false
+                });
+            }
+            
+            // Kiểm tra các bước trong công thức
+            for (let i = 0; i < recipe.steps.length; i++) {
+                const step = recipe.steps[i];
+                if (!step.title || !step.description) {
+                    return res.status(400).json({
+                        stype: "meal",
+                        message: `Bước ${i + 1} trong công thức thiếu title hoặc description`,
+                        status: false
+                    });
+                }
+            }
+        }
+        
+        // Nếu có trường bắt buộc bị thiếu, trả về thông báo lỗi với danh sách các trường
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                stype: "meal",
+                message: `Thiếu các trường bắt buộc : ${missingFields.join(', ')}`,
                 status: false
             });
         }

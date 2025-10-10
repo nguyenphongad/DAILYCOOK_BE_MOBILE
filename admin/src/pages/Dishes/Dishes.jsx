@@ -19,11 +19,17 @@ const Dishes = () => {
   // --- Redux state ---
   const mealState = useSelector((state) => state.meals);
   const ingredientsState = useSelector((state) => state.ingredients);
-  const mealCategoryState = useSelector((state) => state.mealCategory);
-
+  const mealCategoriesState = useSelector((state) => state.mealCategories);
+  
   const { meals = [], loading, pagination = { page: 1, limit: 9, total: 0 } } = mealState || {};
   const { ingredients = [] } = ingredientsState || {};
-  const { mealCategories } = mealCategoryState || {};
+  
+  // Lấy mealCategories một cách an toàn
+  const mealCategories = mealCategoriesState?.mealCategories || []; // Thêm null check và default value
+  
+  // Log debug
+  console.log('mealCategoriesState:', mealCategoriesState);
+  console.log('mealCategories array:', mealCategories);
 
   // --- Local state ---
   const [isMealFormModalOpen, setIsMealFormModalOpen] = useState(false);
@@ -41,7 +47,7 @@ const Dishes = () => {
   useEffect(() => {
     dispatch(fetchMeals({ page: currentPage, limit: 9 }));
     dispatch(fetchIngredients({ page: 1, limit: 50 }));
-    dispatch(fetchMealCategories());
+    dispatch(fetchMealCategories({ page: 1, limit: 100 })); // Thêm params
   }, [dispatch, currentPage]);
 
   // --- Tìm kiếm + Sắp xếp ---
@@ -57,6 +63,9 @@ const Dishes = () => {
 
   // --- Helper functions ---
   const getCategoryTitle = (categoryId) => {
+    if (!Array.isArray(mealCategories)) {
+      return 'Chưa phân loại';
+    }
     const found = mealCategories.find(cat => cat._id === categoryId);
     return found ? found.title || found.nameCategory : 'Chưa phân loại';
   };
@@ -79,7 +88,6 @@ const Dishes = () => {
 
   // --- Import file ---
   const handleImport = (importedData) => {
-    console.log('Imported data:', importedData);
     toast.success('Import thành công!');
   };
 
@@ -157,31 +165,55 @@ const Dishes = () => {
             </div>
           </div>
 
-          {/* Grid hiển thị món ăn */}
-          <div className="dishes-grid-container">
+          {/* Grid hiển thị món ăn - THAY THẾ phần này bằng bảng */}
+          <div className="dishes-table-container">
             {sortedMeals.length > 0 ? (
-              <div className="dishes-grid">
-                {sortedMeals.map((meal) => {
-                  const recipe = meal.recipe || {};
-                  return (
-                    <div key={meal.id} className="dish-card" onClick={() => showMealDetail(meal)}>
-                      <div className="dish-image">
-                        <img src={meal.mealImage} alt={meal.nameMeal} />
-                        <span className="category-badge">
-                          {getCategoryTitle(meal.mealCategory)}
-                        </span>
-                      </div>
-                      <div className="dish-content">
-                        <h3>{meal.nameMeal}</h3>
-                        <p className="description">{meal.description}</p>
-                        <div className="dish-info">
-                          <span className="ingredients-count">{meal.ingredients.length} thành phần</span>
-                          <span className="cooking-time">{recipe.cookTimeMinutes || 'N/A'} phút</span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+              <div className="dishes-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style={{ width: '50px' }}>STT</th>
+                      <th style={{ width: '80px' }}>Ảnh</th>
+                      <th style={{ width: '40%' }}>Tên món</th>
+                      <th style={{ width: '25%' }}>Danh mục</th>
+                      <th style={{ width: '100px' }}>Số thành phần</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedMeals.map((meal, index) => {
+                      return (
+                        <tr 
+                          key={meal._id || meal.id} 
+                          className="dish-row" 
+                          onClick={() => showMealDetail(meal)}
+                        >
+                          <td className="text-left">{index + 1 + (pagination.page - 1) * pagination.limit}</td>
+                          <td className="dish-image-cell text-left">
+                            <img 
+                              src={meal.mealImage || 'https://via.placeholder.com/50'} 
+                              alt={meal.nameMeal} 
+                              className="dish-thumbnail"
+                            />
+                          </td>
+                          <td>
+                            <div className="dish-name">{meal.nameMeal}</div>
+                            {meal.description && (
+                              <div className="dish-description">{meal.description.slice(0, 60)}...</div>
+                            )}
+                          </td>
+                          <td>
+                            <span className="category-badge">
+                              {meal.mealCategory ? getCategoryTitle(meal.mealCategory) : 'Chưa phân loại'}
+                            </span>
+                          </td>
+                          <td className="text-left">
+                            {meal.ingredients?.length || 0}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             ) : (
               <div className="empty-state">
@@ -224,7 +256,7 @@ const Dishes = () => {
         <DishForm
           form={form}
           onFinish={handleSubmit}
-          onCancel={closeMealFormModal}
+          onCancel={closeMealFormModal} // Truyền hàm đóng modal vào component
           allIngredients={ingredients}
           isEdit={!!selectedMeal}
           initialValues={selectedMeal}

@@ -4,7 +4,16 @@ const DietTypeModel = require("../model/DietTypeModel");
 // Thêm Loại chế độ ăn uống mới
 const addDietType = async (req, res) => {
     try {
-        const { keyword, title, dietTypeImage, description, descriptionDetail, researchSource } = req.body;
+        const { 
+            keyword, 
+            title, 
+            dietTypeImage, 
+            description, 
+            descriptionDetail, 
+            researchSource,
+            nutrition  // Thêm thông tin dinh dưỡng 
+        } = req.body;
+        
         // Kiểm tra thông tin bắt buộc
         if (!keyword || !title) {
             return res.status(400).json({
@@ -24,14 +33,22 @@ const addDietType = async (req, res) => {
             });
         }
 
+        // Tạo đối tượng mới với nutrition
         const newDietType = new DietTypeModel({
             keyword: keyword.toUpperCase(),
             title,
             dietTypeImage,
             description,
             descriptionDetail,
-            researchSource
+            researchSource,
+            nutrition: nutrition || {
+                calories: 0,
+                protein: 0,
+                carbs: 0,
+                fat: 0
+            }
         });
+        
         const result = await newDietType.save();
         if (result) {
             return res.status(201).json({
@@ -55,7 +72,15 @@ const addDietType = async (req, res) => {
 const updateDietType = async (req, res) => {
     try {
         const { diet_type_id } = req.params;
-        const { keyword, title, dietTypeImage, description, descriptionDetail, researchSource } = req.body;
+        const { 
+            keyword, 
+            title, 
+            dietTypeImage, 
+            description, 
+            descriptionDetail, 
+            researchSource,
+            nutrition  // Thêm thông tin dinh dưỡng 
+        } = req.body;
 
         const dietType = await DietTypeModel.findById(diet_type_id);
         if (!dietType) {
@@ -89,6 +114,23 @@ const updateDietType = async (req, res) => {
         if (description) updateFields.description = description;
         if (descriptionDetail) updateFields.descriptionDetail = descriptionDetail;
         if (researchSource) updateFields.researchSource = researchSource;
+        
+        // Thêm logic cập nhật thông tin dinh dưỡng
+        if (nutrition) {
+            // Nếu có giá trị dinh dưỡng mới, cập nhật từng trường
+            updateFields.nutrition = {};
+            
+            // Chỉ cập nhật các giá trị dinh dưỡng được cung cấp
+            if (nutrition.calories !== undefined) updateFields.nutrition.calories = nutrition.calories;
+            if (nutrition.protein !== undefined) updateFields.nutrition.protein = nutrition.protein;
+            if (nutrition.carbs !== undefined) updateFields.nutrition.carbs = nutrition.carbs;
+            if (nutrition.fat !== undefined) updateFields.nutrition.fat = nutrition.fat;
+            
+            // Nếu không có trường nutrition nào được cập nhật, xóa trường nutrition
+            if (Object.keys(updateFields.nutrition).length === 0) {
+                delete updateFields.nutrition;
+            }
+        }
 
         // Kiểm tra xem có trường nào được cập nhật không
         if (Object.keys(updateFields).length === 0) {

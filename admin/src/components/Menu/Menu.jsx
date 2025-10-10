@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { MdDashboard, MdPeople, MdRestaurantMenu, MdShoppingBasket, MdInventory, MdInfo, MdLocalDining, MdKeyboardArrowDown, MdCategory, MdFoodBank, MdOutlineAssignment, MdQuestionAnswer, MdDataUsage } from 'react-icons/md'
+import {
+  MdDashboard, MdPeople, MdRestaurantMenu, MdShoppingBasket, MdInventory, MdInfo,
+  MdLocalDining, MdKeyboardArrowDown, MdCategory, MdFoodBank,
+  MdOutlineAssignment, MdQuestionAnswer, MdDataUsage
+} from 'react-icons/md'
+import { IoFastFoodSharp } from "react-icons/io5";
 import { Modal } from 'antd'
 import logoImage from '../../assets/logo.png'
 import { BiSolidDuplicate } from "react-icons/bi";
@@ -14,65 +19,65 @@ const Menu = () => {
   const [expandedMenus, setExpandedMenus] = useState({})
 
   const [menuItems] = useState([
-    { 
-      path: '/', 
-      label: 'Trang chủ', 
-      icon: <MdDashboard /> 
+    {
+      path: '/',
+      label: 'Trang chủ',
+      icon: <MdDashboard />
     },
     {
-      path: '/manage_categorys', 
-      label: 'Quản lý danh mục', 
+      path: '/manage_categorys',
+      label: 'Quản lý danh mục',
       icon: <BiSolidDuplicate />,
       submenu: [
-        { 
-          path: '/manage_category/ingredients', 
-          label: 'Nguyên liệu', 
-          icon: <MdInventory /> 
+        {
+          path: '/manage_category/ingredients',
+          label: 'Nguyên liệu',
+          icon: <MdInventory />
         },
-        { 
-          path: '/manage_category/meals', 
-          label: 'Món ăn', 
-          icon: <MdFoodBank /> 
+        {
+          path: '/manage_category/meals',
+          label: 'Món ăn',
+          icon: <MdFoodBank />
         },
       ]
     },
     {
-      path: '/manage_surveys', 
-      label: 'Quản lý khảo sát', 
+      path: '/manage_surveys',
+      label: 'Quản lý khảo sát',
       icon: <MdOutlineAssignment />,
       submenu: [
-        { 
-          path: '/manage_surveys/questions', 
-          label: 'Câu hỏi khảo sát', 
-          icon: <MdQuestionAnswer /> 
+        {
+          path: '/manage_surveys/questions',
+          label: 'Câu hỏi khảo sát',
+          icon: <MdQuestionAnswer />
         },
-        { 
-          path: '/manage_surveys/user_data', 
-          label: 'Dữ liệu người dùng', 
-          icon: <MdDataUsage /> 
+        {
+          path: '/manage_surveys/user_data',
+          label: 'Dữ liệu người dùng',
+          icon: <MdDataUsage />
         },
       ]
     },
-    { 
-      path: '/manage_diet_types', 
-      label: 'Quản lý chế độ ăn', 
-      icon: <MdLocalDining /> 
+    {
+      path: '/manage_diet_types',
+      label: 'Quản lý chế độ ăn',
+      icon: <MdLocalDining />
     },
     {
-      path: '/manage_meal', 
-      label: 'Quản lý món ăn', 
-      icon: <MdRestaurantMenu />,
+      path: '/manage_ingredients',
+      label: 'Quản lý nguyên liệu',
+      icon: <MdInventory />
+    },
+    {
+      path: '/manage_meal',
+      label: 'Quản lý món ăn',
+      icon: <IoFastFoodSharp />,
     },
     // { path: '/manage_recipes', label: 'Quản lý công thức', icon: <MdShoppingBasket /> },
-    { 
-      path: '/manage_ingredients', 
-      label: 'Quản lý nguyên liệu', 
-      icon: <MdInventory /> 
-    },
-    { 
-      path: '/manage_users', 
-      label: 'Quản lý người dùng', 
-      icon: <MdPeople /> 
+    {
+      path: '/manage_users',
+      label: 'Quản lý người dùng',
+      icon: <MdPeople />
     },
   ])
 

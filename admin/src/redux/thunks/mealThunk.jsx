@@ -83,33 +83,56 @@ export const fetchMealById = createAsyncThunk(
 
 // Thêm meal mới với hỗ trợ upload ảnh
 export const addMeal = createAsyncThunk(
-    'meals/addMeal',
-    async (mealData, { dispatch, getState, rejectWithValue }) => {
-        try {
-            dispatch(setLoading(true));
+  'meals/addMeal',
+  async (mealData, { dispatch, getState, rejectWithValue }) => {
+    try {
+      dispatch(setLoading(true));
+      const { token } = getState().auth;
+      
+      // Kiểm tra dữ liệu trước khi gửi
+      if (!mealData || typeof mealData !== 'object') {
+        throw new Error('Dữ liệu không hợp lệ');
+      }
+      
+      if (!mealData.nameMeal) {
+        throw new Error('Thiếu tên món ăn (nameMeal)');
+      }
 
-            const { token } = getState().auth;
-            const response = await post(
-                ENDPOINT.ADD_MEAL,
-                mealData,
-                token);
+      // Đảm bảo mealImage và recipeImage là string (dù rỗng)
+      if (mealData.mealImage === undefined || mealData.mealImage === null) {
+        mealData.mealImage = "";
+      }
+      
+      if (mealData.recipe && (mealData.recipe.recipeImage === undefined || mealData.recipe.recipeImage === null)) {
+        mealData.recipe.recipeImage = "";
+      }
 
-            if (response.status) {
-                dispatch(addMealToList(response.data));
-                toast.success(response.message || 'Thêm danh mục món ăn thành công');
-                return response.data;
-            } else {
-                dispatch(setError(response.message));
-                toast.error(response.message);
-                return rejectWithValue(response.message);
-            }
-        } catch (error) {
-            const errorMessage = error.response?.data?.message || error.message || 'Lỗi kết nối đến server';
-            dispatch(setError(errorMessage));
-            toast.error(errorMessage);
-            return rejectWithValue(errorMessage);
-        }
+      // Gọi API
+      const response = await post(
+        ENDPOINT.ADD_MEAL,
+        mealData,
+        token
+      );
+
+      if (response && response.status) {
+        dispatch(addMealToList(response.data));
+        toast.success(response.message || 'Thêm món ăn thành công');
+        return response.data;
+      } else {
+        const errorMessage = response?.message || 'Không thể thêm món ăn';
+        dispatch(setError(errorMessage));
+        toast.error(errorMessage);
+        return rejectWithValue(errorMessage);
+      }
+    } catch (error) {      
+      const errorMessage = error.response?.data?.message || error.message || 'Lỗi kết nối đến server';
+      dispatch(setError(errorMessage));
+      toast.error(errorMessage);
+      return rejectWithValue(errorMessage);
+    } finally {
+      dispatch(setLoading(false));
     }
+  }
 );
 
 // Cập meal ingredient 
