@@ -54,7 +54,7 @@ app.get('/check-auth-service', async (req, res) => {
 
 // Chuyển tiếp đến service xác thực - KHÔNG yêu cầu xác thực để đăng nhập
 // Đặt trước các middleware khác để đảm bảo không bị chặn
-app.use('/api/auth', createProxyMiddleware({ 
+app.use('/api/auth', createProxyMiddleware({
   target: config.services.auth.url,
   changeOrigin: true,
   pathRewrite: {
@@ -75,7 +75,7 @@ app.use('/api/auth', createProxyMiddleware({
   },
   onError: (err, req, res) => {
     logger.error(`Proxy error (auth service): ${err.message}`);
-    res.status(500).json({ 
+    res.status(500).json({
       status: 'error',
       message: 'Gateway không thể kết nối đến service xác thực',
       error: err.message
@@ -101,7 +101,7 @@ app.use('/api/users', authMiddleware, createProxyMiddleware({
   },
   onError: (err, req, res) => {
     logger.error(`Proxy error (user service): ${err.message}`);
-    res.status(500).json({ 
+    res.status(500).json({
       status: 'error',
       message: 'Gateway không thể kết nối đến service người dùng',
       error: err.message
@@ -110,7 +110,7 @@ app.use('/api/users', authMiddleware, createProxyMiddleware({
 }));
 
 // Chuyển tiếp đến service nguyên liệu
-app.use('/api/ingredients', authMiddleware, createProxyMiddleware({ 
+app.use('/api/ingredients', authMiddleware, createProxyMiddleware({
   target: config.services.ingredient.url,
   changeOrigin: true,
   pathRewrite: {
@@ -136,7 +136,7 @@ app.use('/api/ingredients', authMiddleware, createProxyMiddleware({
 }));
 
 // Chuyển tiếp đến service công thức
-app.use('/api/recipes', authMiddleware, createProxyMiddleware({ 
+app.use('/api/recipes', authMiddleware, createProxyMiddleware({
   target: config.services.recipe.url,
   changeOrigin: true,
   pathRewrite: {
@@ -206,7 +206,7 @@ app.use('/api/mealplans', authMiddleware, createProxyMiddleware({
   onError: (err, req, res) => {
     logger.error(`Proxy error (mealplan service): ${err.message}`);
     res.status(500).json({
-      status: 'error', 
+      status: 'error',
       message: 'Gateway không thể kết nối đến service kế hoạch bữa ăn',
       error: err.message
     });
@@ -234,6 +234,32 @@ app.use('/api/shopping', authMiddleware, createProxyMiddleware({
     res.status(500).json({
       status: 'error',
       message: 'Gateway không thể kết nối đến service mua sắm',
+      error: err.message
+    });
+  }
+}));
+
+// Chuyển tiếp đến service khao sát
+app.use('/api/surveys', authMiddleware, createProxyMiddleware({
+  target: config.services.survey.url,
+  changeOrigin: true,
+  pathRewrite: {
+    '^/api/surveys': '/api/surveys'
+  },
+  logLevel: 'debug',
+  onProxyReq: (proxyReq, req, res) => {
+    if (req.body && Object.keys(req.body).length > 0) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
+  },
+  onError: (err, req, res) => {
+    logger.error(`Proxy error (surveys service): ${err.message}`);
+    res.status(500).json({
+      status: 'error',
+      message: 'Gateway không thể kết nối đến service khảo sát',
       error: err.message
     });
   }
@@ -268,6 +294,7 @@ app.listen(PORT, () => {
   logger.info(`Meal service URL: ${config.services.meal.url}`);
   logger.info(`MealPlan service URL: ${config.services.mealplan.url}`);
   logger.info(`Shopping service URL: ${config.services.shopping.url}`);
+  logger.info(`Survey service URL: ${config.services.survey.url}`);
 });
 
 module.exports = app;

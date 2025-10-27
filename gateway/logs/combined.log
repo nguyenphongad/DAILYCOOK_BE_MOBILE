@@ -1326,103 +1326,44 @@
 {"level":"info","message":"::1 - - [10/Oct/2025:10:42:47 +0000] \"GET /api/ingredients?page=1&limit=50 HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-10 17:42:47"}
 {"level":"info","message":"::1 - - [10/Oct/2025:10:42:47 +0000] \"GET /api/meals?page=1&limit=9 HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-10 17:42:47"}
 {"level":"info","message":"::1 - - [10/Oct/2025:10:42:47 +0000] \"GET /api/meals/meal-categories?page=1&limit=100 HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-10 17:42:47"}
-{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-10-24 00:47:12"}
-{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-10-24 00:47:12"}
-{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-10-24 00:47:12"}
-{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-10-24 00:47:12"}
-{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-10-24 00:47:12"}
-{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-10-24 00:47:12"}
-{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-10-24 00:47:12"}
-{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-10-24 00:47:12"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:48:34 +0000] \"POST /api/auth/login-admin HTTP/1.1\" 401 57 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:48:34"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:48:40 +0000] \"POST /api/auth/login-admin HTTP/1.1\" 200 340 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:48:40"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:48:40 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 855 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:48:40"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:48:44 +0000] \"GET /api/meals/diet-types?page=1&limit=9 HTTP/1.1\" 200 1099 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:48:44"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:48:45 +0000] \"GET /api/ingredients/measurement-units HTTP/1.1\" 200 535 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:48:45"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:48:45 +0000] \"GET /api/ingredients?page=1&limit=9 HTTP/1.1\" 200 1202 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:48:45"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:48:45 +0000] \"GET /api/ingredients/ingredient-categories?page=1&limit=50 HTTP/1.1\" 200 543 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:48:45"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:48:47 +0000] \"GET /api/ingredients?page=1&limit=50 HTTP/1.1\" 200 1203 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:48:47"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:48:47 +0000] \"GET /api/meals?page=1&limit=9 HTTP/1.1\" 200 779 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:48:47"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:48:47 +0000] \"GET /api/meals/meal-categories?page=1&limit=100 HTTP/1.1\" 200 337 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:48:47"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:48:48 +0000] \"GET /api/recipes//68ea121304de37b350d3fbc5 HTTP/1.1\" 200 768 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:48:48"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:49:00 +0000] \"GET /api/meals/meal-categories?page=1&limit=100 HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:49:00"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:49:00 +0000] \"GET /api/ingredients?page=1&limit=10 HTTP/1.1\" 200 1203 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:49:00"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:49:16 +0000] \"GET /api/meals?page=1&limit=9 HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:49:16"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:49:16 +0000] \"GET /api/ingredients?page=1&limit=50 HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:49:16"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:49:16 +0000] \"GET /api/meals/meal-categories?page=1&limit=100 HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:49:16"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:49:18 +0000] \"GET /api/meals/meal-categories?page=1&limit=100 HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:49:18"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:49:18 +0000] \"GET /api/ingredients?page=1&limit=50 HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:49:18"}
-{"level":"info","message":"::1 - - [23/Oct/2025:17:49:18 +0000] \"GET /api/meals?page=1&limit=9 HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 00:49:18"}
-{"level":"info","message":"::1 - - [24/Oct/2025:06:10:43 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 855 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 13:10:43"}
-{"level":"info","message":"::1 - - [24/Oct/2025:11:10:55 +0000] \"POST /api/auth/login-user HTTP/1.1\" 500 120 \"-\" \"PostmanRuntime/7.48.0\"","service":"api-gateway","timestamp":"2025-10-24 18:10:55"}
-{"level":"info","message":"::1 - - [24/Oct/2025:11:11:21 +0000] \"POST /api/auth/login-user HTTP/1.1\" 500 120 \"-\" \"PostmanRuntime/7.48.0\"","service":"api-gateway","timestamp":"2025-10-24 18:11:21"}
-{"level":"info","message":"::1 - - [24/Oct/2025:11:11:26 +0000] \"POST /api/auth/login-user HTTP/1.1\" 500 99 \"-\" \"PostmanRuntime/7.48.0\"","service":"api-gateway","timestamp":"2025-10-24 18:11:26"}
-{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-10-24 18:12:02"}
-{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-10-24 18:12:02"}
-{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-10-24 18:12:02"}
-{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-10-24 18:12:02"}
-{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-10-24 18:12:02"}
-{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-10-24 18:12:02"}
-{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-10-24 18:12:02"}
-{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-10-24 18:12:02"}
-{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-10-24 18:31:59"}
-{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-10-24 18:31:59"}
-{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-10-24 18:31:59"}
-{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-10-24 18:31:59"}
-{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-10-24 18:31:59"}
-{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-10-24 18:31:59"}
-{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-10-24 18:31:59"}
-{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-10-24 18:31:59"}
-{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-10-24 18:40:54"}
-{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-10-24 18:40:54"}
-{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-10-24 18:40:54"}
-{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-10-24 18:40:54"}
-{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-10-24 18:40:54"}
-{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-10-24 18:40:54"}
-{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-10-24 18:40:54"}
-{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-10-24 18:40:54"}
-{"level":"info","message":"::1 - - [24/Oct/2025:13:49:04 +0000] \"GET /api/auth/check-token HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-24 20:49:04"}
-{"level":"info","message":"::1 - - [25/Oct/2025:04:41:55 +0000] \"GET /api/auth/check-token HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-25 11:41:55"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:05:53:07 +0000] \"POST /api/auth/google-login HTTP/1.1\" 500 108 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 12:53:07"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:05:56:11 +0000] \"POST /api/auth/google-login HTTP/1.1\" 400 59 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 12:56:11"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:05:56:11 +0000] \"POST /api/auth/google-login HTTP/1.1\" 400 59 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 12:56:11"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:05:57:00 +0000] \"POST /api/auth/google-login HTTP/1.1\" 400 59 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 12:57:00"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:05:57:00 +0000] \"POST /api/auth/google-login HTTP/1.1\" 400 59 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 12:57:00"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:05:57:00 +0000] \"POST /api/auth/google-login HTTP/1.1\" 400 59 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 12:57:00"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:05:58:12 +0000] \"POST /api/auth/google-login HTTP/1.1\" 400 59 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 12:58:12"}
-{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-10-25 12:58:39"}
-{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-10-25 12:58:39"}
-{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-10-25 12:58:39"}
-{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-10-25 12:58:39"}
-{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-10-25 12:58:39"}
-{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-10-25 12:58:39"}
-{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-10-25 12:58:39"}
-{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-10-25 12:58:39"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:05:59:19 +0000] \"POST /api/auth/google-login HTTP/1.1\" 400 59 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 12:59:19"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:05:59:19 +0000] \"POST /api/auth/google-login HTTP/1.1\" 400 59 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 12:59:19"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:01:39 +0000] \"POST /api/auth/google-login HTTP/1.1\" 400 59 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:01:39"}
-{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-10-25 13:07:19"}
-{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-10-25 13:07:19"}
-{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-10-25 13:07:19"}
-{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-10-25 13:07:19"}
-{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-10-25 13:07:19"}
-{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-10-25 13:07:19"}
-{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-10-25 13:07:19"}
-{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-10-25 13:07:19"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:07:33 +0000] \"POST /api/auth/google-login HTTP/1.1\" 500 98 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:07:33"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:07:33 +0000] \"POST /api/auth/google-login HTTP/1.1\" 500 98 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:07:33"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:08:24 +0000] \"POST /api/auth/google-login HTTP/1.1\" 500 94 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:08:24"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:08:24 +0000] \"POST /api/auth/google-login HTTP/1.1\" 500 94 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:08:24"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:08:25 +0000] \"POST /api/auth/google-login HTTP/1.1\" 500 94 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:08:25"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:09:55 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 919 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:09:55"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:09:55 +0000] \"POST /api/auth/google-login HTTP/1.1\" 500 198 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:09:55"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:09:55 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 919 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:09:55"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:09:55 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 919 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:09:55"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:19:00 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 919 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:19:00"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:20:47 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 919 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:20:47"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:25:05 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 919 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:25:05"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:25:05 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 919 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:25:05"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:27:20 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 919 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:27:20"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:27:20 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 919 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:27:20"}
-{"level":"info","message":"::ffff:192.168.1.2 - - [25/Oct/2025:06:27:21 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 919 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-25 13:27:21"}
-{"level":"info","message":"::1 - - [25/Oct/2025:11:23:33 +0000] \"GET /api/auth/check-token HTTP/1.1\" - - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-25 18:23:33"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-10-27 19:57:55"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-10-27 19:57:55"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-10-27 19:57:55"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-10-27 19:57:55"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-10-27 19:57:55"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-10-27 19:57:55"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-10-27 19:57:55"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-10-27 19:57:55"}
+{"level":"info","message":"::ffff:192.168.2.242 - - [27/Oct/2025:12:58:48 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 919 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-27 19:58:48"}
+{"level":"info","message":"::1 - - [27/Oct/2025:12:59:00 +0000] \"GET /api/auth/check-token HTTP/1.1\" 404 78 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-10-27 19:59:00"}
+{"level":"info","message":"::1 - - [27/Oct/2025:12:59:25 +0000] \"GET /api/auth/check-token HTTP/1.1\" 404 78 \"-\" \"PostmanRuntime/7.49.0\"","service":"api-gateway","timestamp":"2025-10-27 19:59:25"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:03:05 +0000] \"GET /api/auth/check-token HTTP/1.1\" 404 78 \"-\" \"PostmanRuntime/7.49.0\"","service":"api-gateway","timestamp":"2025-10-27 20:03:05"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:08:29 +0000] \"GET /api/auth/check-token HTTP/1.1\" 404 78 \"-\" \"PostmanRuntime/7.49.0\"","service":"api-gateway","timestamp":"2025-10-27 20:08:29"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:08:31 +0000] \"GET /api/auth/check-token HTTP/1.1\" 404 78 \"-\" \"PostmanRuntime/7.49.0\"","service":"api-gateway","timestamp":"2025-10-27 20:08:31"}
+{"level":"info","message":"::ffff:192.168.2.242 - - [27/Oct/2025:13:08:55 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 921 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-27 20:08:55"}
+{"level":"info","message":"::ffff:192.168.2.242 - - [27/Oct/2025:13:08:55 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 921 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-10-27 20:08:55"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:09:17 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 675 \"-\" \"PostmanRuntime/7.49.0\"","service":"api-gateway","timestamp":"2025-10-27 20:09:17"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:09:29 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 675 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-10-27 20:09:29"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:14:40 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 675 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-10-27 20:14:40"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:18:19 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 675 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-10-27 20:18:19"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:18:37 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 675 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-10-27 20:18:37"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:18:39 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 675 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-10-27 20:18:39"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:27:48 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 675 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-10-27 20:27:48"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:37:15 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 675 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-10-27 20:37:15"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:50:56 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 675 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-10-27 20:50:56"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:51:02 +0000] \"POST /api/auth/login-admin HTTP/1.1\" 200 340 \"-\" \"PostmanRuntime/7.49.0\"","service":"api-gateway","timestamp":"2025-10-27 20:51:02"}
+{"level":"info","message":"::1 - - [27/Oct/2025:13:51:10 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 855 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-10-27 20:51:10"}
+{"level":"info","message":"::1 - - [27/Oct/2025:14:03:43 +0000] \"GET /api/surveys/surveys HTTP/1.1\" 404 88 \"-\" \"PostmanRuntime/7.49.0\"","service":"api-gateway","timestamp":"2025-10-27 21:03:43"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-10-27 21:04:08"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-10-27 21:04:08"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-10-27 21:04:08"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-10-27 21:04:08"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-10-27 21:04:08"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-10-27 21:04:08"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-10-27 21:04:08"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-10-27 21:04:08"}
+{"level":"info","message":"Survey service URL: http://localhost:5008","service":"api-gateway","timestamp":"2025-10-27 21:04:08"}
+{"level":"error","message":"Proxy error (surveys service): ","service":"api-gateway","timestamp":"2025-10-27 21:04:20"}
+{"level":"info","message":"::1 - - [27/Oct/2025:14:04:20 +0000] \"GET /api/surveys/surveys HTTP/1.1\" 500 101 \"-\" \"PostmanRuntime/7.49.0\"","service":"api-gateway","timestamp":"2025-10-27 21:04:20"}
+{"level":"error","message":"Proxy error (surveys service): ","service":"api-gateway","timestamp":"2025-10-27 21:05:05"}
+{"level":"info","message":"::1 - - [27/Oct/2025:14:05:05 +0000] \"GET /api/surveys/surveys HTTP/1.1\" 500 101 \"-\" \"PostmanRuntime/7.49.0\"","service":"api-gateway","timestamp":"2025-10-27 21:05:05"}

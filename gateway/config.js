@@ -23,6 +23,9 @@ module.exports = {
     },
     shopping: {
       url: process.env.SHOPPING_SERVICE_URL
+    },
+    survey: {
+      url: process.env.SURVEY_SERVICE_URL
     }
   },
   jwt: {
