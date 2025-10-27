@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, Select, Space, Switch, message, Tabs, InputNumber, Divider, Row, Col, Radio } from 'antd';
+import { Table, Button, Modal, Form, Input, Select, Space, Switch, message, Tabs, InputNumber, Divider, Row, Col, Radio, Alert } from 'antd';
 import { MdEdit, MdDelete, MdAdd, MdDragIndicator } from 'react-icons/md';
 import { CloseOutlined } from '@ant-design/icons';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
@@ -7,6 +7,8 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import update from 'immutability-helper';
 import Loading from '../../components/Loading/Loading';
 import '../../styles/pages/SurveyPage.scss';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllSurveysAdmin, createSurvey, updateSurvey, deleteSurvey } from '../../redux/thunks/surveyThunk';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -53,8 +55,8 @@ const DraggableRow = ({ index, moveRow, className, style, ...restProps }) => {
 };
 
 const SurveyPage = () => {
-  const [surveys, setSurveys] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { surveys, loading, error } = useSelector((state) => state.survey);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentSurvey, setCurrentSurvey] = useState(null);
   const [form] = Form.useForm();
@@ -71,6 +73,8 @@ const SurveyPage = () => {
   });
   const [ratingConfig, setRatingConfig] = useState({ maxStars: 5 });
   const [questionType, setQuestionType] = useState('text');
+  // Thêm state để quản lý category
+  const [selectedCategory, setSelectedCategory] = useState('dietaryPreferences');
 
   const showModal = (survey = null) => {
     setCurrentSurvey(survey);
@@ -84,6 +88,7 @@ const SurveyPage = () => {
         title: survey.title,
         description: survey.description,
         questionType: surveyQuestionType,
+        category: survey.category,        // Thêm category vào form
         isActive: survey.isActive,
         isRequired: survey.isRequired || false,
       });
@@ -154,67 +159,63 @@ const SurveyPage = () => {
     form.resetFields();
   };
 
+  // Sửa lại hàm handleDelete
   const handleDelete = (id) => {
-    // Trong demo, chỉ xóa khảo sát khỏi state
-    const updatedSurveys = surveys.filter(item => item.id !== id);
-    // Cập nhật lại thứ tự
-    const reorderedSurveys = updatedSurveys.map((item, index) => ({
-      ...item,
-      order: index + 1
-    }));
-    setSurveys(reorderedSurveys);
-    message.success('Xóa khảo sát thành công');
+    Modal.confirm({
+      title: 'Xác nhận xóa',
+      content: 'Bạn có chắc chắn muốn xóa khảo sát này không?',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await dispatch(deleteSurvey(id)).unwrap();
+          message.success('Xóa khảo sát thành công');
+          dispatch(getAllSurveysAdmin());
+        } catch (error) {
+          message.error(error.message || 'Xóa khảo sát thất bại');
+        }
+      }
+    });
   };
 
-  const handleSubmit = () => {
+  // Handle form submission
+  const handleSubmit = async () => {
     setConfirmLoading(true);
-    
-    form.validateFields().then(values => {
-      const updatedValues = {
+    try {
+      const values = await form.validateFields();
+      
+      const surveyData = {
         ...values,
-        timestamp: new Date().toISOString(),
+        order: currentSurvey ? currentSurvey.order : (surveys.length + 1), // Giữ nguyên order khi update
+        options: ['select', 'radio', 'checkbox'].includes(values.questionType) ? questionOptions : undefined,
+        textConfig: values.questionType === 'text' ? textConfig : undefined,
+        ratingConfig: values.questionType === 'rating' ? ratingConfig : undefined,
       };
-      
-      // Add options based on question type
-      if (['select', 'radio', 'checkbox'].includes(values.questionType)) {
-        updatedValues.options = questionOptions;
-      }
-      
-      // Add text configuration
-      if (values.questionType === 'text') {
-        updatedValues.textConfig = textConfig;
-      }
-      
-      // Add rating configuration
-      if (values.questionType === 'rating') {
-        updatedValues.ratingConfig = ratingConfig;
-      }
 
       if (currentSurvey) {
-        // Cập nhật khảo sát hiện có
-        const updatedSurveys = surveys.map(item => 
-          item.id === currentSurvey.id ? { ...item, ...updatedValues } : item
-        );
-        setSurveys(updatedSurveys);
+        // Update existing survey
+        await dispatch(updateSurvey({ 
+          id: currentSurvey._id, 
+          updateData: {
+            ...surveyData,
+            _id: currentSurvey._id  // Đảm bảo giữ nguyên _id
+          }
+        })).unwrap();
         message.success('Cập nhật khảo sát thành công');
       } else {
-        // Thêm khảo sát mới
-        const newSurvey = {
-          id: `survey_${Date.now()}`,
-          ...updatedValues,
-          order: surveys.length + 1,
-        };
-        setSurveys([...surveys, newSurvey]);
+        // Create new survey
+        await dispatch(createSurvey(surveyData)).unwrap();
         message.success('Tạo khảo sát mới thành công');
       }
 
       setIsModalVisible(false);
       form.resetFields();
-    }).catch(info => {
-      console.log('Validate Failed:', info);
-    }).finally(() => {
+    } catch (error) {
+      message.error(error.message || 'Có lỗi xảy ra');
+    } finally {
       setConfirmLoading(false);
-    });
+    }
   };
 
   // Thêm option mới
@@ -240,6 +241,7 @@ const SurveyPage = () => {
     setQuestionOptions(newOptions);
   };
 
+  // Update moveRow function to use new data structure
   const moveRow = (dragIndex, hoverIndex) => {
     const dragRow = surveys[dragIndex];
     const updatedSurveys = update(surveys, {
@@ -249,13 +251,13 @@ const SurveyPage = () => {
       ],
     });
     
-    // Cập nhật lại thứ tự
-    const reorderedSurveys = updatedSurveys.map((item, index) => ({
-      ...item,
-      order: index + 1
-    }));
-    
-    setSurveys(reorderedSurveys);
+    // Update order for each survey
+    updatedSurveys.forEach((survey, index) => {
+      dispatch(updateSurvey({
+        id: survey._id,
+        updateData: { ...survey, order: index + 1 }
+      }));
+    });
   };
 
   const columns = [
@@ -318,85 +320,8 @@ const SurveyPage = () => {
 
   // Tạo dữ liệu mẫu
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      const sampleData = [
-        {
-          id: 'survey_1',
-          title: 'Bạn thường nấu ăn vào thời điểm nào trong ngày?',
-          description: 'Tìm hiểu thói quen nấu ăn của người dùng',
-          questionType: 'radio',
-          isActive: true,
-          isRequired: true,
-          options: [
-            { value: 'morning', label: 'Buổi sáng' },
-            { value: 'noon', label: 'Buổi trưa' },
-            { value: 'evening', label: 'Buổi tối' },
-            { value: 'all', label: 'Cả ngày' }
-          ],
-          order: 1,
-          timestamp: '2023-05-15T09:00:00Z'
-        },
-        {
-          id: 'survey_2',
-          title: 'Bạn yêu thích loại món ăn nào nhất?',
-          description: 'Xác định sở thích về ẩm thực',
-          questionType: 'select',
-          isActive: true,
-          order: 2,
-          timestamp: '2023-04-20T09:00:00Z'
-        },
-        {
-          id: 'survey_3',
-          title: 'Bạn có những ý kiến gì để cải thiện ứng dụng?',
-          description: 'Thu thập phản hồi người dùng',
-          questionType: 'text',
-          isActive: false,
-          order: 3,
-          timestamp: '2023-06-01T09:00:00Z'
-        },
-        {
-          id: 'survey_4',
-          title: 'Đánh giá trải nghiệm sử dụng ứng dụng',
-          description: 'Đánh giá mức độ hài lòng',
-          questionType: 'rating',
-          isActive: true,
-          order: 4,
-          timestamp: '2023-06-10T09:00:00Z'
-        },
-        {
-          id: 'survey_5',
-          title: 'Bạn quan tâm đến những tính năng nào?',
-          description: 'Xác định nhu cầu người dùng',
-          questionType: 'checkbox',
-          isActive: true,
-          order: 5,
-          timestamp: '2023-05-25T09:00:00Z'
-        },
-        {
-          id: 'survey_6',
-          title: 'Bạn đánh giá món ăn này bao nhiêu điểm?',
-          description: 'Điểm đánh giá từ 1-10',
-          questionType: 'text',
-          isActive: true,
-          isRequired: true,
-          textConfig: {
-            dataType: 'number',
-            minLength: 1,
-            maxLength: 2,
-            allowEmpty: false,
-            placeholder: 'Nhập điểm đánh giá (1-10)',
-            minValue: 1,
-            maxValue: 10
-          },
-          order: 6,
-          timestamp: '2023-07-01T09:00:00Z'
-        },
-      ];
-      setSurveys([...sampleData]);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    dispatch(getAllSurveysAdmin());
+  }, [dispatch]);
 
   const components = {
     body: {
@@ -570,6 +495,8 @@ const SurveyPage = () => {
       <div className="survey-page">
         <Loading visible={loading} text="Đang tải dữ liệu khảo sát..." />
         
+        {error && <Alert message={error} type="error" showIcon />}
+        
         <div className="survey-header">
           <h1>Quản lý khảo sát</h1>
           <div className="survey-actions">
@@ -608,11 +535,21 @@ const SurveyPage = () => {
                 danger
                 icon={<MdDelete />}
                 onClick={() => {
-                  handleDelete(currentSurvey.id);
-                  setIsModalVisible(false);
+                  if (window.confirm('Bạn có chắc chắn muốn xóa khảo sát này không?')) {
+                    dispatch(deleteSurvey(currentSurvey._id))
+                      .unwrap()
+                      .then(() => {
+                        message.success('Xóa khảo sát thành công');
+                        dispatch(getAllSurveysAdmin());
+                        setIsModalVisible(false);
+                      })
+                      .catch((error) => {
+                        message.error(error.message || 'Xóa khảo sát thất bại');
+                      });
+                  }
                 }}
               >
-                Xóa
+                Xóa khảo sát
               </Button>
             ),
             <Button key="cancel" onClick={handleCancel}>
@@ -675,6 +612,20 @@ const SurveyPage = () => {
                       <Option value="radio">Chọn một</Option>
                       <Option value="checkbox">Chọn nhiều</Option>
                       <Option value="rating">Đánh giá sao</Option>
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item
+                    name="category"
+                    label="Loại khảo sát"
+                    rules={[{ required: true, message: 'Vui lòng chọn loại khảo sát!' }]}
+                  >
+                    <Select placeholder="Chọn loại khảo sát">
+                      <Option value="personalInfo">Thông tin cá nhân</Option>
+                      <Option value="familyInfo">Thông tin gia đình</Option>
+                      <Option value="dietaryPreferences">Sở thích ăn uống</Option>
+                      <Option value="nutritionGoals">Mục tiêu dinh dưỡng</Option>
+                      <Option value="waterReminders">Nhắc nhở uống nước</Option>
                     </Select>
                   </Form.Item>
 
