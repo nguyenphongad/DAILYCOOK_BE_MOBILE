@@ -114,7 +114,7 @@ const loginWithGoogle = async (req, res) => {
     const userImage = supabaseUser.user_metadata?.avatar_url 
                      || supabaseUser.user_metadata?.picture;
 
-    console.log('Google user info:', { email, googleId, fullName });
+    // console.log('Google user info:', { email, googleId, fullName });
 
     // Tìm user trong MongoDB
     let user = await User.findOne({ 
@@ -180,7 +180,7 @@ const loginWithGoogle = async (req, res) => {
       await user.save();
     }
 
-    console.log('User logged in:', email);
+    // console.log('User logged in:', email);
 
     // Tạo JWT token
     const token = jwt.sign(
