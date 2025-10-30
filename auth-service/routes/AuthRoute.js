@@ -11,12 +11,12 @@ router.get("/check-token", checkToken);
 router.post("/google-login", loginWithGoogle);
 
 // Health check endpoint
-// router.get('/health', (req, res) => {
-//   res.status(200).json({
-//     status: 'OK',
-//     service: 'auth-service',
-//     timestamp: new Date().toISOString()
-//   });
-// });
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'auth-service',
+    timestamp: new Date().toISOString()
+  });
+});
 
 module.exports = router
