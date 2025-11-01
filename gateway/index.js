@@ -25,16 +25,30 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' })); // Tăng giới hạn kích thước body
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
-// Giới hạn tốc độ request
+// Giới hạn tốc độ request - loại trừ health endpoints
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 phút
-  max: 100, // giới hạn mỗi IP tối đa 100 request trong khoảng thời gian
+  max: 200, // Tăng giới hạn lên 200 request
   message: {
     status: 429,
     message: 'Quá nhiều request, vui lòng thử lại sau.'
+  },
+  // Loại trừ health endpoints khỏi rate limiting
+  skip: (req, res) => {
+    return req.path.includes('/health') || 
+           req.path === '/health' ||
+           req.path.endsWith('/health');
   }
 });
-app.use('/api/', apiLimiter);
+
+// Chỉ áp dụng rate limiting cho các API endpoints (không phải health)
+app.use('/api/', (req, res, next) => {
+  // Nếu là health endpoint thì bỏ qua rate limiting
+  if (req.path.includes('/health')) {
+    return next();
+  }
+  return apiLimiter(req, res, next);
+});
 
 // Endpoint kiểm tra trạng thái
 app.get('/health', (req, res) => {
