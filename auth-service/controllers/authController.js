@@ -145,7 +145,7 @@ const loginWithGoogle = async (req, res) => {
     const userImage = supabaseUser.user_metadata?.avatar_url 
                      || supabaseUser.user_metadata?.picture;
 
-    console.log('Google user info:', { email, googleId, fullName });
+    // console.log('Google user info:', { email, googleId, fullName });
 
     // Tìm tài khoản trong MongoDB
     let account = await Account.findOne({ 
