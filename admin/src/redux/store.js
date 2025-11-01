@@ -7,6 +7,7 @@ import mealReducer from './slices/mealSlice'
 import mealCategoryReducer from './slices/mealCategorySlice'
 import measurementUnitsReducer from './slices/measurementUnitsSlice'
 import recipeReducer from './slices/recipeSlice'
+import userReducer from './slices/userSlice'
 
 const store = configureStore({
   reducer: {
@@ -17,7 +18,8 @@ const store = configureStore({
     meals: mealReducer,
     mealCategories: mealCategoryReducer, // Thêm reducer này
     measurementUnits: measurementUnitsReducer,
-    recipes: recipeReducer
+    recipes: recipeReducer,
+    users: userReducer // thêm dòng này
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

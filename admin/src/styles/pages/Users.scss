@@ -1,6 +1,5 @@
 .users-container {
   display: flex;
-  height: 100vh;
 
   .content-area {
     flex: 1;
@@ -23,18 +22,35 @@
         h1 {
           color: #333;
           margin: 0;
+          font-size: 28px;
         }
+      }
 
+      .search-section {
+        margin-bottom: 20px;
+
+        .search-input {
+          width: 300px;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          font-size: 14px;
+
+          &:focus {
+            outline: none;
+            border-color: #4361ee;
+          }
+        }
       }
 
       .users-table-container {
-        background-color: white;
+        background: white;
         border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         overflow: hidden;
 
         .loading {
-          padding: 30px;
+          padding: 40px;
           text-align: center;
           color: #666;
         }
@@ -51,38 +67,168 @@
           }
 
           th {
-            background-color: #f8f8f8;
-            font-weight: 500;
-            color: #555;
-          }
-
-          tr:last-child td {
-            border-bottom: none;
-          }
-
-          tr:hover {
-            background-color: #f9f9f9;
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
           }
 
           .status-badge {
-            display: inline-block;
-            padding: 6px 10px;
+            padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
 
             &.active {
-              background-color: rgba(52, 168, 83, 0.1);
-              color: #34A853;
+              background-color: #d4edda;
+              color: #155724;
             }
 
             &.inactive {
-              background-color: rgba(234, 67, 53, 0.1);
-              color: #EA4335;
+              background-color: #f8d7da;
+              color: #721c24;
+            }
+          }
+
+          .btn-actions {
+            .lock-btn {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              padding: 8px 16px;
+              border: none;
+              border-radius: 6px;
+              background: linear-gradient(135deg, #dc3545, #c82333);
+              color: white;
+              cursor: pointer;
+              font-size: 13px;
+              font-weight: 500;
+              transition: all 0.3s ease;
+              box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+
+              .lock-icon {
+                font-size: 14px;
+              }
+
+              &:hover:not(:disabled) {
+                background: linear-gradient(135deg, #c82333, #a71e2a);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+              }
+
+              &:active:not(:disabled) {
+                transform: translateY(0);
+              }
+
+              &:disabled {
+                background: linear-gradient(135deg, #6c757d, #5a6268);
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
+                opacity: 0.7;
+              }
+            }
+
+
+          }
+        }
+
+        .pagination {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 20px;
+          gap: 10px;
+
+          .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+
+            &:hover:not(:disabled) {
+              background-color: #f8f9fa;
+            }
+
+            &:disabled {
+              color: #ccc;
+              cursor: not-allowed;
+            }
+          }
+
+          .pagination-numbers {
+            display: flex;
+            gap: 5px;
+
+            .pagination-number {
+              padding: 8px 12px;
+              border: 1px solid #ddd;
+              background: white;
+              border-radius: 4px;
+              cursor: pointer;
+
+              &:hover {
+                background-color: #f8f9fa;
+              }
+
+              &.active {
+                background-color: #4361ee;
+                color: white;
+                border-color: #4361ee;
+              }
             }
           }
         }
+
+        .pagination-info {
+          text-align: center;
+          padding: 10px 20px;
+          color: #666;
+          font-size: 14px;
+          border-top: 1px solid #eee;
+        }
       }
+    }
+  }
+}
+
+
+.btn-actions-del {
+  .lock-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+
+    .lock-icon {
+      font-size: 14px;
+    }
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #c82333, #a71e2a);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      background: linear-gradient(135deg, #6c757d, #5a6268);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 2px 4px rgba(108, 117, 125, 0.2);
+      opacity: 0.7;
     }
   }
 }

@@ -5,8 +5,10 @@ const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require('google-auth-library');
 const supabase = require('../config/supabase');
 const User = require('../model/UserModel');
+const axios = require('axios');
+const mongoose = require('mongoose');
 
-const loginUser = async (req, res) => {
+const loginAdmin = async (req, res) => {
     try {
         const { email, passwordAdmin } = req.body;
 
@@ -124,27 +126,48 @@ const loginWithGoogle = async (req, res) => {
       ]
     });
 
-    // Nếu chưa có user, tạo mới với try-catch để xử lý duplicate key
+    // Nếu chưa có user, tạo mới
     if (!user) {
       try {
         const randomPassword = `${Date.now()}_${Math.random().toString(36)}`;
-        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+        const hashedPassword = await bcrypt.hash(randomPassword + process.env.JWT_SECRET, 10);
+        const userId = new mongoose.Types.ObjectId();
 
         user = new User({
-          fullName: fullName,
+          _id: userId,
+          user_id: userId,
           email: email,
           google_id: googleId,
-          userImage: userImage,
           passwordAdmin: hashedPassword,
           isAdmin: false,
           isActive: true,
-          isOnboardingCompleted: false,
+          createAt: new Date(),
+          updateAt: new Date()
         });
 
         await user.save();
+
+        // Gửi thông tin sang user-service
+        try {
+          await axios.post(process.env.PORT_CHECK_USER_SERVICE, {
+            _id: userId,
+            fullName: fullName,
+            userImage: userImage,
+            createAt: new Date(),
+            updateAt: new Date()
+          }, {
+            headers: {
+              'x-api-key': process.env.API_KEY,
+              'Content-Type': 'application/json'
+            }
+          });
+          console.log('User info sent to user-service successfully');
+        } catch (userServiceError) {
+          console.error('Failed to send user info to user-service:', userServiceError.message);
+        }
+
         console.log('Created new user from Google:', email);
       } catch (saveError) {
-        // Nếu bị duplicate key error, tìm lại user
         if (saveError.code === 11000) {
           console.log('Duplicate key detected, finding existing user...');
           user = await User.findOne({ 
@@ -171,12 +194,8 @@ const loginWithGoogle = async (req, res) => {
       needUpdate = true;
     }
 
-    if (userImage && user.userImage !== userImage) {
-      user.userImage = userImage;
-      needUpdate = true;
-    }
-
     if (needUpdate) {
+      user.updateAt = new Date();
       await user.save();
     }
 
@@ -202,8 +221,7 @@ const loginWithGoogle = async (req, res) => {
       message: "Đăng nhập bằng Google thành công",
       user: userResponse,
       token: token,
-      status: true,
-      isNewUser: !user.isOnboardingCompleted
+      status: true
     });
 
   } catch (error) {
@@ -217,4 +235,4 @@ const loginWithGoogle = async (req, res) => {
 };
 
 
-module.exports = { loginUser, checkToken, loginWithGoogle };
+module.exports = { loginAdmin, checkToken, loginWithGoogle };

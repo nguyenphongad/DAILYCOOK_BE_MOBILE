@@ -1,10 +1,10 @@
 const express = require('express');
-const { loginUser, checkToken, loginWithGoogle } = require('../controllers/authController');
+const { loginAdmin, checkToken, loginWithGoogle } = require('../controllers/authController');
 
 const router = express.Router();
 
 // router.get("/checkToken", checkToken);
-router.post("/login-admin", loginUser);
+router.post("/login-admin", loginAdmin);
 router.get("/check-token", checkToken);
 
 
