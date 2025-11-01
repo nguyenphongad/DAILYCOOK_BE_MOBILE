@@ -1,8 +1,6 @@
 const express = require('express');
 const { adminAuthMiddleware } = require('../middleware/UserMiddleware');
-const { getAllUsers, toggleUserStatus, registerFromAuth } = require('../controllers/UserController');
-const UserModel = require('../models/UserModel');
-const mongoose = require('mongoose');
+const { getAllUsers, toggleUserStatus, registerFromAuth, getUserByUserId } = require('../controllers/UserController');
 
 const router = express.Router();
 
@@ -17,6 +15,9 @@ router.get('/health', (req, res) => {
 
 // Đăng ký user từ Auth Service (không cần middleware, chỉ cần API key)
 router.post('/register-from-auth', registerFromAuth);
+
+// Lấy thông tin user theo user_id (không cần auth middleware vì có thể dùng internal)
+router.get('/profile/:user_id', getUserByUserId);
 
 // Các route dưới đây chỉ cho phép admin
 router.use(adminAuthMiddleware);

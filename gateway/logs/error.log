@@ -11,3 +11,8 @@
 {"level":"error","message":"Proxy error (user service): ","service":"api-gateway","timestamp":"2025-10-31 01:54:30"}
 {"level":"error","message":"Proxy error (user service): ","service":"api-gateway","timestamp":"2025-10-31 01:54:47"}
 {"level":"error","message":"Proxy error (user service): ","service":"api-gateway","timestamp":"2025-10-31 01:56:17"}
+{"level":"error","message":"Proxy error (auth service): ","service":"api-gateway","timestamp":"2025-11-01 19:33:39"}
+{"level":"error","message":"Proxy error (auth service): ","service":"api-gateway","timestamp":"2025-11-01 19:33:41"}
+{"level":"error","message":"Proxy error (auth service): ","service":"api-gateway","timestamp":"2025-11-01 19:33:41"}
+{"level":"error","message":"Proxy error (auth service): ","service":"api-gateway","timestamp":"2025-11-01 19:34:33"}
+{"level":"error","message":"Proxy error (auth service): ","service":"api-gateway","timestamp":"2025-11-01 19:35:23"}

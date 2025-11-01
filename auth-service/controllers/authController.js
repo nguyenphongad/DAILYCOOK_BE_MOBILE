@@ -72,10 +72,42 @@ const checkToken = async (req, res) => {
             });
         }
 
+        console.log(user)
+
+        // Gọi user-service để lấy thông tin profile - gửi kèm token
+        let userProfile = null;
+        try {
+            const profileResponse = await axios.get(`${process.env.PORT_CHECK_PROFILE_USER_SERVICE}${user.user_id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (profileResponse.data.success) {
+                userProfile = profileResponse.data.data;
+            }
+        } catch (profileError) {
+            console.log('Không thể lấy thông tin profile từ user-service:', profileError.message);
+        }
+
+        console.log(userProfile)
+
+        // Merge thông tin từ auth và user service
+        const combinedUserInfo = {
+            ...user.toObject(),
+            // Thêm thông tin từ user-service nếu có
+            ...(userProfile && {
+                fullName: userProfile.fullName,
+                userImage: userProfile.userImage,
+                profileCreateAt: userProfile.createAt,
+                profileUpdateAt: userProfile.updateAt
+            })
+        };
+
         return res.status(200).json({
             isLogin: true,
             message: "Truy vấn thông tin người dùng từ token thành công",
-            user: user
+            user: combinedUserInfo
         });
 
     } catch (error) {
@@ -86,6 +118,7 @@ const checkToken = async (req, res) => {
         });
     }
 };
+
 const loginWithGoogle = async (req, res) => {
   try {
     const { access_token, refresh_token } = req.body;
@@ -161,15 +194,15 @@ const loginWithGoogle = async (req, res) => {
               'Content-Type': 'application/json'
             }
           });
-          console.log('User info sent to user-service successfully');
+          console.log('Đã gửi thông tin người dùng đến user-service thành công');
         } catch (userServiceError) {
-          console.error('Failed to send user info to user-service:', userServiceError.message);
+          console.error('Lỗi khi gửi thông tin người dùng đến user-service:', userServiceError.message);
         }
 
-        console.log('Created new user from Google:', email);
+        console.log('Đã tạo người dùng mới từ Google:', email);
       } catch (saveError) {
         if (saveError.code === 11000) {
-          console.log('Duplicate key detected, finding existing user...');
+          console.log('Phát hiện khóa trùng lặp, đang tìm người dùng hiện có...');
           user = await User.findOne({ 
             $or: [
               { google_id: googleId },
@@ -178,7 +211,7 @@ const loginWithGoogle = async (req, res) => {
           });
 
           if (!user) {
-            throw new Error('Unable to create or find user');
+            throw new Error('Không thể tạo hoặc tìm thấy người dùng');
           }
         } else {
           throw saveError;
@@ -199,7 +232,7 @@ const loginWithGoogle = async (req, res) => {
       await user.save();
     }
 
-    console.log('User logged in:', email);
+    console.log('Người dùng đã đăng nhập:', email);
 
     // Tạo JWT token
     const token = jwt.sign(
@@ -225,7 +258,7 @@ const loginWithGoogle = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Google login error:", error);
+    console.error("Lỗi đăng nhập Google:", error);
     return res.status(500).json({
       message: "Lỗi server khi xác thực Google",
       error: error.message,

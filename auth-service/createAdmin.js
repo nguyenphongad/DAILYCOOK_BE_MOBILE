@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const readline = require('readline');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
+const axios = require('axios');
 const User = require('./model/UserModel');
 
 // Tải biến môi trường từ file .env
@@ -43,7 +44,8 @@ async function createAdmin() {
 
     // Nhập thông tin cơ bản
     const fullName = await askQuestion('Nhập họ tên: ');
-    
+    const userImage = await askQuestion('Nhập URL hình đại diện: ');
+
     // Nhập và kiểm tra email
     let email;
     let existingUser;
@@ -56,70 +58,79 @@ async function createAdmin() {
     } while (existingUser);
     
     const password = await askQuestion('Nhập mật khẩu: ');
-    const phoneNumber = await askQuestion('Nhập số điện thoại: ');
-    const userImage = await askQuestion('Nhập URL hình đại diện: ');
-
-    // Thông tin cá nhân
-    console.log('\n--- Thông tin cá nhân ---');
-    const height = await askQuestion('Nhập chiều cao (cm): ');
-    const weight = await askQuestion('Nhập cân nặng (kg): ');
-    const age = await askQuestion('Nhập tuổi: ');
-    const gender = await askQuestion('Nhập giới tính (male/female/other): ');
+    const googleId = await askQuestion('Nhập Google ID (hoặc để trống): ');
 
     // Mã hóa mật khẩu sử dụng bcrypt và JWT_SECRET
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password + process.env.JWT_SECRET, salt);
     
-    // Tạo user admin mới
+    // Tạo ObjectId cho user
+    const userId = new mongoose.Types.ObjectId();
+    
+    // Tạo user admin mới trong auth service
     const newAdmin = new User({
-      fullName,
+      _id: userId,
+      user_id: userId,
       email,
       passwordAdmin: hashedPassword,
-      userImage,
-      phoneNumber,
+      google_id: googleId || undefined,
       isAdmin: true,
-      personalInfo: {
-        height: parseInt(height),
-        weight: parseInt(weight),
-        age: parseInt(age),
-        gender
-      },
-      familyInfo: {
-        children: 0,
-        teenagers: 0,
-        adults: 1,
-        elderly: 0
-      },
-      dietaryPreferences: {
-        allergies: [],
-        dislikeIngredients: []
-      },
-      nutritionGoals: {
-        caloriesPerDay: 2000,
-        proteinPercentage: 20,
-        carbPercentage: 50,
-        fatPercentage: 30,
-        waterIntakeGoal: 2
-      },
-      waterReminders: {
-        enabled: false,
-        frequency: 2,
-        startTime: "08:00",
-        endTime: "20:00"
-      },
-      isOnboardingCompleted: true
+      isActive: true,
+      createAt: new Date(),
+      updateAt: new Date()
     });
 
     // Lưu vào database
     await newAdmin.save();
+
+    // Gửi thông tin sang user-service
+    try {
+      const requestData = {
+        _id: userId,
+        fullName: fullName,
+        userImage: userImage,
+        createAt: new Date(),
+        updateAt: new Date()
+      };
+
+      const requestHeaders = {
+        'x-api-key': process.env.API_KEY,
+        'Content-Type': 'application/json'
+      };
+
+      console.log('📤 Gửi request đến user-service:');
+      console.log('URL:', process.env.PORT_CHECK_USER_SERVICE);
+      console.log('Headers:', requestHeaders);
+      console.log('Data:', JSON.stringify(requestData, null, 2));
+
+      const response = await axios.post(process.env.PORT_CHECK_USER_SERVICE, requestData, {
+        headers: requestHeaders
+      });
+
+      console.log('📥 Response từ user-service:');
+      console.log('Status:', response.status);
+      console.log('Headers:', response.headers);
+      console.log('Data:', JSON.stringify(response.data, null, 2));
+      console.log('✅ Thông tin admin đã được gửi đến user-service thành công');
+    } catch (userServiceError) {
+      console.error('⚠️ Lỗi khi gửi thông tin đến user-service:');
+      console.error('Error message:', userServiceError.message);
+      if (userServiceError.response) {
+        console.error('Response status:', userServiceError.response.status);
+        console.error('Response data:', JSON.stringify(userServiceError.response.data, null, 2));
+      }
+      console.log('Admin đã được tạo trong auth-service nhưng có lỗi khi đồng bộ với user-service');
+    }
 
     console.log('\n✅ Tài khoản admin đã được tạo thành công!');
     console.log(`
     Thông tin tài khoản:
     - Họ tên: ${fullName}
     - Email: ${email}
+    - Hình đại diện: ${userImage}
     - Vai trò: Admin
     - Trạng thái: Hoạt động
+    - User ID: ${userId}
     `);
 
   } catch (error) {
