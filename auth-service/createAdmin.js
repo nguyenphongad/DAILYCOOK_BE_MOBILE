@@ -3,7 +3,7 @@ const readline = require('readline');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
 const axios = require('axios');
-const User = require('./model/UserModel');
+const Account = require('./model/AccountModel');
 
 // Tải biến môi trường từ file .env
 dotenv.config();
@@ -51,7 +51,7 @@ async function createAdmin() {
     let existingUser;
     do {
       email = await askQuestion('Nhập email: ');
-      existingUser = await User.findOne({ email });
+      existingUser = await Account.findOne({ email });
       if (existingUser) {
         console.log('\n⚠️ Email này đã được sử dụng. Vui lòng nhập email khác.\n');
       }
@@ -67,8 +67,8 @@ async function createAdmin() {
     // Tạo ObjectId cho user
     const userId = new mongoose.Types.ObjectId();
     
-    // Tạo user admin mới trong auth service
-    const newAdmin = new User({
+    // Tạo tài khoản admin mới trong auth service
+    const newAdmin = new Account({
       _id: userId,
       user_id: userId,
       email,
@@ -130,7 +130,7 @@ async function createAdmin() {
     - Hình đại diện: ${userImage}
     - Vai trò: Admin
     - Trạng thái: Hoạt động
-    - User ID: ${userId}
+    - Account ID: ${userId}
     `);
 
   } catch (error) {

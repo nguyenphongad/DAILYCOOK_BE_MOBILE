@@ -1,5 +1,5 @@
 const express = require('express');
-const { loginAdmin, checkToken, loginWithGoogle } = require('../controllers/authController');
+const { loginAdmin, checkToken, loginWithGoogle, getAccountByUserId } = require('../controllers/authController');
 
 const router = express.Router();
 
@@ -9,6 +9,9 @@ router.get("/check-token", checkToken);
 
 
 router.post("/google-login", loginWithGoogle);
+
+// Lấy thông tin account theo user_id (có thể dùng internal)
+router.get("/account/:user_id", getAccountByUserId);
 
 // Health check endpoint
 router.get('/health', (req, res) => {

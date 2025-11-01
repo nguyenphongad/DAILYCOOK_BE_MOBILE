@@ -1,10 +1,10 @@
 require('dotenv').config();
-const UserModel = require('../model/UserModel');
+const AccountModel = require('../model/AccountModel');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require('google-auth-library');
 const supabase = require('../config/supabase');
-const User = require('../model/UserModel');
+const Account = require('../model/AccountModel');
 const axios = require('axios');
 const mongoose = require('mongoose');
 
@@ -16,26 +16,26 @@ const loginAdmin = async (req, res) => {
             return res.status(400).json({ message: "Các trường không được để trống!", status: false });
         }
 
-        const checkUser = await UserModel.findOne({ email });
+        const checkAccount = await AccountModel.findOne({ email });
 
-        if (!checkUser) {
+        if (!checkAccount) {
             return res.status(404).json({ message: "Email không tồn tại!", status: false });
         }
 
-        const isPasswordValid = await bcrypt.compare(passwordAdmin + process.env.JWT_SECRET, checkUser.passwordAdmin);
+        const isPasswordValid = await bcrypt.compare(passwordAdmin + process.env.JWT_SECRET, checkAccount.passwordAdmin);
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Password không chính xác!", status: false });
         }
 
         const token = jwt.sign(
-            { email: checkUser.email, _id: checkUser._id },
+            { email: checkAccount.email, _id: checkAccount._id },
             process.env.JWT_SECRET,
             { expiresIn: "48h" }
         );
 
         res.status(200).json({
             message: "Đăng nhập thành công",
-            user: { email: checkUser.email, _id: checkUser._id },
+            user: { email: checkAccount.email, _id: checkAccount._id },
             status: true,
             token
         });
@@ -62,52 +62,48 @@ const checkToken = async (req, res) => {
         }
 
         const decode = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await UserModel.findById(decode._id).select("-passwordAdmin");
+        const account = await AccountModel.findById(decode._id).select("-passwordAdmin");
 
-        if (!user) {
+        if (!account) {
             return res.status(404).json({
                 isLogin: false,
-                message: "Người dùng không tồn tại",
+                message: "Tài khoản không tồn tại",
                 status: false
             });
         }
 
-        console.log(user)
-
         // Gọi user-service để lấy thông tin profile - gửi kèm token
-        let userProfile = null;
+        let accountProfile = null;
         try {
-            const profileResponse = await axios.get(`${process.env.PORT_CHECK_PROFILE_USER_SERVICE}${user.user_id}`, {
+            const profileResponse = await axios.get(`${process.env.PORT_CHECK_PROFILE_USER_SERVICE}${account.user_id}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
             if (profileResponse.data.success) {
-                userProfile = profileResponse.data.data;
+                accountProfile = profileResponse.data.data;
             }
         } catch (profileError) {
             console.log('Không thể lấy thông tin profile từ user-service:', profileError.message);
         }
 
-        console.log(userProfile)
-
         // Merge thông tin từ auth và user service
-        const combinedUserInfo = {
-            ...user.toObject(),
+        const combinedAccountInfo = {
+            ...account.toObject(),
             // Thêm thông tin từ user-service nếu có
-            ...(userProfile && {
-                fullName: userProfile.fullName,
-                userImage: userProfile.userImage,
-                profileCreateAt: userProfile.createAt,
-                profileUpdateAt: userProfile.updateAt
+            ...(accountProfile && {
+                fullName: accountProfile.fullName,
+                userImage: accountProfile.userImage,
+                profileCreateAt: accountProfile.createAt,
+                profileUpdateAt: accountProfile.updateAt
             })
         };
 
         return res.status(200).json({
             isLogin: true,
-            message: "Truy vấn thông tin người dùng từ token thành công",
-            user: combinedUserInfo
+            message: "Truy vấn thông tin tài khoản từ token thành công",
+            user: combinedAccountInfo
         });
 
     } catch (error) {
@@ -151,22 +147,22 @@ const loginWithGoogle = async (req, res) => {
 
     console.log('Google user info:', { email, googleId, fullName });
 
-    // Tìm user trong MongoDB
-    let user = await User.findOne({ 
+    // Tìm tài khoản trong MongoDB
+    let account = await Account.findOne({ 
       $or: [
         { google_id: googleId },
         { email: email }
       ]
     });
 
-    // Nếu chưa có user, tạo mới
-    if (!user) {
+    // Nếu chưa có tài khoản, tạo mới
+    if (!account) {
       try {
         const randomPassword = `${Date.now()}_${Math.random().toString(36)}`;
         const hashedPassword = await bcrypt.hash(randomPassword + process.env.JWT_SECRET, 10);
         const userId = new mongoose.Types.ObjectId();
 
-        user = new User({
+        account = new Account({
           _id: userId,
           user_id: userId,
           email: email,
@@ -178,7 +174,7 @@ const loginWithGoogle = async (req, res) => {
           updateAt: new Date()
         });
 
-        await user.save();
+        await account.save();
 
         // Gửi thông tin sang user-service
         try {
@@ -199,19 +195,19 @@ const loginWithGoogle = async (req, res) => {
           console.error('Lỗi khi gửi thông tin người dùng đến user-service:', userServiceError.message);
         }
 
-        console.log('Đã tạo người dùng mới từ Google:', email);
+        console.log('Đã tạo tài khoản mới từ Google:', email);
       } catch (saveError) {
         if (saveError.code === 11000) {
-          console.log('Phát hiện khóa trùng lặp, đang tìm người dùng hiện có...');
-          user = await User.findOne({ 
+          console.log('Phát hiện khóa trùng lặp, đang tìm tài khoản hiện có...');
+          account = await Account.findOne({ 
             $or: [
               { google_id: googleId },
               { email: email }
             ]
           });
 
-          if (!user) {
-            throw new Error('Không thể tạo hoặc tìm thấy người dùng');
+          if (!account) {
+            throw new Error('Không thể tạo hoặc tìm thấy tài khoản');
           }
         } else {
           throw saveError;
@@ -222,37 +218,37 @@ const loginWithGoogle = async (req, res) => {
     // Cập nhật thông tin nếu cần
     let needUpdate = false;
 
-    if (!user.google_id && googleId) {
-      user.google_id = googleId;
+    if (!account.google_id && googleId) {
+      account.google_id = googleId;
       needUpdate = true;
     }
 
     if (needUpdate) {
-      user.updateAt = new Date();
-      await user.save();
+      account.updateAt = new Date();
+      await account.save();
     }
 
-    console.log('Người dùng đã đăng nhập:', email);
+    console.log('Tài khoản đã đăng nhập:', email);
 
     // Tạo JWT token
     const token = jwt.sign(
       { 
-        email: user.email, 
-        _id: user._id,
-        isAdmin: user.isAdmin 
+        email: account.email, 
+        _id: account._id,
+        isAdmin: account.isAdmin 
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
     // Loại bỏ password trước khi trả về
-    const userResponse = user.toObject();
-    delete userResponse.passwordAdmin;
+    const accountResponse = account.toObject();
+    delete accountResponse.passwordAdmin;
 
     // Trả về response
     return res.status(200).json({
       message: "Đăng nhập bằng Google thành công",
-      user: userResponse,
+      user: accountResponse,
       token: token,
       status: true
     });
@@ -267,5 +263,64 @@ const loginWithGoogle = async (req, res) => {
   }
 };
 
+const getAccountByUserId = async (req, res) => {
+    try {
+        const token = req.header("Authorization")?.split(" ")[1];
 
-module.exports = { loginAdmin, checkToken, loginWithGoogle };
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "Không có token, không được phép truy cập"
+            });
+        }
+
+        // Verify token
+        const decode = jwt.verify(token, process.env.JWT_SECRET);
+        if (!decode) {
+            return res.status(401).json({
+                success: false,
+                message: "Token không hợp lệ"
+            });
+        }
+
+        const { user_id } = req.params;
+
+        if (!user_id) {
+            return res.status(400).json({
+                success: false,
+                message: "Thiếu user_id"
+            });
+        }
+
+        const account = await AccountModel.findOne({ user_id }).select("-passwordAdmin");
+
+        if (!account) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy tài khoản"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: account,
+            message: "Lấy thông tin tài khoản thành công"
+        });
+
+    } catch (error) {
+        console.error("Get account by user_id error:", error);
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({
+                success: false,
+                message: "Token không hợp lệ"
+            });
+        }
+        res.status(500).json({
+            success: false,
+            message: "Lỗi server khi lấy thông tin tài khoản",
+            error: error.message
+        });
+    }
+};
+
+module.exports = { loginAdmin, checkToken, loginWithGoogle, getAccountByUserId };

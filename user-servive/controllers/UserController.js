@@ -1,5 +1,6 @@
 const UserModel = require('../models/UserModel');
 const mongoose = require('mongoose');
+const axios = require('axios');
 
 // Lấy danh sách tất cả người dùng (chỉ admin)
 const getAllUsers = async (req, res) => {
@@ -15,11 +16,47 @@ const getAllUsers = async (req, res) => {
       .skip((page - 1) * limit)
       .sort({ createAt: -1 });
 
+    // Lấy token từ request header
+    const token = req.header("Authorization");
+
+    // Lấy thông tin account chi tiết cho từng user
+    const usersWithAccountInfo = await Promise.all(
+      users.map(async (user) => {
+        try {
+          // Gọi auth service để lấy thông tin account
+          const accountResponse = await axios.get(
+            `${process.env.PORT_AUTH_GET_ACCOUNT.replace(':user_id', user._id)}`,
+            {
+              headers: {
+                'Authorization': token,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+
+          if (accountResponse.data.success) {
+            // Merge thông tin user và account
+            return {
+              ...user.toObject(),
+              accountInfo: accountResponse.data.data
+            };
+          } else {
+            // Nếu không lấy được thông tin account, chỉ trả về user info
+            return user.toObject();
+          }
+        } catch (accountError) {
+          console.log(`Không thể lấy thông tin account cho user ${user._id}:`, accountError.message);
+          // Nếu có lỗi, chỉ trả về user info
+          return user.toObject();
+        }
+      })
+    );
+
     const totalUsers = await UserModel.countDocuments(query);
 
     res.status(200).json({
       success: true,
-      data: users,
+      data: usersWithAccountInfo,
       totalPages: Math.ceil(totalUsers / limit),
       currentPage: page,
       totalUsers
