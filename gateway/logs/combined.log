@@ -2068,3 +2068,12 @@
 {"level":"info","message":"::1 - - [27/Oct/2025:17:35:21 +0000] \"GET /api/recipes//68ea15012f91f06ded0b5ba3 HTTP/1.1\" 200 702 \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-28 00:35:21"}
 {"level":"info","message":"::1 - - [27/Oct/2025:17:36:06 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 921 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-10-28 00:36:06"}
 {"level":"info","message":"::1 - - [27/Oct/2025:17:36:06 +0000] \"GET /api/surveys/admin/surveys HTTP/1.1\" 304 - \"http://localhost:5173/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\"","service":"api-gateway","timestamp":"2025-10-28 00:36:06"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
+{"level":"info","message":"Survey service URL: http://localhost:5008","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
