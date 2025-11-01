@@ -72,17 +72,81 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// Khóa/mở khóa người dùng - bỏ vì model không có isActive
+// Khóa/mở khóa người dùng - gọi auth service để cập nhật isActive
 const toggleUserStatus = async (req, res) => {
   try {
-    return res.status(400).json({
-      success: false,
-      message: "Chức năng này không khả dụng với model hiện tại"
-    });
+    const { userId } = req.params;
+    const { isActive } = req.body;
+    const token = req.header("Authorization");
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Không có token, không được phép truy cập"
+      });
+    }
+
+    // Gọi auth service để lấy thông tin account và cập nhật isActive
+    try {
+      const accountResponse = await axios.get(
+        `${process.env.PORT_AUTH_GET_ACCOUNT.replace(':user_id', userId)}`,
+        {
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!accountResponse.data.success) {
+        return res.status(404).json({
+          success: false,
+          message: "Không tìm thấy tài khoản"
+        });
+      }
+
+      // Cập nhật isActive trong auth service
+      const updateResponse = await axios.patch(
+        `${process.env.PORT_AUTH_STATUS_ACCOUNT.replace(':accountId', accountResponse.data.data._id)}`,
+        { isActive },
+        {
+          headers: {
+            'Authorization': token,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (updateResponse.data.success) {
+        res.status(200).json({
+          success: true,
+          message: `${isActive ? 'Mở khóa' : 'Khóa'} người dùng thành công`,
+          data: {
+            userId: userId,
+            isActive: isActive
+          }
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Không thể cập nhật trạng thái người dùng"
+        });
+      }
+
+    } catch (authError) {
+      console.log(`Lỗi khi gọi auth service:`, authError.message);
+      return res.status(500).json({
+        success: false,
+        message: "Lỗi khi kết nối với auth service",
+        error: authError.message
+      });
+    }
+
   } catch (error) {
+    console.error("Toggle user status error:", error);
     res.status(500).json({
       success: false,
-      message: "Lỗi server",
+      message: "Lỗi server khi thay đổi trạng thái người dùng",
       error: error.message
     });
   }

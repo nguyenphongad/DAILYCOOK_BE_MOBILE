@@ -323,4 +323,83 @@ const getAccountByUserId = async (req, res) => {
     }
 };
 
-module.exports = { loginAdmin, checkToken, loginWithGoogle, getAccountByUserId };
+const updateAccountStatus = async (req, res) => {
+    try {
+        const token = req.header("Authorization")?.split(" ")[1];
+
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "Không có token, không được phép truy cập"
+            });
+        }
+
+        // Verify token và check admin
+        const decode = jwt.verify(token, process.env.JWT_SECRET);
+        const adminAccount = await AccountModel.findById(decode._id);
+
+        if (!adminAccount || !adminAccount.isAdmin) {
+            return res.status(403).json({
+                success: false,
+                message: "Chỉ admin mới có quyền thực hiện thao tác này"
+            });
+        }
+
+        const { accountId } = req.params;
+        const { isActive } = req.body;
+
+        if (!accountId) {
+            return res.status(400).json({
+                success: false,
+                message: "Thiếu accountId"
+            });
+        }
+
+        const account = await AccountModel.findById(accountId);
+
+        if (!account) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy tài khoản"
+            });
+        }
+
+        // Không cho phép tự khóa chính mình
+        if (account._id.toString() === adminAccount._id.toString()) {
+            return res.status(400).json({
+                success: false,
+                message: "Không thể thay đổi trạng thái tài khoản của chính mình"
+            });
+        }
+
+        account.isActive = isActive;
+        account.updateAt = new Date();
+        await account.save();
+
+        res.status(200).json({
+            success: true,
+            message: `${isActive ? 'Mở khóa' : 'Khóa'} tài khoản thành công`,
+            data: {
+                accountId: account._id,
+                email: account.email,
+                isActive: account.isActive
+            }
+        });
+
+    } catch (error) {
+        console.error("Update account status error:", error);
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({
+                success: false,
+                message: "Token không hợp lệ"
+            });
+        }
+        res.status(500).json({
+            success: false,
+            message: "Lỗi server khi cập nhật trạng thái tài khoản",
+            error: error.message
+        });
+    }
+};
+
+module.exports = { loginAdmin, checkToken, loginWithGoogle, getAccountByUserId, updateAccountStatus };
