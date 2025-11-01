@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Popconfirm, message } from 'antd'
 import { FiLock } from 'react-icons/fi'
+import { MdAdminPanelSettings } from 'react-icons/md'
 import Header from '../../components/Header/Header'
 import Menu from '../../components/Menu/Menu'
 import Loading from '../../components/Loading/Loading'
@@ -51,6 +52,15 @@ const Users = () => {
   const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1))
   const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages))
 
+  // Sắp xếp users: admin lên đầu
+  const sortedUsers = users?.slice().sort((a, b) => {
+    const aIsAdmin = a.accountInfo?.isAdmin || false
+    const bIsAdmin = b.accountInfo?.isAdmin || false
+    if (aIsAdmin && !bIsAdmin) return -1
+    if (!aIsAdmin && bIsAdmin) return 1
+    return 0
+  }) || []
+
   return (
     <div className="users-container">
       <Loading visible={loading} text="Đang tải danh sách người dùng..." />
@@ -76,7 +86,7 @@ const Users = () => {
                 <table className="users-table">
                   <thead>
                     <tr>
-                      <th>ID</th>
+                      <th>STT</th>
                       <th>Tên người dùng</th>
                       <th>Email</th>
                       <th>Ngày tạo</th>
@@ -85,39 +95,54 @@ const Users = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {users && users.length > 0 ? users.map(user => (
-                      <tr key={user._id}>
-                        <td>{user._id}</td>
-                        <td>{user.fullName}</td>
-                        <td>{user.email}</td>
-                        <td>{new Date(user.createdAt).toLocaleDateString('vi-VN')}</td>
-                        <td>
-                          <span className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}>
-                            {user.isActive ? 'Hoạt động' : 'Bị khóa'}
-                          </span>
-                        </td>
-                        <td className="btn-actions-del">
-                          <Popconfirm
-                            title="Xác nhận khóa người dùng"
-                            description={`Bạn có chắc chắn muốn khóa người dùng "${user.fullName}"?`}
-                            onConfirm={() => handleLockUser(user._id, user.fullName, user.isActive)}
-                            okText="Khóa"
-                            cancelText="Hủy"
-                            okType="danger"
-                            disabled={!user.isActive}
-                            placement="topLeft"
-                          >
-                            <button 
-                              className="lock-btn"
-                              disabled={!user.isActive}
-                            >
-                              <FiLock className="lock-icon" />
-                              Khóa
-                            </button>
-                          </Popconfirm>
-                        </td>
-                      </tr>
-                    )) : (
+                    {sortedUsers && sortedUsers.length > 0 ? sortedUsers.map((user, index) => {
+                      const isAdmin = user.accountInfo?.isAdmin || false
+                      const isActive = user.accountInfo?.isActive !== false
+                      const email = user.accountInfo?.email || 'N/A'
+                      
+                      return (
+                        <tr key={user._id}>
+                          <td>{(currentPage - 1) * usersPerPage + index + 1}</td>
+                          <td style={isAdmin ? { color: '#dc2626', fontWeight: 'bold' } : {}}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {user.fullName}
+                              {isAdmin && <MdAdminPanelSettings className="admin-icon" />}
+                            </div>
+                          </td>
+                          <td>{email}</td>
+                          <td>{new Date(user.createAt).toLocaleDateString('vi-VN')}</td>
+                          <td>
+                            {!isAdmin && (
+                              <span className={`status-badge ${isActive ? 'active' : 'inactive'}`}>
+                                {isActive ? 'Hoạt động' : 'Bị khóa'}
+                              </span>
+                            )}
+                          </td>
+                          <td className="btn-actions-del">
+                            {!isAdmin && (
+                              <Popconfirm
+                                title="Xác nhận khóa người dùng"
+                                description={`Bạn có chắc chắn muốn khóa người dùng "${user.fullName}"?`}
+                                onConfirm={() => handleLockUser(user._id, user.fullName, isActive)}
+                                okText="Khóa"
+                                cancelText="Hủy"
+                                okType="danger"
+                                disabled={!isActive}
+                                placement="topLeft"
+                              >
+                                <button 
+                                  className="lock-btn"
+                                  disabled={!isActive}
+                                >
+                                  <FiLock className="lock-icon" />
+                                  Khóa
+                                </button>
+                              </Popconfirm>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    }) : (
                       <tr>
                         <td colSpan={6} style={{ textAlign: 'center', color: '#888' }}>Không có người dùng nào</td>
                       </tr>

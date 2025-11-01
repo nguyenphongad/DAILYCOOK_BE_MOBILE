@@ -43,8 +43,8 @@ const userSlice = createSlice({
         state.loading = false
         // Cập nhật trạng thái user trong danh sách
         const idx = state.users.findIndex(u => u._id === action.payload.data.userId)
-        if (idx !== -1) {
-          state.users[idx].isActive = action.payload.data.isActive
+        if (idx !== -1 && state.users[idx].accountInfo) {
+          state.users[idx].accountInfo.isActive = action.payload.data.isActive
         }
       })
       .addCase(toggleUserStatus.rejected, (state, action) => {
