@@ -54,104 +54,6 @@ const deleteMealPlanFromRedis = async (redis, userId, date) => {
     }
 };
 
-// Lưu user preferences
-const saveUserPreferencesToRedis = async (redis, userId, preferences) => {
-    try {
-        const key = REDIS_KEYS.USER_PREFERENCES(userId);
-        const data = JSON.stringify(preferences);
-        await redis.setEx(key, CACHE_TTL.USER_PREFERENCES, data);
-        console.log(`Saved user preferences to Redis: ${key}`);
-    } catch (error) {
-        console.error('Error saving user preferences to Redis:', error);
-    }
-};
-
-// Lấy user preferences
-const getUserPreferencesFromRedis = async (redis, userId) => {
-    try {
-        const key = REDIS_KEYS.USER_PREFERENCES(userId);
-        const data = await redis.get(key);
-        if (data) {
-            console.log(`Retrieved user preferences from Redis: ${key}`);
-            return JSON.parse(data);
-        }
-        return null;
-    } catch (error) {
-        console.error('Error getting user preferences from Redis:', error);
-        return null;
-    }
-};
-
-// Cache danh sách tất cả món ăn
-const saveAllMealsToRedis = async (redis, meals) => {
-    try {
-        const key = REDIS_KEYS.ALL_MEALS;
-        const data = JSON.stringify(meals);
-        await redis.setEx(key, CACHE_TTL.ALL_MEALS, data);
-        console.log(`Saved all meals to Redis: ${key}`);
-    } catch (error) {
-        console.error('Error saving all meals to Redis:', error);
-    }
-};
-
-// Lấy danh sách tất cả món ăn từ cache
-const getAllMealsFromRedis = async (redis) => {
-    try {
-        const key = REDIS_KEYS.ALL_MEALS;
-        const data = await redis.get(key);
-        if (data) {
-            console.log(`Retrieved all meals from Redis: ${key}`);
-            return JSON.parse(data);
-        }
-        return null;
-    } catch (error) {
-        console.error('Error getting all meals from Redis:', error);
-        return null;
-    }
-};
-
-// Cache thông tin một món ăn cụ thể
-const saveMealToRedis = async (redis, mealId, mealData) => {
-    try {
-        const key = REDIS_KEYS.MEAL_CACHE(mealId);
-        const data = JSON.stringify(mealData);
-        await redis.setEx(key, CACHE_TTL.MEAL_CACHE, data);
-        console.log(`Saved meal to Redis: ${key}`);
-    } catch (error) {
-        console.error('Error saving meal to Redis:', error);
-    }
-};
-
-// Lấy thông tin món ăn từ cache
-const getMealFromRedis = async (redis, mealId) => {
-    try {
-        const key = REDIS_KEYS.MEAL_CACHE(mealId);
-        const data = await redis.get(key);
-        if (data) {
-            console.log(`Retrieved meal from Redis: ${key}`);
-            return JSON.parse(data);
-        }
-        return null;
-    } catch (error) {
-        console.error('Error getting meal from Redis:', error);
-        return null;
-    }
-};
-
-// Xóa tất cả cache của user
-const clearUserCache = async (redis, userId) => {
-    try {
-        const pattern = `*${userId}*`;
-        const keys = await redis.keys(pattern);
-        if (keys.length > 0) {
-            await redis.del(keys);
-            console.log(`Cleared ${keys.length} cache entries for user: ${userId}`);
-        }
-    } catch (error) {
-        console.error('Error clearing user cache:', error);
-    }
-};
-
 // Kiểm tra Redis connection
 const checkRedisConnection = async (redis) => {
     try {
@@ -169,18 +71,7 @@ module.exports = {
     getMealPlanFromRedis,
     deleteMealPlanFromRedis,
     
-    // User preferences
-    saveUserPreferencesToRedis,
-    getUserPreferencesFromRedis,
-    
-    // Meals cache
-    saveAllMealsToRedis,
-    getAllMealsFromRedis,
-    saveMealToRedis,
-    getMealFromRedis,
-    
     // Utility functions
-    clearUserCache,
     checkRedisConnection,
     
     // Constants

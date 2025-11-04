@@ -48,10 +48,15 @@ const verifyUserToken = async (token) => {
 
 // ==================== MEAL SERVICE APIs ====================
 
-// Lấy tất cả meals
-const getAllMeals = async () => {
+// Lấy tất cả meals với token
+const getAllMeals = async (token = null) => {
     try {
-        const response = await mealServiceClient.get('/');
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await mealServiceClient.get('/', { headers });
         return response.data;
     } catch (error) {
         handleApiError(error, 'Meal Service');
@@ -60,10 +65,15 @@ const getAllMeals = async () => {
 
 // ==================== RECIPE SERVICE APIs ====================
 
-// Lấy recipe theo ID
-const getRecipeById = async (recipeId) => {
+// Lấy recipe theo ID với token
+const getRecipeById = async (recipeId, token = null) => {
     try {
-        const response = await recipeServiceClient.get(`/${recipeId}`);
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await recipeServiceClient.get(`/${recipeId}`, { headers });
         return response.data;
     } catch (error) {
         handleApiError(error, 'Recipe Service');
@@ -72,10 +82,15 @@ const getRecipeById = async (recipeId) => {
 
 // ==================== INGREDIENT SERVICE APIs ====================
 
-// Lấy ingredient theo ID
-const getIngredientById = async (ingredientId) => {
+// Lấy ingredient theo ID với token
+const getIngredientById = async (ingredientId, token = null) => {
     try {
-        const response = await ingredientServiceClient.get(`/ingredient/${ingredientId}`);
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await ingredientServiceClient.get(`/ingredient/${ingredientId}`, { headers });
         return response.data;
     } catch (error) {
         handleApiError(error, 'Ingredient Service');
@@ -84,13 +99,13 @@ const getIngredientById = async (ingredientId) => {
 
 // ==================== UTILITY FUNCTIONS ====================
 
-// Lấy chi tiết đầy đủ của meal (bao gồm recipe và ingredients)
-const getMealWithFullDetails = async (meal) => {
+// Lấy chi tiết đầy đủ của meal (bao gồm recipe và ingredients) với token
+const getMealWithFullDetails = async (meal, token = null) => {
     try {
         // Lấy chi tiết recipe
         let recipeDetail = null;
         if (meal.recipe && meal.recipe.recipe_id) {
-            const recipeResponse = await getRecipeById(meal.recipe.recipe_id);
+            const recipeResponse = await getRecipeById(meal.recipe.recipe_id, token);
             recipeDetail = recipeResponse.data;
         }
 
@@ -99,7 +114,7 @@ const getMealWithFullDetails = async (meal) => {
         if (meal.ingredients && meal.ingredients.length > 0) {
             for (const ingredient of meal.ingredients) {
                 try {
-                    const ingredientResponse = await getIngredientById(ingredient.ingredient_id);
+                    const ingredientResponse = await getIngredientById(ingredient.ingredient_id, token);
                     ingredientDetails.push({
                         ...ingredient,
                         detail: ingredientResponse.data
@@ -125,12 +140,12 @@ const getMealWithFullDetails = async (meal) => {
     }
 };
 
-// Lấy nhiều meals với chi tiết đầy đủ
-const getMultipleMealsWithDetails = async (meals) => {
+// Lấy nhiều meals với chi tiết đầy đủ với token
+const getMultipleMealsWithDetails = async (meals, token = null) => {
     const detailedMeals = [];
     
     for (const meal of meals) {
-        const detailedMeal = await getMealWithFullDetails(meal);
+        const detailedMeal = await getMealWithFullDetails(meal, token);
         detailedMeals.push(detailedMeal);
     }
     

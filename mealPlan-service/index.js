@@ -27,7 +27,7 @@ mongoose.connect(process.env.MONGODB_URI)
 app.locals.redis = redisClient;
 
 // Routes
-app.use('/api/meal-plan', MealRoute);
+app.use('/api/mealplans', MealRoute);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -13,6 +13,10 @@ router.post('/generate', MealPlanController.generateMealPlan);
 // Lấy thực đơn
 router.get('/', MealPlanController.getMealPlan);
 
+// Gợi ý món ăn tương tự
+router.get('/similar/:mealId', MealPlanController.getSimilarMeals);
+
+
 // Đổi món trong thực đơn
 router.put('/replace-meal', MealPlanController.replaceMeal);
 
@@ -21,5 +25,6 @@ router.delete('/remove-meal', MealPlanController.removeMeal);
 
 // Lưu thực đơn vào database
 router.post('/save', MealPlanController.saveMealPlan);
+
 
 module.exports = router;

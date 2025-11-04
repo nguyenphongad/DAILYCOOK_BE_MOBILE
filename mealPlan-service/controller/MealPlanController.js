@@ -9,10 +9,10 @@ const {
     getMultipleMealsWithDetails
 } = require('../utils/apiUtils');
 
-// Lấy tất cả món ăn từ Meal Service
-const fetchAllMeals = async () => {
+// Lấy tất cả món ăn từ Meal Service với token
+const fetchAllMeals = async (token) => {
     try {
-        const meals = await getAllMeals();
+        const meals = await getAllMeals(token);
         return meals;
     } catch (error) {
         console.error('Error fetching meals:', error);
@@ -26,6 +26,7 @@ const generateMealPlan = async (req, res) => {
         const { date, forFamily = false } = req.body;
         const userId = req.user_id;
         const redis = req.app.locals.redis;
+        const token = req.headers.authorization?.replace('Bearer ', '');
 
         if (!date) {
             return res.status(400).json({ error: 'Ngày không được để trống' });
@@ -37,8 +38,8 @@ const generateMealPlan = async (req, res) => {
             return res.json({ success: true, data: cached, fromCache: true });
         }
 
-        // Lấy danh sách món ăn
-        const allMeals = await fetchAllMeals();
+        // Lấy danh sách món ăn với token
+        const allMeals = await fetchAllMeals(token);
         
         if (!allMeals?.data?.meals || allMeals.data.meals.length === 0) {
             return res.status(404).json({ error: 'Không tìm thấy món ăn nào' });
@@ -55,7 +56,7 @@ const generateMealPlan = async (req, res) => {
                 allMeals.data.meals.find(m => m._id === meal.meal_id)
             ).filter(Boolean);
             
-            const detailedMeals = await getMultipleMealsWithDetails(mealsToGet);
+            const detailedMeals = await getMultipleMealsWithDetails(mealsToGet, token);
             
             mealPlan.push({
                 servingTime,
@@ -91,6 +92,7 @@ const replaceMeal = async (req, res) => {
         const { date, servingTime, oldMealId, newMealId, portionSize } = req.body;
         const userId = req.user_id;
         const redis = req.app.locals.redis;
+        const token = req.headers.authorization?.replace('Bearer ', '');
 
         if (!date || !servingTime || !oldMealId || !newMealId) {
             return res.status(400).json({ error: 'Thiếu thông tin bắt buộc' });
@@ -113,13 +115,13 @@ const replaceMeal = async (req, res) => {
             return res.status(404).json({ error: 'Không tìm thấy món ăn' });
         }
 
-        // Lấy chi tiết món ăn mới
-        const allMeals = await fetchAllMeals();
+        // Lấy chi tiết món ăn mới với token
+        const allMeals = await fetchAllMeals(token);
         const newMealData = allMeals.data.meals.find(m => m._id === newMealId);
         
         let newMealDetail = null;
         if (newMealData) {
-            const detailedMeals = await getMultipleMealsWithDetails([newMealData]);
+            const detailedMeals = await getMultipleMealsWithDetails([newMealData], token);
             newMealDetail = detailedMeals[0];
         }
 
@@ -281,10 +283,75 @@ const getMealPlan = async (req, res) => {
     }
 };
 
+// Gợi ý món ăn tương tự
+const getSimilarMeals = async (req, res) => {
+    try {
+        const { mealId } = req.params;
+        const userId = req.user_id;
+        const token = req.headers.authorization?.replace('Bearer ', '');
+
+        if (!mealId) {
+            return res.status(400).json({ error: 'Meal ID không được để trống' });
+        }
+
+        // Lấy danh sách tất cả món ăn
+        const allMeals = await fetchAllMeals(token);
+        
+        if (!allMeals?.data?.meals || allMeals.data.meals.length === 0) {
+            return res.status(404).json({ error: 'Không tìm thấy món ăn nào' });
+        }
+
+        // Tìm món ăn hiện tại
+        const currentMeal = allMeals.data.meals.find(meal => meal._id === mealId);
+        if (!currentMeal) {
+            return res.status(404).json({ error: 'Không tìm thấy món ăn' });
+        }
+
+        // Lọc các món ăn khác (loại bỏ món hiện tại)
+        const otherMeals = allMeals.data.meals.filter(meal => meal._id !== mealId);
+        
+        // Gợi ý đơn giản: chọn random 3 món từ cùng category hoặc random nếu không có
+        let similarMeals = [];
+        
+        // Ưu tiên món cùng category
+        const sameCategoryMeals = otherMeals.filter(meal => 
+            meal.mealCategory === currentMeal.mealCategory
+        );
+        
+        if (sameCategoryMeals.length >= 3) {
+            // Chọn random 3 món từ cùng category
+            const shuffled = [...sameCategoryMeals].sort(() => 0.5 - Math.random());
+            similarMeals = shuffled.slice(0, 3);
+        } else {
+            // Nếu không đủ 3 món cùng category, bổ sung từ các món khác
+            const shuffledOthers = [...otherMeals].sort(() => 0.5 - Math.random());
+            similarMeals = shuffledOthers.slice(0, 3);
+        }
+
+        // Lấy chi tiết đầy đủ của các món tương tự
+        const detailedSimilarMeals = await getMultipleMealsWithDetails(similarMeals, token);
+
+        res.json({
+            success: true,
+            data: {
+                currentMeal: currentMeal,
+                similarMeals: detailedSimilarMeals,
+                total: detailedSimilarMeals.length
+            },
+            message: 'Lấy danh sách món tương tự thành công'
+        });
+
+    } catch (error) {
+        console.error('Error getting similar meals:', error);
+        res.status(500).json({ error: 'Lỗi lấy món tương tự', details: error.message });
+    }
+};
+
 module.exports = {
     generateMealPlan,
     replaceMeal,
     removeMeal,
     saveMealPlan,
-    getMealPlan
+    getMealPlan,
+    getSimilarMeals
 };
