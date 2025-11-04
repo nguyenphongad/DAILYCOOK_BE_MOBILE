@@ -3,8 +3,8 @@ const config = require('../config');
 const logger = require('../utils/logger');
 
 module.exports = (req, res, next) => {
-  // Bỏ qua xác thực cho các endpoint đăng nhập
-  if (req.path.includes('/login-admin') ) {
+  // Bỏ qua xác thực cho các endpoint đăng nhập và register-from-auth
+  if (req.path.includes('/login-admin') || req.path.includes('/register-from-auth')) {
     return next();
   }
 

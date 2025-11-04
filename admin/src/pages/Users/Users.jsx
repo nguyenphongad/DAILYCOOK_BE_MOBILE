@@ -1,79 +1,194 @@
 import { useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { Popconfirm, message } from 'antd'
+import { FiLock } from 'react-icons/fi'
+import { MdAdminPanelSettings } from 'react-icons/md'
 import Header from '../../components/Header/Header'
 import Menu from '../../components/Menu/Menu'
+import Loading from '../../components/Loading/Loading'
+import { fetchUsers, toggleUserStatus } from '../../redux/thunks/userThunk'
+import { clearUserError } from '../../redux/slices/userSlice'
+import { useSelector as useReduxSelector } from 'react-redux'
 
 const Users = () => {
-  const [users, setUsers] = useState([])
-  const [loading, setLoading] = useState(true)
-  
+  const dispatch = useDispatch()
+  const { users, totalPages, totalUsers, loading, error } = useSelector(state => state.users)
+  const auth = useReduxSelector(state => state.auth)
+  const token = auth?.token
+
+  const [searchEmail, setSearchEmail] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const usersPerPage = 10
+
+  // Fetch users từ API
   useEffect(() => {
-    // Giả lập việc lấy danh sách người dùng
-    const fetchUsers = () => {
-      setLoading(true)
-      
-      // Giả lập API call
-      setTimeout(() => {
-        const mockUsers = [
-          { id: 1, name: 'Nguyễn Văn A', email: 'nguyenvana@example.com', phone: '0901234567', created_at: '01/05/2023', status: 'active' },
-          { id: 2, name: 'Trần Thị B', email: 'tranthib@example.com', phone: '0901234568', created_at: '15/05/2023', status: 'active' },
-          { id: 3, name: 'Lê Văn C', email: 'levanc@example.com', phone: '0901234569', created_at: '20/05/2023', status: 'inactive' },
-          { id: 4, name: 'Phạm Thị D', email: 'phamthid@example.com', phone: '0901234570', created_at: '25/05/2023', status: 'active' },
-          { id: 5, name: 'Hoàng Văn E', email: 'hoangvane@example.com', phone: '0901234571', created_at: '30/05/2023', status: 'active' },
-        ]
-        setUsers(mockUsers)
-        setLoading(false)
-      }, 1000)
+    if (token) {
+      dispatch(fetchUsers({ token, page: currentPage, limit: usersPerPage, search: searchEmail }))
     }
-    
-    fetchUsers()
-  }, [])
-  
+  }, [token, currentPage, searchEmail, dispatch])
+
+  // Hiển thị lỗi nếu có
+  useEffect(() => {
+    if (error) {
+      message.error(error)
+      dispatch(clearUserError())
+    }
+  }, [error, dispatch])
+
+  const handleLockUser = (userId, userName, isActive) => {
+    dispatch(toggleUserStatus({ userId, isActive: false, token }))
+      .unwrap()
+      .then(() => {
+        message.success(`Đã khoá người dùng "${userName}"`)
+        // Sau khi khoá, reload lại danh sách
+        dispatch(fetchUsers({ token, page: currentPage, limit: usersPerPage, search: searchEmail }))
+      })
+      .catch(() => {
+        // lỗi đã được xử lý ở slice
+      })
+  }
+
+  const goToPage = (pageNumber) => setCurrentPage(pageNumber)
+  const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1))
+  const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages))
+
+  // Sắp xếp users: admin lên đầu
+  const sortedUsers = users?.slice().sort((a, b) => {
+    const aIsAdmin = a.accountInfo?.isAdmin || false
+    const bIsAdmin = b.accountInfo?.isAdmin || false
+    if (aIsAdmin && !bIsAdmin) return -1
+    if (!aIsAdmin && bIsAdmin) return 1
+    return 0
+  }) || []
+
   return (
     <div className="users-container">
+      <Loading visible={loading} text="Đang tải danh sách người dùng..." />
       <div className="content-area">
         <div className="content">
           <div className="page-header">
             <h1>Quản lý người dùng</h1>
-            <button className="add-button">+ Thêm người dùng</button>
+          </div>
+
+          <div className="search-section">
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo email..."
+              value={searchEmail}
+              onChange={(e) => setSearchEmail(e.target.value)}
+              className="search-input"
+            />
           </div>
           
           <div className="users-table-container">
-            {loading ? (
-              <div className="loading">Đang tải dữ liệu...</div>
-            ) : (
-              <table className="users-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Tên người dùng</th>
-                    <th>Email</th>
-                    <th>Số điện thoại</th>
-                    <th>Ngày tạo</th>
-                    <th>Trạng thái</th>
-                    <th>Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map(user => (
-                    <tr key={user.id}>
-                      <td>{user.id}</td>
-                      <td>{user.name}</td>
-                      <td>{user.email}</td>
-                      <td>{user.phone}</td>
-                      <td>{user.created_at}</td>
-                      <td>
-                        <span className={`status-badge ${user.status}`}>
-                          {user.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
-                        </span>
-                      </td>
-                      <td className="btn-actions">
-                        <button className="edit-btn">Sửa</button>
-                        <button className="delete-btn">Xóa</button>
-                      </td>
+            {!loading && (
+              <>
+                <table className="users-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Tên người dùng</th>
+                      <th>Email</th>
+                      <th>Ngày tạo</th>
+                      <th>Trạng thái</th>
+                      <th>Hành động</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {sortedUsers && sortedUsers.length > 0 ? sortedUsers.map((user, index) => {
+                      const isAdmin = user.accountInfo?.isAdmin || false
+                      const isActive = user.accountInfo?.isActive !== false
+                      const email = user.accountInfo?.email || 'N/A'
+                      
+                      return (
+                        <tr key={user._id}>
+                          <td>{(currentPage - 1) * usersPerPage + index + 1}</td>
+                          <td style={isAdmin ? { color: '#dc2626', fontWeight: 'bold' } : {}}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              {user.fullName}
+                              {isAdmin && <MdAdminPanelSettings className="admin-icon" />}
+                            </div>
+                          </td>
+                          <td>{email}</td>
+                          <td>{new Date(user.createAt).toLocaleDateString('vi-VN')}</td>
+                          <td>
+                            {!isAdmin && (
+                              <span className={`status-badge ${isActive ? 'active' : 'inactive'}`}>
+                                {isActive ? 'Hoạt động' : 'Bị khóa'}
+                              </span>
+                            )}
+                          </td>
+                          <td className="btn-actions-del">
+                            {!isAdmin && (
+                              <Popconfirm
+                                title="Xác nhận khóa người dùng"
+                                description={`Bạn có chắc chắn muốn khóa người dùng "${user.fullName}"?`}
+                                onConfirm={() => handleLockUser(user._id, user.fullName, isActive)}
+                                okText="Khóa"
+                                cancelText="Hủy"
+                                okType="danger"
+                                disabled={!isActive}
+                                placement="topLeft"
+                              >
+                                <button 
+                                  className="lock-btn"
+                                  disabled={!isActive}
+                                >
+                                  <FiLock className="lock-icon" />
+                                  Khóa
+                                </button>
+                              </Popconfirm>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    }) : (
+                      <tr>
+                        <td colSpan={6} style={{ textAlign: 'center', color: '#888' }}>Không có người dùng nào</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+
+                {/* Pagination */}
+                <div className="pagination">
+                  <button 
+                    onClick={goToPrevPage} 
+                    disabled={currentPage === 1}
+                    className="pagination-btn"
+                  >
+                    ← Trước
+                  </button>
+                  
+                  <div className="pagination-numbers">
+                    {[...Array(totalPages)].map((_, index) => {
+                      const pageNumber = index + 1
+                      return (
+                        <button
+                          key={pageNumber}
+                          onClick={() => goToPage(pageNumber)}
+                          className={`pagination-number ${currentPage === pageNumber ? 'active' : ''}`}
+                        >
+                          {pageNumber}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <button 
+                    onClick={goToNextPage} 
+                    disabled={currentPage === totalPages}
+                    className="pagination-btn"
+                  >
+                    Sau →
+                  </button>
+                </div>
+
+                <div className="pagination-info">
+                  Hiển thị {(currentPage - 1) * usersPerPage + 1}-{Math.min(currentPage * usersPerPage, totalUsers)} 
+                  <span> </span>trong tổng số {totalUsers} người dùng
+                </div>
+              </>
             )}
           </div>
         </div>

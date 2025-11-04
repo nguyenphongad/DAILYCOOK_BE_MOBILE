@@ -43,7 +43,13 @@ const ENDPOINT = {
     GET_LIST_MEASUREMENT_UNITS: 'ingredients/measurement-units',
 
     // RECIPE
-    GET_RECIPE: 'recipes/'
+    GET_RECIPE: 'recipes/',
+
+    // SURVEY
+    GET_ALL_SURVEYS: 'surveys/admin/surveys',
+    CREATE_SURVEY: 'surveys/admin/surveys',
+    UPDATE_SURVEY: 'surveys/admin/surveys', // + /:id
+    DELETE_SURVEY: 'surveys/admin/surveys', // + /:id
 }
 
 export default ENDPOINT;
