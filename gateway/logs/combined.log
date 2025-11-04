@@ -2077,3 +2077,23 @@
 {"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
 {"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
 {"level":"info","message":"Survey service URL: http://localhost:5008","service":"api-gateway","timestamp":"2025-11-01 21:04:35"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-11-02 14:57:37"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-11-02 14:57:37"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-11-02 14:57:37"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-11-02 14:57:37"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-11-02 14:57:37"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-11-02 14:57:37"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-11-02 14:57:37"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-11-02 14:57:37"}
+{"level":"info","message":"Survey service URL: http://localhost:5008","service":"api-gateway","timestamp":"2025-11-02 14:57:37"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-11-03 18:32:11"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-11-03 18:32:11"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-11-03 18:32:11"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-11-03 18:32:11"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-11-03 18:32:11"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-11-03 18:32:11"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-11-03 18:32:11"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-11-03 18:32:11"}
+{"level":"info","message":"Survey service URL: http://localhost:5008","service":"api-gateway","timestamp":"2025-11-03 18:32:11"}
+{"level":"info","message":"::1 - - [03/Nov/2025:12:39:14 +0000] \"POST /api/users/register-from-auth HTTP/1.1\" 201 322 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-11-03 19:39:14"}
+{"level":"info","message":"::ffff:192.168.1.11 - - [03/Nov/2025:12:39:15 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 598 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-11-03 19:39:15"}
