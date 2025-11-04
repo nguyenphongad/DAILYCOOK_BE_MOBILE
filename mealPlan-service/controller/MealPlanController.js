@@ -1,72 +1,69 @@
-const axios = require('axios');
 const MealPlan = require('../models/MealPlanModel');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const { saveMealPlanToRedis, getMealPlanFromRedis } = require('../middleware/MealPlanMiddleware');
+const { generateSimpleMealPlan } = require('../utils/genAIUtils');
+const {
+    saveMealPlanToRedis,
+    getMealPlanFromRedis
+} = require('../utils/redisUtils');
+const {
+    getAllMeals,
+    getMultipleMealsWithDetails
+} = require('../utils/apiUtils');
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// Lấy tất cả món ăn từ Recipe Service
+// Lấy tất cả món ăn từ Meal Service
 const fetchAllMeals = async () => {
     try {
-        const response = await axios.get(`${process.env.RECIPE_SERVICE_URL}/all`, {
-            headers: {
-                'x-api-key': process.env.API_KEY
-            }
-        });
-        return response.data;
+        const meals = await getAllMeals();
+        return meals;
     } catch (error) {
         console.error('Error fetching meals:', error);
         throw new Error('Không thể tải danh sách món ăn');
     }
 };
 
-// AI tạo thực đơn
+// Tạo thực đơn đơn giản (random meals)
 const generateMealPlan = async (req, res) => {
     try {
-        const { date, forFamily = false, preferences = {} } = req.body;
+        const { date, forFamily = false } = req.body;
         const userId = req.user_id;
         const redis = req.app.locals.redis;
+
+        if (!date) {
+            return res.status(400).json({ error: 'Ngày không được để trống' });
+        }
 
         // Kiểm tra cache Redis trước
         const cached = await getMealPlanFromRedis(redis, userId, date);
         if (cached) {
-            return res.json({ success: true, data: cached });
+            return res.json({ success: true, data: cached, fromCache: true });
         }
 
         // Lấy danh sách món ăn
         const allMeals = await fetchAllMeals();
         
-        // Tạo prompt cho Gemini AI
-        const prompt = `
-        Tạo thực đơn cho ${forFamily ? 'gia đình' : 'cá nhân'} cho ngày ${date}.
-        Yêu cầu: cân bằng dinh dưỡng, đa dạng món ăn.
-        Preferences: ${JSON.stringify(preferences)}
-        
-        Chọn từ danh sách món ăn sau: ${JSON.stringify(allMeals.slice(0, 50))}
-        
-        Trả về JSON format:
-        {
-            "breakfast": [{"meal_id": "id", "portionSize": {"amount": number, "unit": "string"}}],
-            "lunch": [{"meal_id": "id", "portionSize": {"amount": number, "unit": "string"}}],
-            "dinner": [{"meal_id": "id", "portionSize": {"amount": number, "unit": "string"}}]
+        if (!allMeals?.data?.meals || allMeals.data.meals.length === 0) {
+            return res.status(404).json({ error: 'Không tìm thấy món ăn nào' });
         }
-        `;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const aiMealPlan = JSON.parse(response.text());
+        // Tạo thực đơn đơn giản
+        const simpleMealPlan = generateSimpleMealPlan(allMeals, forFamily);
 
-        // Tạo cấu trúc meal plan
+        // Tạo cấu trúc meal plan với chi tiết đầy đủ
         const mealPlan = [];
-        for (const [servingTime, meals] of Object.entries(aiMealPlan)) {
+        for (const [servingTime, meals] of Object.entries(simpleMealPlan)) {
+            // Lấy chi tiết đầy đủ của các món ăn
+            const mealsToGet = meals.map(meal => 
+                allMeals.data.meals.find(m => m._id === meal.meal_id)
+            ).filter(Boolean);
+            
+            const detailedMeals = await getMultipleMealsWithDetails(mealsToGet);
+            
             mealPlan.push({
                 servingTime,
-                meals: meals.map(meal => ({
+                meals: meals.map((meal, index) => ({
                     meal_id: meal.meal_id,
                     isEaten: false,
-                    portionSize: meal.portionSize
+                    portionSize: meal.portionSize,
+                    mealDetail: detailedMeals[index] || null
                 }))
             });
         }
@@ -81,48 +78,10 @@ const generateMealPlan = async (req, res) => {
         // Lưu vào Redis
         await saveMealPlanToRedis(redis, userId, date, newMealPlan);
 
-        res.json({ success: true, data: newMealPlan });
+        res.json({ success: true, data: newMealPlan, fromCache: false });
     } catch (error) {
         console.error('Error generating meal plan:', error);
         res.status(500).json({ error: 'Lỗi tạo thực đơn', details: error.message });
-    }
-};
-
-// Tìm món tương tự
-const findSimilarMeals = async (req, res) => {
-    try {
-        const { mealId } = req.params;
-        
-        // Lấy thông tin món ăn hiện tại
-        const currentMeal = await axios.get(`${process.env.RECIPE_SERVICE_URL}/${mealId}`, {
-            headers: { 'x-api-key': process.env.API_KEY }
-        });
-
-        // Lấy tất cả món ăn
-        const allMeals = await fetchAllMeals();
-        
-        // Sử dụng AI để tìm món tương tự
-        const prompt = `
-        Tìm 5 món ăn tương tự với món: ${JSON.stringify(currentMeal.data)}
-        Từ danh sách: ${JSON.stringify(allMeals)}
-        
-        Tiêu chí: cùng loại (breakfast/lunch/dinner), tương tự ingredients, cooking method
-        
-        Trả về JSON array của meal_id: ["id1", "id2", "id3", "id4", "id5"]
-        `;
-
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const similarMealIds = JSON.parse(response.text());
-
-        // Lấy thông tin chi tiết của các món tương tự
-        const similarMeals = allMeals.filter(meal => similarMealIds.includes(meal._id));
-
-        res.json({ success: true, data: similarMeals });
-    } catch (error) {
-        console.error('Error finding similar meals:', error);
-        res.status(500).json({ error: 'Lỗi tìm món tương tự', details: error.message });
     }
 };
 
@@ -132,6 +91,10 @@ const replaceMeal = async (req, res) => {
         const { date, servingTime, oldMealId, newMealId, portionSize } = req.body;
         const userId = req.user_id;
         const redis = req.app.locals.redis;
+
+        if (!date || !servingTime || !oldMealId || !newMealId) {
+            return res.status(400).json({ error: 'Thiếu thông tin bắt buộc' });
+        }
 
         // Lấy meal plan từ Redis
         let mealPlan = await getMealPlanFromRedis(redis, userId, date);
@@ -150,17 +113,28 @@ const replaceMeal = async (req, res) => {
             return res.status(404).json({ error: 'Không tìm thấy món ăn' });
         }
 
+        // Lấy chi tiết món ăn mới
+        const allMeals = await fetchAllMeals();
+        const newMealData = allMeals.data.meals.find(m => m._id === newMealId);
+        
+        let newMealDetail = null;
+        if (newMealData) {
+            const detailedMeals = await getMultipleMealsWithDetails([newMealData]);
+            newMealDetail = detailedMeals[0];
+        }
+
         // Thay thế món ăn
         mealSection.meals[mealIndex] = {
             meal_id: newMealId,
             isEaten: false,
-            portionSize: portionSize || mealSection.meals[mealIndex].portionSize
+            portionSize: portionSize || { amount: mealPlan.forFamily ? 4 : 1, unit: "portion" },
+            mealDetail: newMealDetail
         };
 
         // Cập nhật Redis
         await saveMealPlanToRedis(redis, userId, date, mealPlan);
 
-        res.json({ success: true, data: mealPlan });
+        res.json({ success: true, data: mealPlan, message: 'Đổi món thành công' });
     } catch (error) {
         console.error('Error replacing meal:', error);
         res.status(500).json({ error: 'Lỗi đổi món', details: error.message });
@@ -174,6 +148,10 @@ const removeMeal = async (req, res) => {
         const userId = req.user_id;
         const redis = req.app.locals.redis;
 
+        if (!date || !servingTime || !mealId) {
+            return res.status(400).json({ error: 'Thiếu thông tin bắt buộc' });
+        }
+
         // Lấy meal plan từ Redis
         let mealPlan = await getMealPlanFromRedis(redis, userId, date);
         if (!mealPlan) {
@@ -186,12 +164,17 @@ const removeMeal = async (req, res) => {
             return res.status(404).json({ error: 'Không tìm thấy bữa ăn' });
         }
 
+        const originalLength = mealSection.meals.length;
         mealSection.meals = mealSection.meals.filter(meal => meal.meal_id.toString() !== mealId);
+
+        if (mealSection.meals.length === originalLength) {
+            return res.status(404).json({ error: 'Không tìm thấy món ăn để xóa' });
+        }
 
         // Cập nhật Redis
         await saveMealPlanToRedis(redis, userId, date, mealPlan);
 
-        res.json({ success: true, data: mealPlan });
+        res.json({ success: true, data: mealPlan, message: 'Xóa món thành công' });
     } catch (error) {
         console.error('Error removing meal:', error);
         res.status(500).json({ error: 'Lỗi xóa món', details: error.message });
@@ -205,11 +188,29 @@ const saveMealPlan = async (req, res) => {
         const userId = req.user_id;
         const redis = req.app.locals.redis;
 
+        if (!date) {
+            return res.status(400).json({ error: 'Ngày không được để trống' });
+        }
+
         // Lấy meal plan từ Redis
         const mealPlanData = await getMealPlanFromRedis(redis, userId, date);
         if (!mealPlanData) {
             return res.status(404).json({ error: 'Không tìm thấy thực đơn trong cache' });
         }
+
+        // Chuẩn bị data để lưu vào DB (không lưu mealDetail)
+        const dataToSave = {
+            ...mealPlanData,
+            mealPlan: mealPlanData.mealPlan.map(section => ({
+                ...section,
+                meals: section.meals.map(meal => ({
+                    meal_id: meal.meal_id,
+                    isEaten: meal.isEaten,
+                    portionSize: meal.portionSize
+                    // Không lưu mealDetail vào DB
+                }))
+            }))
+        };
 
         // Kiểm tra xem đã có meal plan cho ngày này chưa
         const existingMealPlan = await MealPlan.findOne({ 
@@ -221,11 +222,15 @@ const saveMealPlan = async (req, res) => {
             // Cập nhật meal plan hiện có
             await MealPlan.updateOne(
                 { user_id: userId, date: new Date(date) },
-                { $set: mealPlanData }
+                { $set: {
+                    mealPlan: dataToSave.mealPlan,
+                    forFamily: dataToSave.forFamily,
+                    updatedAt: new Date()
+                }}
             );
         } else {
             // Tạo meal plan mới
-            const newMealPlan = new MealPlan(mealPlanData);
+            const newMealPlan = new MealPlan(dataToSave);
             await newMealPlan.save();
         }
 
@@ -243,8 +248,13 @@ const getMealPlan = async (req, res) => {
         const userId = req.user_id;
         const redis = req.app.locals.redis;
 
+        if (!date) {
+            return res.status(400).json({ error: 'Ngày không được để trống' });
+        }
+
         // Kiểm tra Redis trước
         let mealPlan = await getMealPlanFromRedis(redis, userId, date);
+        let fromCache = true;
         
         if (!mealPlan) {
             // Nếu không có trong Redis, tìm trong database
@@ -256,10 +266,15 @@ const getMealPlan = async (req, res) => {
             if (mealPlan) {
                 // Lưu lại vào Redis
                 await saveMealPlanToRedis(redis, userId, date, mealPlan);
+                fromCache = false;
             }
         }
 
-        res.json({ success: true, data: mealPlan });
+        res.json({ 
+            success: true, 
+            data: mealPlan, 
+            fromCache 
+        });
     } catch (error) {
         console.error('Error getting meal plan:', error);
         res.status(500).json({ error: 'Lỗi lấy thực đơn', details: error.message });
@@ -268,7 +283,6 @@ const getMealPlan = async (req, res) => {
 
 module.exports = {
     generateMealPlan,
-    findSimilarMeals,
     replaceMeal,
     removeMeal,
     saveMealPlan,

@@ -7,14 +7,11 @@ const { authenticateUser, validateApiKey } = require('../middleware/MealPlanMidd
 router.use(validateApiKey);
 router.use(authenticateUser);
 
-// Tạo thực đơn bằng AI
+// Tạo thực đơn (random meals với chi tiết đầy đủ)
 router.post('/generate', MealPlanController.generateMealPlan);
 
 // Lấy thực đơn
 router.get('/', MealPlanController.getMealPlan);
-
-// Tìm món tương tự
-router.get('/similar/:mealId', MealPlanController.findSimilarMeals);
 
 // Đổi món trong thực đơn
 router.put('/replace-meal', MealPlanController.replaceMeal);

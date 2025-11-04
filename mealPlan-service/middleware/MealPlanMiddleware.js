@@ -1,4 +1,5 @@
-const axios = require('axios');
+const { verifyUserToken } = require('../utils/apiUtils');
+const { checkRedisConnection } = require('../utils/redisUtils');
 
 // Middleware xác thực token và lấy user_id
 const authenticateUser = async (req, res, next) => {
@@ -9,14 +10,14 @@ const authenticateUser = async (req, res, next) => {
             return res.status(401).json({ error: 'Token không được cung cấp' });
         }
 
-        const response = await axios.get(`${process.env.USER_SERVICE_URL}/verify`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'x-api-key': process.env.API_KEY
-            }
-        });
-
-        req.user_id = response.data.user_id;
+        // Sử dụng apiUtils để verify token
+        const userData = await verifyUserToken(token);
+        
+        if (!userData.isLogin) {
+            return res.status(401).json({ error: 'Token không hợp lệ' });
+        }
+        
+        req.user_id = userData.user._id;
         next();
     } catch (error) {
         console.error('Authentication error:', error);
@@ -35,28 +36,25 @@ const validateApiKey = (req, res, next) => {
     next();
 };
 
-// Helper function để tạo Redis key
-const createRedisKey = (userId, date) => {
-    return `mealplan:${userId}:${date}`;
-};
-
-// Helper function để lưu meal plan vào Redis
-const saveMealPlanToRedis = async (redis, userId, date, mealPlan) => {
-    const key = createRedisKey(userId, date);
-    await redis.setEx(key, 3600 * 24, JSON.stringify(mealPlan)); // Cache 24 hours
-};
-
-// Helper function để lấy meal plan từ Redis
-const getMealPlanFromRedis = async (redis, userId, date) => {
-    const key = createRedisKey(userId, date);
-    const data = await redis.get(key);
-    return data ? JSON.parse(data) : null;
+// Middleware kiểm tra Redis connection
+const checkRedis = async (req, res, next) => {
+    try {
+        const redis = req.app.locals.redis;
+        const isConnected = await checkRedisConnection(redis);
+        
+        if (!isConnected) {
+            console.warn('Redis connection failed, continuing without cache');
+        }
+        
+        next();
+    } catch (error) {
+        console.error('Redis middleware error:', error);
+        next(); // Continue without Redis
+    }
 };
 
 module.exports = {
     authenticateUser,
     validateApiKey,
-    createRedisKey,
-    saveMealPlanToRedis,
-    getMealPlanFromRedis
+    checkRedis
 };
