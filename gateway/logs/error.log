@@ -17,3 +17,6 @@
 {"level":"error","message":"Proxy error (auth service): ","service":"api-gateway","timestamp":"2025-11-01 19:34:33"}
 {"level":"error","message":"Proxy error (auth service): ","service":"api-gateway","timestamp":"2025-11-01 19:35:23"}
 {"level":"error","message":"Proxy error (auth service): ","service":"api-gateway","timestamp":"2025-11-01 21:04:36"}
+{"level":"error","message":"Lỗi xác thực: jwt expired","service":"api-gateway","timestamp":"2025-11-04 12:29:59"}
+{"level":"error","message":"Lỗi xác thực: jwt expired","service":"api-gateway","timestamp":"2025-11-04 12:33:29"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-11-04 12:47:16"}
