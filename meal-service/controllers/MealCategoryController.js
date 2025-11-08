@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const MealCategoryModel = require("../model/MealCategoryModel");
+const MealModel = require("../model/MealModel");
 
 // Thêm danh mục bữa ăn mới
 const addMealCategory = async (req, res) => {
@@ -52,7 +53,7 @@ const updateMealCategory = async (req, res) => {
         const { meal_category_id } = req.params;
         const { keyword, title, description } = req.body;
 
-        const mealCategory = await MealModel.findById(meal_category_id);
+        const mealCategory = await MealCategoryModel.findById(meal_category_id);
         if (!mealCategory) {
             return res.status(400).json({
                 stype: "meal",

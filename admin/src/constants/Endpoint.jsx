@@ -50,6 +50,10 @@ const ENDPOINT = {
     CREATE_SURVEY: 'surveys/admin/surveys',
     UPDATE_SURVEY: 'surveys/admin/surveys', // + /:id
     DELETE_SURVEY: 'surveys/admin/surveys', // + /:id
+
+    // USER MANAGEMENT
+    GET_USERS: 'users',
+    UPDATE_USER_STATUS: 'users', // + /:accountId/status
 }
 
 export default ENDPOINT;

@@ -215,6 +215,14 @@ const loginWithGoogle = async (req, res) => {
       }
     }
 
+    // Kiểm tra tài khoản có bị khóa không
+    if (!account.isActive) {
+      return res.status(403).json({
+        message: "Tài khoản của người dùng đã bị khóa, vui lòng thử lại sau",
+        status: false
+      });
+    }
+
     // Cập nhật thông tin nếu cần
     let needUpdate = false;
 
