@@ -1,6 +1,5 @@
 import apiServiceInstance from "../config/axios.config";
 
-
 export const get = async (uri, token, params) => {
     try {
         const headers = {};

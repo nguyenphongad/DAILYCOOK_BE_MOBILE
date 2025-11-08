@@ -4,13 +4,13 @@ const surveyController = {
     // USER PROFILE CONTROLLERS (Câu hỏi cứng)
     checkOnboardingStatus: async (req, res) => {
         try {
-            const userId = req.user.id;
+            const userId = req.user._id;
             let userProfile = await UserProfile.findOne({ user_id: userId });
             
             if (!userProfile) {
+                // Chỉ cần tạo với user_id, các field khác sẽ được tự động tạo theo schema default
                 userProfile = new UserProfile({
-                    user_id: userId,
-                    isOnboardingCompleted: false
+                    user_id: userId
                 });
                 await userProfile.save();
             }
@@ -107,11 +107,12 @@ const surveyController = {
 
     saveOnboardingData: async (req, res) => {
         try {
-            const userId = req.user.id;
-            const { type, data } = req.body; // type: 'personal' hoặc 'family' hoặc 'common'
+            const userId = req.user._id;
+            const { type, data } = req.body;
             
             let userProfile = await UserProfile.findOne({ user_id: userId });
             if (!userProfile) {
+                // Tạo mới với schema defaults
                 userProfile = new UserProfile({ user_id: userId });
             }
 
@@ -160,6 +161,78 @@ const surveyController = {
                 type: "SAVE_ONBOARDING_DATA",
                 status: false,
                 message: "Lỗi khi lưu dữ liệu onboarding",
+                error: error.message
+            });
+        }
+    },
+
+    // ADMIN ONBOARDING CONTROLLERS
+    getAllUserProfiles: async (req, res) => {
+        try {
+            const { page = 1, limit = 10, isFamily, isCompleted } = req.query;
+            
+            let filter = {};
+            if (isFamily !== undefined) {
+                filter.isFamily = isFamily === 'true';
+            }
+            if (isCompleted !== undefined) {
+                filter.isOnboardingCompleted = isCompleted === 'true';
+            }
+
+            const userProfiles = await UserProfile.find(filter)
+                .populate('user_id', 'name email')
+                .sort({ createdAt: -1 })
+                .skip((page - 1) * limit)
+                .limit(parseInt(limit));
+
+            const total = await UserProfile.countDocuments(filter);
+
+            res.status(200).json({
+                type: "GET_ALL_USER_PROFILES",
+                status: true,
+                message: "Truy vấn thành công",
+                data: userProfiles,
+                pagination: {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            });
+        } catch (error) {
+            res.status(500).json({
+                type: "GET_ALL_USER_PROFILES",
+                status: false,
+                message: "Lỗi khi lấy danh sách onboarding",
+                error: error.message
+            });
+        }
+    },
+
+    getUserProfileDetail: async (req, res) => {
+        try {
+            const userProfile = await UserProfile.findById(req.params.id)
+                .populate('user_id', 'name email phone avatar');
+
+            if (!userProfile) {
+                return res.status(404).json({
+                    type: "GET_USER_PROFILE_DETAIL",
+                    status: false,
+                    message: "Không tìm thấy thông tin onboarding"
+                });
+            }
+
+            res.status(200).json({
+                type: "GET_USER_PROFILE_DETAIL",
+                status: true,
+                message: "Truy vấn thành công",
+                data: userProfile
+            });
+        } catch (error) {
+            res.status(500).json({
+                type: "GET_USER_PROFILE_DETAIL",
+                status: false,
+                message: "Lỗi khi lấy chi tiết onboarding",
                 error: error.message
             });
         }
@@ -268,7 +341,7 @@ const surveyController = {
 
     submitUserResponse: async (req, res) => {
         try {
-            const userId = req.user.id;
+            const userId = req.user._id; // Sửa lại để consistent
             let userResponse = await UserResponse.findOne({ userId });
 
             if (userResponse) {
@@ -305,7 +378,7 @@ const surveyController = {
 
     getUserResponse: async (req, res) => {
         try {
-            const userId = req.user.id;
+            const userId = req.user._id; // Sửa lại để consistent
             const userResponse = await UserResponse.findOne({ userId });
             
             res.status(200).json({

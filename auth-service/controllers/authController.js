@@ -309,9 +309,44 @@ const getAccountByUserId = async (req, res) => {
             });
         }
 
+        // Gọi survey-service để lấy thông tin onboarding status
+        let onboardingStatus = null;
+        try {
+            const surveyResponse = await axios.get(`${process.env.PORT_CHECK_SURVEY_SERVICE}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'x-api-key': process.env.API_KEY,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (surveyResponse.data.status) {
+                onboardingStatus = surveyResponse.data.data;
+            }
+        } catch (surveyError) {
+            console.log('Không thể lấy thông tin onboarding từ survey-service:', surveyError.message);
+        }
+
+        // Gộp thông tin account với onboarding status
+        const accountWithOnboarding = {
+            ...account.toObject(),
+            // Thêm thông tin onboarding nếu có
+            isOnboardingCompleted: onboardingStatus?.isOnboardingCompleted || false,
+            ...(onboardingStatus && {
+                onboardingProfile: {
+                    isFamily: onboardingStatus.isFamily,
+                    personalInfo: onboardingStatus.personalInfo,
+                    familyInfo: onboardingStatus.familyInfo,
+                    dietaryPreferences: onboardingStatus.dietaryPreferences,
+                    nutritionGoals: onboardingStatus.nutritionGoals,
+                    waterReminders: onboardingStatus.waterReminders
+                }
+            })
+        };
+
         res.status(200).json({
             success: true,
-            data: account,
+            data: accountWithOnboarding,
             message: "Lấy thông tin tài khoản thành công"
         });
 

@@ -20,6 +20,7 @@ import SurveyUserData from './pages/Survey/SurveyUserData'
 
 import ManageIngredientCategories from "./pages/categories/ManageIngredientCategories"
 import ManageMealCategories from './pages/categories/ManageMealCategories'
+import ManageOnboardingSurvey from './pages/Survey/ManageOnboardingSurvey'
 
 
 function App() {
@@ -75,17 +76,21 @@ function App() {
           <Layout>
             <PrivateRoute element={<DietTypePage />} />
           </Layout>} />
-        
+
         {/* Survey Routes */}
         <Route path="/manage_surveys/questions" element={
           <Layout>
             <PrivateRoute element={<SurveyPage />} />
           </Layout>} />
+        <Route path="/manage_surveys/onboarding" element={
+          <Layout>
+            <PrivateRoute element={<ManageOnboardingSurvey />} />
+          </Layout>} />
         <Route path="/manage_surveys/user_data" element={
           <Layout>
             <PrivateRoute element={<SurveyUserData />} />
           </Layout>} />
-        
+
         {/* Thêm routes mới cho các submenu */}
         <Route path="/manage_category/ingredients" element={
           <Layout>

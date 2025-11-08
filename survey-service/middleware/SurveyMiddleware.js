@@ -1,6 +1,21 @@
 const axios = require('axios');
 
 const surveyMiddleware = {
+    // Middleware kiểm tra API key - đọc từ .env
+    verifyApiKey: (req, res, next) => {
+        const apiKey = req.headers['x-api-key'];
+        
+        if (!apiKey || apiKey !== process.env.API_KEY) {
+            return res.status(403).json({
+                type: "VERIFY_API_KEY",
+                status: false,
+                message: "API key không hợp lệ hoặc thiếu"
+            });
+        }
+
+        next();
+    },
+
     verifyToken: async (req, res, next) => {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -13,11 +28,17 @@ const surveyMiddleware = {
 
         try {
             const response = await axios.get(process.env.PORT_AUTH_SERVICE, {
-                headers: { Authorization: authHeader }
+                headers: { 
+                    Authorization: authHeader,
+                    'x-api-key': process.env.API_KEY
+                }
             });
+
+            // console.log('Auth service response:', response.data); // Debug log
 
             if (response.data.isLogin) {
                 req.user = response.data.user;
+                // console.log('Set req.user:', req.user); // Debug log
                 next();
             } else {
                 return res.status(401).json({
@@ -27,6 +48,7 @@ const surveyMiddleware = {
                 });
             }
         } catch (error) {
+            console.error('Verify token error:', error); // Debug log
             return res.status(403).json({
                 type: "VERIFY_TOKEN",
                 status: false,

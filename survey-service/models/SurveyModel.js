@@ -62,45 +62,62 @@ const userProfileSchema = new mongoose.Schema({
         default: false
     },
     personalInfo: {
-        height: Number, // cm
-        weight: Number, // kg
-        age: Number,
-        gender: {
-            type: String,
-            enum: ['male', 'female', 'other']
-        }
+        type: {
+            height: { type: Number, default: null },
+            weight: { type: Number, default: null },
+            age: { type: Number, default: null },
+            gender: {
+                type: String,
+                enum: ['male', 'female', 'other'],
+                default: null
+            }
+        },
+        default: () => ({})
     },
     familyInfo: {
-        children: Number,
-        teenagers: Number,
-        adults: Number,
-        elderly: Number
+        type: {
+            children: { type: Number, default: null },
+            teenagers: { type: Number, default: null },
+            adults: { type: Number, default: null },
+            elderly: { type: Number, default: null }
+        },
+        default: () => ({})
     },
     dietaryPreferences: {
-        DietType_id: {
-            type: String,
-            enum: ['normal', 'vegetarian', 'vegan', 'ketogenic', 'paleo']
+        type: {
+            DietType_id: {
+                type: String,
+                enum: ['normal', 'vegetarian', 'vegan', 'ketogenic', 'paleo'],
+                default: null
+            },
+            allergies: { type: [String], default: [] },
+            dislikeIngredients: { type: [String], default: [] }
         },
-        allergies: [String],
-        dislikeIngredients: [String]
+        default: () => ({})
     },
     nutritionGoals: {
-        caloriesPerDay: Number,
-        proteinPercentage: Number,
-        carbPercentage: Number,
-        fatPercentage: Number,
-        waterIntakeGoal: Number
+        type: {
+            caloriesPerDay: { type: Number, default: null },
+            proteinPercentage: { type: Number, default: null },
+            carbPercentage: { type: Number, default: null },
+            fatPercentage: { type: Number, default: null },
+            waterIntakeGoal: { type: Number, default: null }
+        },
+        default: () => ({})
     },
     waterReminders: {
-        enabled: Boolean,
-        frequency: Number,
-        startTime: String,
-        endTime: String
+        type: {
+            enabled: { type: Boolean, default: false },
+            frequency: { type: Number, default: null },
+            startTime: { type: String, default: null },
+            endTime: { type: String, default: null }
+        },
+        default: () => ({})
     },
     softQuestions: {
         type: Map,
         of: mongoose.Schema.Types.Mixed,
-        default: {}
+        default: () => new Map()
     },
     isOnboardingCompleted: {
         type: Boolean,
