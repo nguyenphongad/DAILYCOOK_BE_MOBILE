@@ -49,6 +49,83 @@ const surveySchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+// Model cho câu hỏi cứng (onboarding)
+const userProfileSchema = new mongoose.Schema({
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User',
+        unique: true
+    },
+    isFamily: {
+        type: Boolean,
+        default: false
+    },
+    personalInfo: {
+        type: {
+            height: { type: Number, default: null },
+            weight: { type: Number, default: null },
+            age: { type: Number, default: null },
+            gender: {
+                type: String,
+                enum: ['male', 'female', 'other'],
+                default: null
+            }
+        },
+        default: () => ({})
+    },
+    familyInfo: {
+        type: {
+            children: { type: Number, default: null },
+            teenagers: { type: Number, default: null },
+            adults: { type: Number, default: null },
+            elderly: { type: Number, default: null }
+        },
+        default: () => ({})
+    },
+    dietaryPreferences: {
+        type: {
+            DietType_id: {
+                type: String,
+                enum: ['normal', 'vegetarian', 'vegan', 'ketogenic', 'paleo'],
+                default: null
+            },
+            allergies: { type: [String], default: [] },
+            dislikeIngredients: { type: [String], default: [] }
+        },
+        default: () => ({})
+    },
+    nutritionGoals: {
+        type: {
+            caloriesPerDay: { type: Number, default: null },
+            proteinPercentage: { type: Number, default: null },
+            carbPercentage: { type: Number, default: null },
+            fatPercentage: { type: Number, default: null },
+            waterIntakeGoal: { type: Number, default: null }
+        },
+        default: () => ({})
+    },
+    waterReminders: {
+        type: {
+            enabled: { type: Boolean, default: false },
+            frequency: { type: Number, default: null },
+            startTime: { type: String, default: null },
+            endTime: { type: String, default: null }
+        },
+        default: () => ({})
+    },
+    softQuestions: {
+        type: Map,
+        of: mongoose.Schema.Types.Mixed,
+        default: () => new Map()
+    },
+    isOnboardingCompleted: {
+        type: Boolean,
+        default: false
+    }
+}, { timestamps: true });
+
+// Model cho câu hỏi mềm (survey)
 const userResponseSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -97,5 +174,6 @@ const userResponseSchema = new mongoose.Schema({
 
 const Survey = mongoose.model('Survey', surveySchema);
 const UserResponse = mongoose.model('UserResponse', userResponseSchema);
+const UserProfile = mongoose.model('UserProfile', userProfileSchema);
 
-module.exports = { Survey, UserResponse };
+module.exports = { Survey, UserResponse, UserProfile };

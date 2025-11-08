@@ -10,6 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB'))
@@ -37,5 +38,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5008;
 app.listen(PORT, () => {
-    console.log(`Survey- Server is running on port ${PORT}`);
+    console.log(`Survey Service is running on port ${PORT}`);
+    console.log(`API Key protection: ${process.env.API_KEY ? 'Enabled' : 'Disabled'}`);
 });
