@@ -12,6 +12,7 @@ import {
 } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRecipeById } from '../../redux/thunks/recipeThunk';
+import { updateMeal, deleteMeal } from '../../redux/thunks/mealThunk';
 import DishForm from '../DishForm/DishForm';
 import NutritionChart from './NutritionChart';
 
@@ -104,8 +105,90 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
 
   if (!meal) return null;
 
+  // Chuẩn bị dữ liệu đầy đủ cho form chỉnh sửa
+  const prepareEditData = () => {
+    if (!meal || !selectedRecipe?.data) return meal;
+
+    // Tạo dữ liệu hoàn chỉnh cho form
+    const fullMealData = {
+      ...meal,
+      // Thông tin cơ bản
+      nameMeal: meal.nameMeal,
+      description: meal.description || '',
+      mealCategory: meal.mealCategory,
+      mealImage: meal.mealImage || '',
+      dietaryCompatibility: meal.dietaryCompatibility || [],
+      
+      // Thông tin nguyên liệu với chi tiết đầy đủ
+      ingredients: ingredientDetails.map(detail => ({
+        ingredient_id: detail.id,
+        quantity: detail.quantity,
+        unit: detail.unit,
+        // Thêm thông tin chi tiết để form hiển thị
+        ingredientInfo: {
+          _id: detail.id,
+          nameIngredient: detail.name,
+          ingredientImage: detail.image
+        }
+      })),
+      
+      // Thông tin công thức nấu ăn
+      recipe: {
+        ...meal.recipe,
+        // Thông tin từ selectedRecipe
+        nameRecipe: selectedRecipe.data.nameRecipe || meal.nameMeal,
+        description: selectedRecipe.data.description || '',
+        recipeImage: selectedRecipe.data.recipeImage || meal.mealImage || '',
+        prepTimeMinutes: selectedRecipe.data.prepTimeMinutes || 0,
+        cookTimeMinutes: selectedRecipe.data.cookTimeMinutes || 0,
+        difficulty: selectedRecipe.data.difficulty || 'easy',
+        
+        // Các bước thực hiện
+        steps: selectedRecipe.data.steps || [],
+        
+        // Thông tin dinh dưỡng từ recipe
+        nutrition: selectedRecipe.data.nutrition || {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0
+        }
+      }
+    };
+
+    console.log('Prepared edit data:', fullMealData);
+    return fullMealData;
+  };
+
   const handleEditClick = () => {
-    setIsEditing(true);
+    // Đảm bảo có dữ liệu recipe trước khi chuyển sang chế độ edit
+    if (!selectedRecipe?.data && meal?.recipe?.recipe_id) {
+      // Nếu chưa có recipe data, fetch trước
+      setFetchingRecipe(true);
+      dispatch(fetchRecipeById(meal.recipe.recipe_id))
+        .then(() => {
+          setFetchingRecipe(false);
+          // Sau khi fetch xong, chuẩn bị dữ liệu và chuyển sang edit mode
+          setTimeout(() => {
+            const editData = prepareEditData();
+            form.setFieldsValue(editData);
+            setIsEditing(true);
+          }, 100);
+        })
+        .catch(error => {
+          setFetchingRecipe(false);
+          console.error('Error fetching recipe for edit:', error);
+          // Vẫn cho phép edit nhưng không có recipe data
+          const editData = prepareEditData();
+          form.setFieldsValue(editData);
+          setIsEditing(true);
+        });
+    } else {
+      // Đã có recipe data, chuẩn bị và chuyển sang edit mode
+      const editData = prepareEditData();
+      form.setFieldsValue(editData);
+      setIsEditing(true);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -113,11 +196,30 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
     form.resetFields();
   };
 
-  const handleSaveEdit = (values) => {
-    if (onEdit) {
-      onEdit({ ...values, id: meal.id });
+  const handleSaveEdit = async (submitData) => {
+    try {
+      console.log('Saving edited values:', submitData);
+      
+      // CHỈ DISPATCH updateMeal ở đây - DishForm không dispatch nữa
+      const resultAction = await dispatch(updateMeal({
+        id: meal._id,
+        mealData: submitData
+      }));
+      
+      if (updateMeal.fulfilled.match(resultAction)) {
+        // Cập nhật thành công
+        setIsEditing(false);
+        // Có thể gọi callback để refresh data nếu cần
+        if (onEdit) {
+          onEdit(resultAction.payload);
+        }
+      } else {
+        // Xử lý lỗi nếu cần
+        console.error('Update failed:', resultAction.error);
+      }
+    } catch (error) {
+      console.error('Error updating meal:', error);
     }
-    setIsEditing(false);
   };
 
   // Xóa món ăn (hiện modal confirm)
@@ -131,11 +233,25 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
       okType: 'danger',
       cancelText: 'Hủy',
       centered: true,
-      onOk: () => {
-        if (onDelete) {
-          onDelete(meal._id);
+      onOk: async () => {
+        try {
+          // Dispatch deleteMeal thunk thay vì gọi callback
+          const resultAction = await dispatch(deleteMeal(meal._id));
+          
+          if (deleteMeal.fulfilled.match(resultAction)) {
+            // Xóa thành công, đóng modal
+            onClose();
+            // Có thể gọi callback để refresh data nếu cần
+            if (onDelete) {
+              onDelete(meal._id);
+            }
+          } else {
+            // Xử lý lỗi nếu cần
+            console.error('Delete failed:', resultAction.error);
+          }
+        } catch (error) {
+          console.error('Error deleting meal:', error);
         }
-        onClose();
       }
     });
   };
@@ -166,14 +282,20 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
         }}
         footer={null}
         className="dish-detail-modal editing"
+        destroyOnClose={false} // Không destroy để giữ lại dữ liệu form
       >
         <DishForm
           form={form}
-          initialValues={meal}
+          initialValues={meal} // Truyền meal gốc
+          editData={prepareEditData()} // Truyền thêm editData đã chuẩn bị
           onFinish={handleSaveEdit}
           onCancel={handleCancelEdit}
           allIngredients={allIngredients || []}
+          mealCategories={mealCategories || []}
           isEdit={true}
+          // Truyền thêm các prop cần thiết cho việc edit
+          selectedRecipe={selectedRecipe}
+          ingredientDetails={ingredientDetails}
         />
       </Modal>
     );

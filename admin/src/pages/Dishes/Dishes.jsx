@@ -9,7 +9,7 @@ import DishDetailModal from '../../components/DishDetailModal/DishDetailModal';
 import DishForm from '../../components/DishForm/DishForm';
 import Loading from '../../components/Loading/Loading';
 
-import { fetchMeals } from '../../redux/thunks/mealThunk';
+import { fetchMeals, addMeal, updateMeal, deleteMeal } from '../../redux/thunks/mealThunk';
 import { fetchMealCategories } from '../../redux/thunks/mealCategoryThunk';
 import { fetchIngredients } from '../../redux/thunks/ingredientThunk';
 
@@ -105,18 +105,45 @@ const Dishes = () => {
   // --- Submit form thêm/sửa món ăn ---
   const handleSubmit = async (values) => {
     console.log('Meal form values:', values);
-    // TODO: Gọi dispatch(addMeal) hoặc updateMeal tại đây
+    
+    try {
+      let resultAction;
+      
+      if (selectedMeal?._id) {
+        // Cập nhật món ăn - CHỈ DISPATCH updateMeal ở đây
+        resultAction = await dispatch(updateMeal({
+          id: selectedMeal._id,
+          mealData: values
+        }));
+      } else {
+        // Thêm món ăn mới - CHỈ DISPATCH addMeal ở đây
+        resultAction = await dispatch(addMeal(values));
+      }
+      
+      if (addMeal.fulfilled.match(resultAction) || updateMeal.fulfilled.match(resultAction)) {
+        // Thành công - đóng modal và refresh data
+        closeMealFormModal();
+        // Refresh danh sách món ăn
+        dispatch(fetchMeals({ page: currentPage, limit: 9 }));
+      }
+      
+    } catch (error) {
+      console.error('Error submitting meal form:', error);
+    }
   };
 
   // --- Chỉnh sửa trong modal chi tiết ---
   const handleEditMeal = (updatedMeal) => {
-    setSelectedMeal((prev) => ({ ...prev, ...updatedMeal }));
-    toast.success('Cập nhật món ăn thành công!');
+    // Callback này sẽ được gọi sau khi cập nhật thành công từ DishDetailModal
+    // Refresh danh sách để có dữ liệu mới nhất
+    dispatch(fetchMeals({ page: currentPage, limit: 9 }));
   };
 
   // --- Xóa món ăn ---
   const handleDeleteMeal = (id) => {
-    toast.info(`Xóa món có ID: ${id}`);
+    // Callback này sẽ được gọi sau khi xóa thành công từ DishDetailModal
+    // Refresh danh sách để có dữ liệu mới nhất
+    dispatch(fetchMeals({ page: currentPage, limit: 9 }));
   };
 
   // --- Đổi trang ---
@@ -256,8 +283,9 @@ const Dishes = () => {
         <DishForm
           form={form}
           onFinish={handleSubmit}
-          onCancel={closeMealFormModal} // Truyền hàm đóng modal vào component
+          onCancel={closeMealFormModal}
           allIngredients={ingredients}
+          mealCategories={mealCategories} // Thêm prop này
           isEdit={!!selectedMeal}
           initialValues={selectedMeal}
         />

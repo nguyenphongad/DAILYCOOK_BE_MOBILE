@@ -34,20 +34,24 @@ const userSlice = createSlice({
         state.loading = false
         state.error = action.payload || 'Lỗi lấy danh sách người dùng'
       })
-      // toggleUserStatus
+      // toggleUserStatus - FIX: Không set loading cho action này
       .addCase(toggleUserStatus.pending, (state) => {
-        state.loading = true
+        // Không set loading = true ở đây để tránh loading toàn trang
         state.error = null
       })
       .addCase(toggleUserStatus.fulfilled, (state, action) => {
+        // Đảm bảo loading = false
         state.loading = false
         // Cập nhật trạng thái user trong danh sách
-        const idx = state.users.findIndex(u => u._id === action.payload.data.userId)
+        const userId = action.meta.arg.userId
+        const newStatus = action.meta.arg.isActive
+        const idx = state.users.findIndex(u => u._id === userId)
         if (idx !== -1 && state.users[idx].accountInfo) {
-          state.users[idx].accountInfo.isActive = action.payload.data.isActive
+          state.users[idx].accountInfo.isActive = newStatus
         }
       })
       .addCase(toggleUserStatus.rejected, (state, action) => {
+        // Đảm bảo loading = false
         state.loading = false
         state.error = action.payload || 'Lỗi khoá/mở khoá người dùng'
       })
