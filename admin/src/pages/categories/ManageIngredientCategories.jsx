@@ -95,13 +95,13 @@ const ManageIngredientCategories = () => {
             <div className="content-area">
                 <div className="content">
                     <div className="page-header">
-                        <h1>Quản lý danh mục nguyên liệu</h1>
+                        <h1>Quản lý danh mục thực phẩm</h1>
                         <div className="action-buttons">
                             <button className="import-button">
                                 <ImportOutlined /> Import File
                             </button>
                             <button className="add-button" onClick={showModalAddIngredientCategory}>
-                                + Thêm danh mục nguyên liệu
+                                + Thêm danh mục thực phẩm
                             </button>
                         </div>
                     </div>
@@ -110,7 +110,7 @@ const ManageIngredientCategories = () => {
                         <div className="search-bar">
                             <input
                                 type="text"
-                                placeholder="Tìm kiếm danh mục nguyên liệu..."
+                                placeholder="Tìm kiếm danh mục thực phẩm..."
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
                                 prefix={<SearchOutlined />}
@@ -133,7 +133,7 @@ const ManageIngredientCategories = () => {
                     {/* Danh sách */}
                     <div className="ingredientCategories-grid-container">
                         {loading ? (
-                            <Loading visible={true} text="Đang tải danh mục nguyên liệu..." />
+                            <Loading visible={true} text="Đang tải danh mục thực phâm..." />
                         ) : sortIngredientCategories.length > 0 ? (
                             <div className="ingredientCategories-grid">
                                 {sortIngredientCategories.map(ingredientCategory => (
@@ -154,7 +154,7 @@ const ManageIngredientCategories = () => {
                             </div>
                         ) : (
                             <div className="empty-state">
-                                <Empty description="Không có danh mục nguyên liệu nào" />
+                                <Empty description="Không có danh mục thực phâm nào" />
                             </div>
                         )}
                     </div>
@@ -180,7 +180,7 @@ const ManageIngredientCategories = () => {
             <Modal
                 title={
                     <span style={{ fontWeight: 700, fontSize: '18px' }}>
-                        {selectedCategory ? "Chỉnh sửa danh mục nguyên liệu" : "Thêm danh mục nguyên liệu mới"}
+                        {selectedCategory ? "Chỉnh sửa danh mục thực phẩm" : "Thêm danh mục thực phẩm mới"}
                     </span>
                 }
                 open={isModalVisible}

@@ -102,7 +102,7 @@ const IngredientCategoryForm = ({
                 {/* Trái: Xóa (chỉ khi edit) */}
                 {isEdit ? (
                     <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
-                        Xóa danh mục nguyên liệu
+                        Xóa danh mục thực phẩm
                     </Button>
                 ) : (
                     <div /> // giữ khoảng trống

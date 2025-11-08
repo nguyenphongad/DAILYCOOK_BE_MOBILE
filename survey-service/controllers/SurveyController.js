@@ -1,7 +1,171 @@
-const { Survey, UserResponse } = require('../models/SurveyModel');
+const { Survey, UserResponse, UserProfile } = require('../models/SurveyModel');
 
 const surveyController = {
-    // ADMIN CONTROLLERS
+    // USER PROFILE CONTROLLERS (Câu hỏi cứng)
+    checkOnboardingStatus: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            let userProfile = await UserProfile.findOne({ user_id: userId });
+            
+            if (!userProfile) {
+                userProfile = new UserProfile({
+                    user_id: userId,
+                    isOnboardingCompleted: false
+                });
+                await userProfile.save();
+            }
+
+            res.status(200).json({
+                type: "CHECK_ONBOARDING_STATUS",
+                status: true,
+                message: "Truy vấn thành công",
+                data: {
+                    _id: userProfile._id,
+                    user_id: userProfile.user_id,
+                    isOnboardingCompleted: userProfile.isOnboardingCompleted,
+                    isFamily: userProfile.isFamily,
+                    personalInfo: userProfile.personalInfo,
+                    familyInfo: userProfile.familyInfo,
+                    dietaryPreferences: userProfile.dietaryPreferences,
+                    nutritionGoals: userProfile.nutritionGoals,
+                    waterReminders: userProfile.waterReminders,
+                    softQuestions: userProfile.softQuestions
+                }
+            });
+        } catch (error) {
+            res.status(500).json({
+                type: "CHECK_ONBOARDING_STATUS",
+                status: false,
+                message: "Lỗi khi kiểm tra trạng thái onboarding",
+                error: error.message
+            });
+        }
+    },
+
+    getOnboardingQuestions: async (req, res) => {
+        try {
+            const { profileType } = req.query; // 'personal' hoặc 'family'
+            
+            let questions = {
+                common: {
+                    dietaryPreferences: {
+                        DietType_id: "enum",
+                        allergies: "array",
+                        dislikeIngredients: "array"
+                    },
+                    nutritionGoals: {
+                        caloriesPerDay: "number",
+                        proteinPercentage: "number", 
+                        carbPercentage: "number",
+                        fatPercentage: "number",
+                        waterIntakeGoal: "number"
+                    },
+                    waterReminders: {
+                        enabled: "boolean",
+                        frequency: "number",
+                        startTime: "string",
+                        endTime: "string"
+                    }
+                }
+            };
+
+            if (profileType === 'personal') {
+                questions.specific = {
+                    personalInfo: {
+                        height: "number (cm)",
+                        weight: "number (kg)", 
+                        age: "number",
+                        gender: "enum"
+                    }
+                };
+            } else if (profileType === 'family') {
+                questions.specific = {
+                    familyInfo: {
+                        children: "number",
+                        teenagers: "number",
+                        adults: "number",
+                        elderly: "number"
+                    }
+                };
+            }
+
+            res.status(200).json({
+                type: "GET_ONBOARDING_QUESTIONS",
+                status: true,
+                message: "Truy vấn thành công",
+                data: questions
+            });
+        } catch (error) {
+            res.status(500).json({
+                type: "GET_ONBOARDING_QUESTIONS",
+                status: false,
+                message: "Lỗi khi lấy câu hỏi onboarding",
+                error: error.message
+            });
+        }
+    },
+
+    saveOnboardingData: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const { type, data } = req.body; // type: 'personal' hoặc 'family' hoặc 'common'
+            
+            let userProfile = await UserProfile.findOne({ user_id: userId });
+            if (!userProfile) {
+                userProfile = new UserProfile({ user_id: userId });
+            }
+
+            switch(type) {
+                case 'personal':
+                    userProfile.isFamily = false;
+                    if (data.personalInfo) {
+                        userProfile.personalInfo = { ...userProfile.personalInfo, ...data.personalInfo };
+                    }
+                    break;
+                    
+                case 'family':
+                    userProfile.isFamily = true;
+                    if (data.familyInfo) {
+                        userProfile.familyInfo = { ...userProfile.familyInfo, ...data.familyInfo };
+                    }
+                    break;
+                    
+                case 'common':
+                    if (data.dietaryPreferences) {
+                        userProfile.dietaryPreferences = { ...userProfile.dietaryPreferences, ...data.dietaryPreferences };
+                    }
+                    if (data.nutritionGoals) {
+                        userProfile.nutritionGoals = { ...userProfile.nutritionGoals, ...data.nutritionGoals };
+                    }
+                    if (data.waterReminders) {
+                        userProfile.waterReminders = { ...userProfile.waterReminders, ...data.waterReminders };
+                    }
+                    break;
+                    
+                case 'complete':
+                    userProfile.isOnboardingCompleted = true;
+                    break;
+            }
+
+            await userProfile.save();
+
+            res.status(200).json({
+                type: "SAVE_ONBOARDING_DATA",
+                status: true,
+                message: "Lưu dữ liệu onboarding thành công",
+                data: userProfile
+            });
+        } catch (error) {
+            res.status(500).json({
+                type: "SAVE_ONBOARDING_DATA",
+                status: false,
+                message: "Lỗi khi lưu dữ liệu onboarding",
+                error: error.message
+            });
+        }
+    },
+
+    // ADMIN CONTROLLERS (Câu hỏi mềm)
     createSurvey: async (req, res) => {
         try {
             const newSurvey = new Survey(req.body);
@@ -82,7 +246,7 @@ const surveyController = {
         }
     },
 
-    // USER CONTROLLERS
+    // USER CONTROLLERS (Câu hỏi mềm)  
     getAllSurveys: async (req, res) => {
         try {
             const surveys = await Survey.find({ isActive: true }).sort('order'); // Chỉ lấy các câu hỏi active

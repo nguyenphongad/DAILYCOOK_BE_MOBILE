@@ -70,7 +70,7 @@ const MealCategoryForm = ({
                             label="Từ khóa (unique)"
                             rules={[{ required: true, message: 'Vui lòng nhập keyword duy nhất cho danh mục' }]}
                         >
-                            <Input placeholder="Ví dụ: vegetable, fruit, meat..." />
+                            <Input placeholder="Ví dụ: main_dish, side_dish..." />
                         </Form.Item>
 
                         {/* Title */}
@@ -79,7 +79,7 @@ const MealCategoryForm = ({
                             label="Tên danh mục"
                             rules={[{ required: true, message: 'Vui lòng nhập tên danh mục' }]}
                         >
-                            <Input placeholder="Ví dụ: Rau, Trái cây, Thịt..." />
+                            <Input placeholder="Ví dụ: Bữa chính, bữa phụ..." />
                         </Form.Item>
 
                         {/* Description */}
