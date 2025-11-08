@@ -3,6 +3,8 @@ const bodyParser  = require('body-parser');
 const mongoose  = require('mongoose');
 const dotenv  = require('dotenv');
 const cors  = require('cors');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJSDoc = require('swagger-jsdoc');
 
 // routes
 const AuthRoute = require('./routes/AuthRoute');
@@ -28,11 +30,70 @@ app.use(cors({
 
 dotenv.config();
 
+// Cấu hình Swagger
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Daily Cook Auth Service API',
+      version: '1.0.0',
+      description: 'API documentation cho Auth Service của ứng dụng Daily Cook',
+      contact: {
+        name: 'API Support',
+        email: 'support@dailycook.com',
+      },
+    },
+    servers: [
+      {
+        url: `http://localhost:${process.env.PORT}`,
+        description: 'Auth Service Development Server',
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description: 'Nhập JWT token vào đây (không cần thêm "Bearer ")',
+        },
+      },
+    },
+  },
+  apis: ['./routes/*.js'], // Đường dẫn đến các file chứa API documentation
+};
+
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
+// Customization options cho Swagger UI
+const swaggerUIOptions = {
+  customCss: `
+    .swagger-ui .topbar { display: none }
+    .swagger-ui .info { margin: 50px 0 }
+    .swagger-ui .info .title { color: #3b82f6 }
+  `,
+  customSiteTitle: 'Daily Cook Auth API Documentation',
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true,
+  },
+};
+
+// Route cho Swagger UI
+app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerUIOptions));
+
+// Route để lấy raw JSON của API spec
+app.get('/swagger/json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
 mongoose
     .connect(process.env.MONGODB_URI) 
     .then(()=>{
         app.listen(process.env.PORT,()=>{
             console.log('server AUTH-SERVICE listening at port ' + process.env.PORT);
+            console.log(`Swagger documentation available at http://localhost:${process.env.PORT}/swagger`);
         })
     })
     .catch((error)=>console.log(error));
