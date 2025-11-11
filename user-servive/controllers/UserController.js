@@ -225,9 +225,44 @@ const getUserByUserId = async (req, res) => {
   }
 };
 
+// Lấy tổng số người dùng - truy vấn đơn giản
+const getTotalUsers = async (req, res) => {
+  try {
+    // Đếm tổng số người dùng
+    const totalUsers = await UserModel.countDocuments();
+    
+    // Lấy 5 người dùng mới nhất
+    const recentUsers = await UserModel.find()
+      .sort({ createAt: -1 })
+      .limit(5)
+      .select('fullName createAt');
+
+    const result = {
+      totalUsers: totalUsers,
+      exactCount: totalUsers,
+      recentUsers: recentUsers
+    };
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: "Lấy tổng số người dùng thành công"
+    });
+
+  } catch (error) {
+    console.error("Get total users error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy tổng số người dùng",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getAllUsers,
   toggleUserStatus,
   registerFromAuth,
-  getUserByUserId
+  getUserByUserId,
+  getTotalUsers
 };

@@ -397,4 +397,40 @@ const getListMeals = async (req, res) => {
     }
 }
 
-module.exports = { addMeal, updateMeal, deleteMeal, findByIdMeal, getListMeals };
+// Lấy tổng số món ăn - truy vấn tối ưu
+const getTotalMeals = async (req, res) => {
+    try {
+        // Đếm tổng số món ăn
+        const totalMeals = await MealModel.countDocuments();
+        
+        // Lấy 5 món ăn mới nhất
+        const recentMeals = await MealModel.find()
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select('nameMeal mealImage createdAt popularity');
+
+        const result = {
+            totalMeals: totalMeals,
+            exactCount: totalMeals,
+            recentMeals: recentMeals
+        };
+
+        res.status(200).json({
+            stype: "meal",
+            message: "Lấy tổng số món ăn thành công!",
+            status: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error("Get total meals error:", error);
+        res.status(500).json({
+            stype: "meal",
+            message: "Lỗi server khi lấy tổng số món ăn",
+            status: false,
+            error: error.message
+        });
+    }
+};
+
+module.exports = { addMeal, updateMeal, deleteMeal, findByIdMeal, getListMeals, getTotalMeals };

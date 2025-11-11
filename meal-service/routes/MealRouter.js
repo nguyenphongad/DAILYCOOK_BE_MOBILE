@@ -14,6 +14,7 @@ const {
     getListMeals,
     updateMeal,
     deleteMeal,
+    getTotalMeals
 } = require('../controllers/MealController');
 
 const { 
@@ -21,7 +22,8 @@ const {
     addDietType, 
     deleteDietType, 
     getListDietTypes, 
-    findByIdDietType 
+    findByIdDietType,
+    getTotalDietTypes
 } = require('../controllers/DietTypeController');
 
 const router = express.Router();
@@ -63,6 +65,13 @@ router.get(
 );
 
 /* ==========================   Meals   ========================== */
+// Lấy tổng số món ăn (cần admin auth)
+router.get(
+    "/total",
+    MealMiddleware,
+    getTotalMeals
+);
+
 // Thêm mới một bữa ăn
 router.post(
     '/add-meal',
@@ -99,6 +108,13 @@ router.get(
 );
 
 /* ==========================   Diet Type   ========================== */
+// Lấy tổng số chế độ ăn (cần admin auth)
+router.get(
+    "/diet-types/total",
+    MealMiddleware,
+    getTotalDietTypes
+);
+
 // Thêm mới một loại chế độ ăn uống
 router.post(
     '/add-diet-type',

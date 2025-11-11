@@ -16,6 +16,60 @@ export const fetchUsers = createAsyncThunk(
   }
 )
 
+// Lấy tổng số người dùng và thống kê
+export const fetchTotalUsers = createAsyncThunk(
+  'users/fetchTotalUsers',
+  async ({ token }, { rejectWithValue }) => {
+    try {
+      // Sử dụng ENDPOINT constant
+      const res = await get(`/${ENDPOINT.GET_TOTAL_USERS}`, token)
+      // Chỉ trả về data thay vì toàn bộ response
+      return res.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message)
+    }
+  }
+)
+
+// Lấy tổng số chế độ ăn và thống kê
+export const fetchTotalDietTypes = createAsyncThunk(
+  'users/fetchTotalDietTypes',
+  async ({ token }, { rejectWithValue }) => {
+    try {
+      const res = await get(`/${ENDPOINT.GET_TOTAL_DIET_TYPES}`, token)
+      return res.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message)
+    }
+  }
+)
+
+// Lấy tổng số món ăn và thống kê
+export const fetchTotalMeals = createAsyncThunk(
+  'users/fetchTotalMeals',
+  async ({ token }, { rejectWithValue }) => {
+    try {
+      const res = await get(`/${ENDPOINT.GET_TOTAL_MEALS}`, token)
+      return res.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message)
+    }
+  }
+)
+
+// Lấy tổng số nguyên liệu và thống kê
+export const fetchTotalIngredients = createAsyncThunk(
+  'users/fetchTotalIngredients',
+  async ({ token }, { rejectWithValue }) => {
+    try {
+      const res = await get(`/${ENDPOINT.GET_TOTAL_INGREDIENTS}`, token)
+      return res.data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message)
+    }
+  }
+)
+
 // Khoá/mở khoá user
 export const toggleUserStatus = createAsyncThunk(
   'users/toggleUserStatus',
