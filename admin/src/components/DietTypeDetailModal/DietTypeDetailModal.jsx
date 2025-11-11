@@ -168,46 +168,7 @@ const DietTypeDetailModal = ({
                                 <Paragraph strong>Mô tả:</Paragraph>
                                 <Paragraph>{dietType.description || 'Không có mô tả'}</Paragraph>
 
-                                {/* Hiển thị thông tin dinh dưỡng dạng số liệu */}
-                                <div style={{ marginTop: 16 }}>
-                                    <Title level={5} style={{ marginBottom: 16 }}>Dinh dưỡng khuyến nghị:</Title>
-                                    <Row gutter={16}>
-                                        <Col span={12}>
-                                            <Statistic 
-                                                title="Calories" 
-                                                value={dietType.nutrition?.calories || 0} 
-                                                suffix="kcal"
-                                                valueStyle={{ color: '#FF6B3D', fontSize: '18px' }}
-                                            />
-                                        </Col>
-                                        <Col span={12}>
-                                            <Statistic 
-                                                title="Protein" 
-                                                value={dietType.nutrition?.protein || 0} 
-                                                suffix="g"
-                                                valueStyle={{ color: '#0088FE', fontSize: '18px' }}
-                                            />
-                                        </Col>
-                                    </Row>
-                                    <Row gutter={16} style={{ marginTop: 16 }}>
-                                        <Col span={12}>
-                                            <Statistic 
-                                                title="Carbs" 
-                                                value={dietType.nutrition?.carbs || 0} 
-                                                suffix="g"
-                                                valueStyle={{ color: '#00C49F', fontSize: '18px' }}
-                                            />
-                                        </Col>
-                                        <Col span={12}>
-                                            <Statistic 
-                                                title="Fat" 
-                                                value={dietType.nutrition?.fat || 0} 
-                                                suffix="g"
-                                                valueStyle={{ color: '#FFBB28', fontSize: '18px' }}
-                                            />
-                                        </Col>
-                                    </Row>
-                                </div>
+                                
                             </Col>
                         </Row>
                         

@@ -298,10 +298,47 @@ const findByIdIngredient = async (req, res) => {
     }
 }
 
+// Lấy tổng số nguyên liệu - truy vấn tối ưu
+const getTotalIngredients = async (req, res) => {
+    try {
+        // Đếm tổng số nguyên liệu
+        const totalIngredients = await IngredientModel.countDocuments();
+        
+        // Lấy 5 nguyên liệu mới nhất
+        const recentIngredients = await IngredientModel.find()
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select('nameIngredient ingredientImage createdAt defaultUnit');
+
+        const result = {
+            totalIngredients: totalIngredients,
+            exactCount: totalIngredients,
+            recentIngredients: recentIngredients
+        };
+
+        res.status(200).json({
+            stype: "ingredient",
+            message: "Lấy tổng số nguyên liệu thành công!",
+            status: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error("Get total ingredients error:", error);
+        res.status(500).json({
+            stype: "ingredient",
+            message: "Lỗi server khi lấy tổng số nguyên liệu",
+            status: false,
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     addIngredient,
     updateIngredient,
     deleteIngredient,
     getListIngredient,
-    findByIdIngredient
+    findByIdIngredient,
+    getTotalIngredients
 };

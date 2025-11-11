@@ -15,6 +15,7 @@ const {
     deleteIngredient,
     findByIdIngredient,
     getListIngredient,
+    getTotalIngredients
 } = require('../controllers/IngredientController');
 const { getAllMeasurementUnits } = require('../controllers/MeasurementUnitsController');
 
@@ -86,6 +87,12 @@ router.get(
     '/measurement-units',
     IngredientMiddleware,
     getAllMeasurementUnits
-)
+);
+
+router.get(
+    '/total',
+    IngredientMiddleware,
+    getTotalIngredients
+);
 
 module.exports = router;
