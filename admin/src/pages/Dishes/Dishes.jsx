@@ -41,6 +41,7 @@ const Dishes = () => {
   // --- Filter + Pagination ---
   const [searchKeyword, setSearchKeyword] = useState('');
   const [sortOrder, setSortOrder] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(''); // Filter theo danh mục
   const [currentPage, setCurrentPage] = useState(1);
 
   // --- Fetch dữ liệu ---
@@ -51,9 +52,11 @@ const Dishes = () => {
   }, [dispatch, currentPage]);
 
   // --- Tìm kiếm + Sắp xếp ---
-  const filteredMeals = meals.filter((meal) =>
-    (meal.nameMeal || '').toLowerCase().includes(searchKeyword.toLowerCase())
-  );
+  const filteredMeals = meals.filter((meal) => {
+    const matchesSearch = (meal.nameMeal || '').toLowerCase().includes(searchKeyword.toLowerCase());
+    const matchesCategory = !selectedCategory || meal.mealCategory === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const sortedMeals = [...filteredMeals].sort((a, b) => {
     if (sortOrder === 'name_asc') return a.nameMeal.localeCompare(b.nameMeal);
@@ -184,6 +187,18 @@ const Dishes = () => {
               </button>
             </div>
             <div className="filters">
+              <select 
+                value={selectedCategory} 
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                style={{ marginRight: 12 }}
+              >
+                <option value="">Tất cả danh mục</option>
+                {Array.isArray(mealCategories) && mealCategories.map(category => (
+                  <option key={category._id} value={category._id}>
+                    {category.title || category.nameCategory}
+                  </option>
+                ))}
+              </select>
               <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
                 <option value="">Sắp xếp theo</option>
                 <option value="name_asc">Tên (A-Z)</option>

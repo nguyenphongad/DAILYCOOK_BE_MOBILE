@@ -13,6 +13,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRecipeById } from '../../redux/thunks/recipeThunk';
 import { updateMeal, deleteMeal } from '../../redux/thunks/mealThunk';
+import { fetchMeasurementUnits } from '../../redux/thunks/measurementUnitsThunk';
 import DishForm from '../DishForm/DishForm';
 import NutritionChart from './NutritionChart';
 
@@ -30,8 +31,23 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
   
+  // Selector để lấy measurementUnits
+  const measurementUnitsState = useSelector((state) => state.measurementUnits);
+  const { measurementUnits = [] } = measurementUnitsState || {};
+
+  // Helper function để lấy tên đơn vị
+  const getMeasureUnitLabel = (unitKey) => {
+    const found = measurementUnits.find(unit => unit.key === unitKey);
+    return found ? found.label : unitKey;
+  };
+  
   // Lấy chi tiết công thức từ Redux store
   const { selectedRecipe, loading: recipeLoading } = useSelector(state => state.recipes);
+  
+  // Fetch measurementUnits khi component mount
+  useEffect(() => {
+    dispatch(fetchMeasurementUnits());
+  }, [dispatch]);
   
   // Fetch công thức khi meal thay đổi và có recipe_id
   useEffect(() => {
@@ -57,13 +73,13 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
           id: ing.ingredient_id,
           name: ingredientInfo?.nameIngredient || 'Nguyên liệu không xác định',
           quantity: ing.quantity || 0,
-          unit: ing.unit || 'g',
+          unit: ing.unit || 'g', // Giữ nguyên unit key, không convert ở đây
           image: ingredientInfo?.ingredientImage || ''
         };
       });
       setIngredientDetails(details);
     }
-  }, [meal, allIngredients]);
+  }, [meal, allIngredients]); // Bỏ measurementUnits khỏi dependency
 
   // Tính toán tổng dinh dưỡng từ tất cả nguyên liệu
   const calculateTotalNutrition = () => {
@@ -88,16 +104,17 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
     return totals;
   };
 
-  // Tính dinh dưỡng sau khi áp dụng cooking effect
+  // Tính dinh dưỡng sau khi áp dụng cooking effect từ recipe nutrition
   const calculateFinalNutrition = () => {
     const totalNutrition = calculateTotalNutrition();
-    const cookingEffect = meal?.recipe?.cookingEffect || { calo: 100, protein: 100, carb: 100, fat: 100 };
+    // Sử dụng nutrition từ selectedRecipe thay vì cookingEffect
+    const nutritionEffect = selectedRecipe?.data?.nutrition || { calories: 100, protein: 100, carbs: 100, fat: 100 };
     
     return {
-      calories: (totalNutrition.calories * (cookingEffect.calo / 100)).toFixed(1),
-      protein: (totalNutrition.protein * (cookingEffect.protein / 100)).toFixed(1),
-      carbs: (totalNutrition.carbs * (cookingEffect.carb / 100)).toFixed(1),
-      fat: (totalNutrition.fat * (cookingEffect.fat / 100)).toFixed(1)
+      calories: (totalNutrition.calories * (nutritionEffect.calories / 100)).toFixed(1),
+      protein: (totalNutrition.protein * (nutritionEffect.protein / 100)).toFixed(1),
+      carbs: (totalNutrition.carbs * (nutritionEffect.carbs / 100)).toFixed(1),
+      fat: (totalNutrition.fat * (nutritionEffect.fat / 100)).toFixed(1)
     };
   };
   
@@ -392,7 +409,7 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
             {/* Thay thế Card Thông tin dinh dưỡng bằng component NutritionChart */}
             <NutritionChart 
               nutrition={finalNutrition} 
-              cookingEffect={meal.recipe?.cookingEffect}
+              nutritionEffect={selectedRecipe?.data?.nutrition}
             />
 
             <Card
@@ -416,7 +433,7 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
                       <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 10 }} />
                       <div style={{ flex: 1 }}>{item.name}</div>
                       <div>
-                        <Text strong>{item.quantity} {item.unit}</Text>
+                        <Text strong>{item.quantity} {getMeasureUnitLabel(item.unit)}</Text>
                       </div>
                     </div>
                   </List.Item>

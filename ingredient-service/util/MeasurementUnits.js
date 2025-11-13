@@ -13,6 +13,7 @@ const MeasurementUnits = {
     BUNCH: "bó",          // Bó
     CLOVE: "tép",         // Tép (tỏi)
     PINCH: "nhúm",        // Nhúm
+    EGG: "quả",           // Quả (dùng cho trứng)
 }
 
 module.exports = MeasurementUnits;
