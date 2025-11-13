@@ -66,7 +66,15 @@ const mealSchema = new mongoose.Schema(
 
         popularity: {
             type: Number,
-            default: 0,
+            default: 1,
+            min: [1, 'Độ phổ biến phải từ 1 đến 5'],
+            max: [5, 'Độ phổ biến phải từ 1 đến 5'],
+            validate: {
+                validator: function(v) {
+                    return Number.isInteger(v) && v >= 1 && v <= 5;
+                },
+                message: 'Độ phổ biến phải là số nguyên từ 1 đến 5'
+            }
         },
 
         isActive: {

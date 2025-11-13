@@ -1,0 +1,544 @@
+===========================================
+GỢI Ý MÔ HÌNH AI CHO HỆ THỐNG THỰC ĐƠN
+(JAVASCRIPT/NODE.JS VERSION)
+===========================================
+
+1. PHÂN TÍCH DỮ LIỆU HIỆN TẠI
+=====================================
+
+Từ code base hiện tại, hệ thống có các dữ liệu sau:
+
+A. DỮ LIỆU NGƯỜI DÙNG (UserProfile từ survey-service):
+   - Thông tin cá nhân: tuổi, giới tính, chiều cao, cân nặng
+   - Thông tin gia đình: số lượng trẻ em, thanh thiếu niên, người lớn, người cao tuổi
+   - Sở thích ăn uống: loại chế độ ăn, dị ứng, nguyên liệu không thích
+   - Mục tiêu dinh dưỡng: calories/ngày, tỷ lệ protein/carbs/fat
+   - Câu trả lời khảo sát mềm (softQuestions)
+
+B. DỮ LIỆU MÓN ĂN (từ meal-service):
+   - Thông tin món ăn: tên, mô tả, hình ảnh
+   - Danh mục món ăn (MealCategory)
+   - Tương thích chế độ ăn (dietaryCompatibility)
+   - Nguyên liệu và khẩu phần (ingredients với quantity/unit)
+   - Công thức nấu ăn (recipe)
+   - Độ phổ biến (popularity)
+
+C. DỮ LIỆU NGUYÊN LIỆU (từ ingredient-service):
+   - Thông tin dinh dưỡng chi tiết (calories, protein, carbs, fat)
+   - Danh mục nguyên liệu
+   - Đơn vị đo lường
+
+2. CHIẾN LƯỢC MỚI: AI DATA GENERATION + KNN
+==========================================
+
+PHASE 1: GEMINI AI DATA GENERATOR (1-2 tuần)
+--------------------------------------------
+
+MỤC ĐÍCH:
+- Dùng Gemini AI để tạo ra ~100+ bộ dữ liệu user profile giả
+- Generate meal selection history cho từng user
+- Tạo data training chất lượng cho KNN model
+
+THƯƠNG VIỆC CẦN:
+```bash
+npm install @google/generative-ai axios lodash moment faker
+```
+
+FILE CẦN TẠO:
+- scripts/dataGenerator.js (main script)
+- services/geminiDataService.js (AI data generation)
+- utils/profileGenerator.js (user profile templates)
+- utils/mealHistoryGenerator.js (meal selection simulation)
+- models/TrainingDataModel.js (MongoDB schema for training data)
+- scripts/runDataGeneration.js (execution script)
+
+DETAILED WORKFLOW:
+
+STEP 1: GEMINI PROFILE GENERATOR
+-------------------------------
+```javascript
+// services/geminiDataService.js
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+class GeminiDataGenerator {
+  async generateUserProfiles(count = 100) {
+    const prompt = `
+    Tạo ${count} user profiles đa dạng với format JSON:
+    {
+      "personalInfo": {
+        "age": number (18-80),
+        "gender": "male/female/other", 
+        "height": number (150-200cm),
+        "weight": number (40-120kg)
+      },
+      "isFamily": boolean,
+      "familyInfo": {
+        "children": number (0-3),
+        "teenagers": number (0-2), 
+        "adults": number (1-4),
+        "elderly": number (0-2)
+      },
+      "dietaryPreferences": {
+        "DietType_id": "normal/vegetarian/vegan/ketogenic/paleo",
+        "allergies": array của strings,
+        "dislikeIngredients": array của ingredient names
+      },
+      "nutritionGoals": {
+        "caloriesPerDay": number (1200-3000),
+        "proteinPercentage": number (15-35),
+        "carbPercentage": number (30-65), 
+        "fatPercentage": number (20-40)
+      },
+      "lifestyle": {
+        "activityLevel": "sedentary/moderate/active/very_active",
+        "cookingSkill": "beginner/intermediate/advanced",
+        "timeConstraints": "tight/moderate/flexible"
+      }
+    }
+    
+    Đảm bảo data realistic và đa dạng về:
+    - Độ tuổi và demographics
+    - Dietary preferences phân bố đều
+    - Family vs personal profiles (60/40)
+    - Nutrition goals hợp lý với lifestyle
+    `;
+    
+    const result = await this.callGemini(prompt);
+    return this.parseProfiles(result);
+  }
+}
+```
+
+STEP 2: MEAL SELECTION SIMULATOR  
+-------------------------------
+```javascript
+// utils/mealHistoryGenerator.js
+class MealHistoryGenerator {
+  async generateMealSelections(userProfile, availableMeals, daysCount = 30) {
+    const prompt = `
+    Dựa trên user profile sau:
+    ${JSON.stringify(userProfile)}
+    
+    Và danh sách meals có sẵn:
+    ${JSON.stringify(availableMeals.slice(0, 20))} // Limit for prompt size
+    
+    Tạo meal selections history cho ${daysCount} ngày với logic:
+    1. Respect dietary restrictions (diet type, allergies, dislikes)
+    2. Target nutrition goals 
+    3. Consider family size for portions
+    4. Vary meals but có patterns realistic
+    5. Weekend vs weekday differences
+    
+    Format:
+    {
+      "selections": [
+        {
+          "date": "2024-01-01",
+          "breakfast": [{"meal_id": "xxx", "portion": 1, "satisfied": true/false}],
+          "lunch": [{"meal_id": "yyy", "portion": 1, "satisfied": true/false}], 
+          "dinner": [{"meal_id": "zzz", "portion": 1, "satisfied": true/false}]
+        }
+      ]
+    }
+    `;
+    
+    return await this.callGemini(prompt);
+  }
+}
+```
+
+STEP 3: DATA INTEGRATION SCRIPT
+------------------------------
+```javascript
+// scripts/dataGenerator.js
+const GeminiDataGenerator = require('../services/geminiDataService');
+const MealHistoryGenerator = require('../utils/mealHistoryGenerator');
+const { getAllMeals } = require('../utils/apiUtils');
+
+class DataGenerationPipeline {
+  async generateTrainingData() {
+    console.log('🚀 Bắt đầu generate training data...');
+    
+    // 1. Generate user profiles
+    const profiles = await this.geminiGenerator.generateUserProfiles(100);
+    console.log(`✅ Generated ${profiles.length} user profiles`);
+    
+    // 2. Get available meals from API
+    const meals = await getAllMeals(process.env.ADMIN_TOKEN);
+    console.log(`📋 Loaded ${meals.data.meals.length} meals`);
+    
+    // 3. Generate meal histories for each profile
+    const trainingData = [];
+    for (let i = 0; i < profiles.length; i++) {
+      const profile = profiles[i];
+      console.log(`🔄 Processing user ${i+1}/${profiles.length}`);
+      
+      const mealHistory = await this.historyGenerator.generateMealSelections(
+        profile, meals.data.meals, 30
+      );
+      
+      trainingData.push({
+        userProfile: profile,
+        mealHistory: mealHistory,
+        generatedAt: new Date(),
+        dataQuality: 'ai_generated'
+      });
+      
+      // Rate limiting cho Gemini API
+      if (i % 5 === 0) await this.sleep(2000);
+    }
+    
+    // 4. Save to database
+    await this.saveTrainingData(trainingData);
+    console.log('✅ Training data generation completed!');
+    
+    return trainingData;
+  }
+  
+  async saveTrainingData(data) {
+    // Save to MongoDB cho training
+    const TrainingData = require('../models/TrainingDataModel');
+    await TrainingData.insertMany(data);
+  }
+}
+```
+
+PHASE 2: KNN MODEL IMPLEMENTATION (1-2 tuần)
+--------------------------------------------
+
+THƯƠNG VIỆC CẦN THÊM:
+```bash
+npm install ml-knn ml-matrix ml-distance
+```
+
+FILE CẦN TẠO:
+- services/knnRecommendationService.js
+- utils/featureEngineering.js  
+- models/MealRecommendationModel.js
+- scripts/trainKNNModel.js
+
+DETAILED IMPLEMENTATION:
+
+STEP 1: FEATURE ENGINEERING
+--------------------------
+```javascript
+// utils/featureEngineering.js
+class FeatureEngineer {
+  createUserVector(userProfile) {
+    return [
+      userProfile.personalInfo.age / 100, // Normalize
+      userProfile.personalInfo.gender === 'male' ? 1 : 0,
+      userProfile.personalInfo.height / 200,
+      userProfile.personalInfo.weight / 100,
+      userProfile.isFamily ? 1 : 0,
+      userProfile.familyInfo.children || 0,
+      userProfile.familyInfo.adults || 0,
+      this.encodeDietType(userProfile.dietaryPreferences.DietType_id),
+      userProfile.nutritionGoals.caloriesPerDay / 3000,
+      userProfile.nutritionGoals.proteinPercentage / 100,
+      userProfile.nutritionGoals.carbPercentage / 100,
+      userProfile.nutritionGoals.fatPercentage / 100,
+      this.encodeActivityLevel(userProfile.lifestyle?.activityLevel),
+      this.encodeCookingSkill(userProfile.lifestyle?.cookingSkill),
+      // Add more features as needed
+    ];
+  }
+  
+  createMealVector(meal, ingredients) {
+    const totalNutrition = this.calculateTotalNutrition(meal, ingredients);
+    return [
+      totalNutrition.calories / 1000,
+      totalNutrition.protein / 100,
+      totalNutrition.carbs / 100, 
+      totalNutrition.fat / 100,
+      meal.popularity || 0,
+      this.encodeMealCategory(meal.mealCategory),
+      meal.dietaryCompatibility.length / 5, // Flexibility score
+      meal.ingredients.length / 10, // Complexity score
+    ];
+  }
+}
+```
+
+STEP 2: KNN RECOMMENDATION SERVICE
+---------------------------------
+```javascript
+// services/knnRecommendationService.js
+const KNN = require('ml-knn');
+const { Matrix } = require('ml-matrix');
+const FeatureEngineer = require('../utils/featureEngineering');
+
+class KNNMealRecommender {
+  constructor() {
+    this.knn = null;
+    this.featureEngineer = new FeatureEngineer();
+    this.userFeatures = [];
+    this.mealPreferences = [];
+    this.trained = false;
+  }
+  
+  async trainFromGeneratedData() {
+    console.log('🎯 Training KNN model...');
+    
+    // Load generated training data
+    const TrainingData = require('../models/TrainingDataModel');
+    const trainingData = await TrainingData.find({ dataQuality: 'ai_generated' });
+    
+    // Extract features and labels
+    const features = [];
+    const labels = [];
+    
+    for (const userData of trainingData) {
+      const userVector = this.featureEngineer.createUserVector(userData.userProfile);
+      
+      // Extract meal preferences from history
+      for (const day of userData.mealHistory.selections) {
+        for (const timeSlot of ['breakfast', 'lunch', 'dinner']) {
+          for (const meal of day[timeSlot]) {
+            features.push([...userVector, ...this.getMealContext(timeSlot)]);
+            labels.push({
+              meal_id: meal.meal_id,
+              satisfaction: meal.satisfied ? 1 : 0,
+              portion: meal.portion
+            });
+          }
+        }
+      }
+    }
+    
+    // Train KNN
+    const featureMatrix = new Matrix(features);
+    this.knn = new KNN(featureMatrix, labels, { k: 5 });
+    this.trained = true;
+    
+    console.log(`✅ KNN trained with ${features.length} data points`);
+  }
+  
+  async recommend(userProfile, availableMeals, timeSlot = 'dinner') {
+    if (!this.trained) {
+      throw new Error('Model chưa được train! Chạy trainFromGeneratedData() trước.');
+    }
+    
+    const userVector = this.featureEngineer.createUserVector(userProfile);
+    const context = this.getMealContext(timeSlot);
+    const queryVector = [...userVector, ...context];
+    
+    // Get KNN predictions
+    const predictions = this.knn.predict([queryVector]);
+    
+    // Score available meals
+    const scoredMeals = availableMeals.map(meal => {
+      const similarity = this.calculateSimilarity(queryVector, meal);
+      return {
+        ...meal,
+        aiScore: similarity,
+        recommendation_reason: this.generateReason(userProfile, meal)
+      };
+    });
+    
+    // Sort and return top recommendations
+    return scoredMeals
+      .sort((a, b) => b.aiScore - a.aiScore)
+      .slice(0, 5);
+  }
+}
+```
+
+PHASE 3: HYBRID INTEGRATION (1 tuần)
+------------------------------------
+
+FILE CẦN TẠO:
+- services/hybridAIService.js
+- controller/AIRecommendationController.js
+
+```javascript
+// services/hybridAIService.js
+class HybridAIRecommendationService {
+  constructor() {
+    this.knnService = new KNNMealRecommender();
+    this.geminiService = new GeminiDataGenerator();
+    this.fallbackRules = new SimpleRulesEngine();
+  }
+  
+  async recommend(userProfile, availableMeals, preferences = {}) {
+    try {
+      // 1. Try KNN first (if trained and confident)
+      if (this.knnService.trained) {
+        const knnResults = await this.knnService.recommend(
+          userProfile, availableMeals, preferences.timeSlot
+        );
+        
+        if (knnResults.length > 0 && knnResults[0].aiScore > 0.7) {
+          return {
+            method: 'knn',
+            confidence: knnResults[0].aiScore,
+            recommendations: knnResults,
+            reasoning: 'Dựa trên pattern của users tương tự'
+          };
+        }
+      }
+      
+      // 2. Fallback to Gemini for real-time recommendation
+      const geminiPrompt = this.buildRecommendationPrompt(userProfile, availableMeals);
+      const geminiResult = await this.geminiService.recommend(geminiPrompt);
+      
+      return {
+        method: 'gemini',
+        confidence: 0.8,
+        recommendations: geminiResult,
+        reasoning: 'AI analysis của dietary needs và preferences'
+      };
+      
+    } catch (error) {
+      // 3. Ultimate fallback to rule-based
+      console.warn('AI services failed, using rule-based fallback');
+      const ruleResults = this.fallbackRules.recommend(userProfile, availableMeals);
+      
+      return {
+        method: 'rules',
+        confidence: 0.6,
+        recommendations: ruleResults,
+        reasoning: 'Basic dietary compatibility filtering'
+      };
+    }
+  }
+}
+```
+
+3. EXECUTION PLAN CHI TIẾT
+==========================
+
+TUẦN 1: DATA GENERATION SETUP
+-----------------------------
+
+NGÀY 1-2: Project Structure
+- Tạo folders: scripts/, models/, utils/
+- Setup Gemini API connection
+- Test basic AI generation
+
+NGÀY 3-4: Profile Generator
+- Implement GeminiDataGenerator class
+- Create diverse user profile templates  
+- Test generate 10 profiles
+
+NGÀY 5-7: Meal History Generator
+- Implement MealHistoryGenerator
+- Connect to existing Meal API
+- Generate meal selections cho 10 users
+
+TUẦN 2: SCALE UP DATA GENERATION
+-------------------------------
+
+NGÀY 8-10: Production Pipeline
+- Optimize Gemini prompts for consistency
+- Handle API rate limiting
+- Batch processing cho 100+ profiles
+
+NGÀY 11-14: Data Quality & Storage
+- Validate generated data quality
+- Save to TrainingDataModel MongoDB
+- Export data for analysis
+
+TUẦN 3: KNN IMPLEMENTATION
+-------------------------
+
+NGÀY 15-17: Feature Engineering
+- Implement FeatureEngineer class
+- Test feature vectors
+- Optimize feature selection
+
+NGÀY 18-21: KNN Training & Testing
+- Train KNN model với generated data
+- Test recommendations accuracy
+- Fine-tune parameters
+
+TUẦN 4: INTEGRATION & DEPLOYMENT
+-------------------------------
+
+NGÀY 22-24: Hybrid Service
+- Implement HybridAIRecommendationService
+- Add to MealPlanController
+- Create new API endpoints
+
+NGÀY 25-28: Testing & Optimization
+- End-to-end testing
+- Performance optimization
+- Deploy to production
+
+4. SCRIPTS EXECUTION ORDER
+=========================
+
+```bash
+# 1. Generate training data
+node scripts/runDataGeneration.js --profiles=100 --days=30
+
+# 2. Train KNN model
+node scripts/trainKNNModel.js --data-source=generated
+
+# 3. Test recommendations  
+node scripts/testRecommendations.js --user-id=test --method=hybrid
+
+# 4. Deploy to production
+npm run deploy:meal-plan-service
+```
+
+5. API ENDPOINTS MỚI
+===================
+
+```javascript
+// New endpoints in MealPlanController
+POST /api/mealplans/ai-recommend
+{
+  "userProfile": {...},
+  "preferences": {
+    "timeSlot": "dinner", 
+    "strictness": "medium",
+    "variety": "high"
+  }
+}
+
+POST /api/mealplans/generate-training-data (ADMIN only)
+{
+  "count": 100,
+  "daysHistory": 30
+}
+
+GET /api/mealplans/ai-status
+// Returns model status, training data count, etc.
+```
+
+6. MONITORING & METRICS
+======================
+
+METRICS CẦN TRACK:
+- Data generation success rate
+- KNN model accuracy
+- API response times
+- User satisfaction với AI recommendations
+- Gemini API costs
+
+LOGGING:
+- All AI generation requests
+- Model training sessions
+- Recommendation performance
+- Fallback usage frequency
+
+7. PHASE TIMELINE
+================
+
+✅ WEEK 1: Gemini Data Generator (100 profiles)
+🔄 WEEK 2: Scale to 500+ profiles + histories  
+⏳ WEEK 3: KNN training + testing
+🚀 WEEK 4: Hybrid integration + deployment
+
+MILESTONE CHECKPOINTS:
+- Day 7: 100 realistic user profiles generated
+- Day 14: 500+ profiles với meal histories  
+- Day 21: KNN model trained và tested
+- Day 28: Production deployment với monitoring
+
+===========================================
+KẾT LUẬN: CHIẾN LƯỢC NÀY COMBINE TỐT NHẤT
+CỦA AI GENERATION + TRADITIONAL ML, TẠO RA
+HỆ THỐNG RECOMMENDATION MẠNH MẼ VÀ SCALABLE
+===========================================
