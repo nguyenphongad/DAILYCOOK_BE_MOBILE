@@ -92,6 +92,12 @@ const IngredientDetailModal = ({
         cat => cat._id === ingredient.ingredientCategory
     );
 
+    // Lấy tên đơn vị đo lường
+    const getMeasureUnitLabel = (unitKey) => {
+        const found = allMeasureUnits?.find(unit => unit.key === unitKey);
+        return found ? found.label : unitKey;
+    };
+
     return (
         <Modal
             title={
@@ -163,7 +169,7 @@ const IngredientDetailModal = ({
                             <Paragraph>{ingredient?.description || 'Không có mô tả'}</Paragraph>
                             <Descriptions column={1} size="small">
                                 <Descriptions.Item label={<strong>Khối lượng mặc định</strong>}>
-                                    {ingredient?.defaultAmount || 0} {ingredient?.defaultUnit || ''}
+                                    {ingredient?.defaultAmount || 0} {getMeasureUnitLabel(ingredient?.defaultUnit)}
                                 </Descriptions.Item>
                             </Descriptions>
                         </Col>
@@ -171,7 +177,7 @@ const IngredientDetailModal = ({
                         {/* Cột phải: thông tin dinh dưỡng + công dụng */}
                         <Col span={14}>
                             <Divider>
-                                Thông tin dinh dưỡng trên {ingredient?.defaultAmount || 0}/{ingredient?.defaultUnit || ''}
+                                Thông tin dinh dưỡng trên {ingredient?.defaultAmount || 0} {getMeasureUnitLabel(ingredient?.defaultUnit)}
                             </Divider>
 
                             <Row gutter={16}>

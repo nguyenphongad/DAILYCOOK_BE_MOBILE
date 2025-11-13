@@ -52,19 +52,19 @@ const Home = () => {
     }
     
     // Giả lập việc lấy dữ liệu thống kê khác (ingredients)
-    const fetchOtherStats = () => {
-      setLoading(true)
+    // const fetchOtherStats = () => {
+    //   setLoading(true)
       
-      setTimeout(() => {
-        setStats(prevStats => ({
-          ...prevStats,
-          ingredients: 234
-        }))
-        setLoading(false)
-      }, 1000)
-    }
+    //   setTimeout(() => {
+    //     setStats(prevStats => ({
+    //       ...prevStats,
+    //       ingredients: 234
+    //     }))
+    //     setLoading(false)
+    //   }, 1000)
+    // }
     
-    fetchOtherStats()
+    // fetchOtherStats()
   }, [dispatch, token])
 
   // Cập nhật stats khi có dữ liệu từ API
@@ -269,7 +269,7 @@ const Home = () => {
               isLoading={mealStatsLoading}
             />
             <StatCard 
-              title="Tổng thành phần" 
+              title="Tổng nguyên liệu" 
               value={stats.ingredients} 
               icon="🥕" 
               color="#4895ef"
