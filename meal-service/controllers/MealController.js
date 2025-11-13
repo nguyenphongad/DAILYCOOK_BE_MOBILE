@@ -152,6 +152,17 @@ const addMeal = async (req, res) => {
         // Lấy cookingEffect từ request body
         const { cookingEffect } = recipe;
 
+        // Kiểm tra popularity
+        if (popularity !== undefined) {
+            if (!Number.isInteger(popularity) || popularity < 1 || popularity > 5) {
+                return res.status(400).json({
+                    stype: "meal",
+                    message: "Độ phổ biến phải là số nguyên từ 1 đến 5",
+                    status: false
+                });
+            }
+        }
+
         const newMeal = new MealModel({
             nameMeal,
             description,
@@ -168,7 +179,7 @@ const addMeal = async (req, res) => {
                 recipe_id: recipeCreated?.data?._id || null,
                 cookingEffect: cookingEffect || {}
             },
-            popularity,
+            popularity: popularity || 1, // Mặc định là 1 nếu không có
             isActive
         });
 
@@ -243,6 +254,17 @@ const updateMeal = async (req, res) => {
                 });
             }
             meal.mealCategory = mealCategoryExists._id;
+        }
+
+        // Kiểm tra popularity nếu có trong request
+        if (popularity !== undefined) {
+            if (!Number.isInteger(popularity) || popularity < 1 || popularity > 5) {
+                return res.status(400).json({
+                    stype: "meal",
+                    message: "Độ phổ biến phải là số nguyên từ 1 đến 5",
+                    status: false
+                });
+            }
         }
 
         // Gom field cần update

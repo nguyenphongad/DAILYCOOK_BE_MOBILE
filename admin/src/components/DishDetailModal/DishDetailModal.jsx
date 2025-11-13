@@ -134,6 +134,7 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
       description: meal.description || '',
       mealCategory: meal.mealCategory,
       mealImage: meal.mealImage || '',
+      popularity: meal.popularity || 1, // Thêm popularity
       dietaryCompatibility: meal.dietaryCompatibility || [],
       
       // Thông tin nguyên liệu với chi tiết đầy đủ
@@ -284,6 +285,34 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
     setImagePreviewVisible(true);
   };
 
+  // Hàm render sao cho popularity
+  const renderPopularityStars = (popularity) => {
+    const stars = [];
+    const actualPopularity = popularity || 1; // Sử dụng giá trị thực từ dữ liệu
+    
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <span key={i} style={{ color: i <= actualPopularity ? '#FFD700' : '#E0E0E0', fontSize: '16px' }}>
+          ⭐
+        </span>
+      );
+    }
+    return stars;
+  };
+
+  // Hàm lấy text mô tả popularity
+  const getPopularityText = (popularity) => {
+    const actualPopularity = popularity || 1;
+    switch (actualPopularity) {
+      case 1: return 'Ít phổ biến';
+      case 2: return 'Khá phổ biến';
+      case 3: return 'Phổ biến';
+      case 4: return 'Rất phổ biến';
+      case 5: return 'Cực kỳ phổ biến';
+      default: return 'Chưa đánh giá';
+    }
+  };
+
   // Nếu đang trong chế độ chỉnh sửa, hiển thị form thay vì thông tin chi tiết
   if (isEditing) {
     return (
@@ -400,6 +429,14 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
                     </Descriptions.Item>
                     <Descriptions.Item label={<strong>Calories</strong>}>
                       <FireOutlined style={{ marginRight: 8 }} />~{finalNutrition.calories} kcal/khẩu phần
+                    </Descriptions.Item>
+                    <Descriptions.Item label={<strong>Độ phổ biến</strong>}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#333' }}>
+                          ({meal.popularity || 1}/5)
+                        </span>
+                        <Text type="secondary">- {getPopularityText(meal.popularity)}</Text>
+                      </div>
                     </Descriptions.Item>
                   </Descriptions>
                 </Col>

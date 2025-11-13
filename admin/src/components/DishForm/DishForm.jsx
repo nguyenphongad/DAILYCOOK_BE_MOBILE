@@ -71,6 +71,7 @@ const DishForm = ({
     description: '',
     mealCategory: '',
     mealImage: '',
+    popularity: 1, // Thêm trường popularity với giá trị mặc định
     dietaryCompatibility: [],
     recipe: {
       nameRecipe: '',
@@ -121,6 +122,7 @@ const DishForm = ({
         description: editData.description || '',
         mealCategory: editData.mealCategory || '',
         mealImage: editData.mealImage || '',
+        popularity: editData.popularity || 1, // Thêm popularity từ editData
         dietaryCompatibility: editData.dietaryCompatibility || [],
         recipe: {
           nameRecipe: editData.recipe?.nameRecipe || editData.nameMeal || '',
@@ -531,6 +533,7 @@ const DishForm = ({
           description: '',
           mealCategory: '',
           mealImage: '',
+          popularity: 1, // Reset popularity về 1
           dietaryCompatibility: [],
           recipe: {
             nameRecipe: '',
@@ -764,6 +767,25 @@ const DishForm = ({
                     {category.title || category.nameCategory}
                   </Option>
                 ))}
+              </Select>
+            </div>
+
+            {/* Thêm trường Độ phổ biến */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
+                Độ phổ biến <span style={{ color: 'red' }}>*</span>
+              </label>
+              <Select
+                placeholder="Chọn độ phổ biến"
+                value={formData.popularity}
+                onChange={(value) => updateFormData('popularity', value)}
+                style={{ width: '100%' }}
+              >
+                <Option value={1}>⭐ Ít phổ biến (1 sao)</Option>
+                <Option value={2}>⭐⭐ Khá phổ biến (2 sao)</Option>
+                <Option value={3}>⭐⭐⭐ Phổ biến (3 sao)</Option>
+                <Option value={4}>⭐⭐⭐⭐ Rất phổ biến (4 sao)</Option>
+                <Option value={5}>⭐⭐⭐⭐⭐ Cực kỳ phổ biến (5 sao)</Option>
               </Select>
             </div>
 

@@ -41,7 +41,8 @@ const Dishes = () => {
   // --- Filter + Pagination ---
   const [searchKeyword, setSearchKeyword] = useState('');
   const [sortOrder, setSortOrder] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(''); // Filter theo danh mục
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedPopularity, setSelectedPopularity] = useState(''); // Thêm filter theo popularity
   const [currentPage, setCurrentPage] = useState(1);
 
   // --- Fetch dữ liệu ---
@@ -55,12 +56,15 @@ const Dishes = () => {
   const filteredMeals = meals.filter((meal) => {
     const matchesSearch = (meal.nameMeal || '').toLowerCase().includes(searchKeyword.toLowerCase());
     const matchesCategory = !selectedCategory || meal.mealCategory === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesPopularity = !selectedPopularity || meal.popularity === parseInt(selectedPopularity);
+    return matchesSearch && matchesCategory && matchesPopularity;
   });
 
   const sortedMeals = [...filteredMeals].sort((a, b) => {
     if (sortOrder === 'name_asc') return a.nameMeal.localeCompare(b.nameMeal);
     if (sortOrder === 'name_desc') return b.nameMeal.localeCompare(a.nameMeal);
+    if (sortOrder === 'popularity_desc') return (b.popularity || 0) - (a.popularity || 0);
+    if (sortOrder === 'popularity_asc') return (a.popularity || 0) - (b.popularity || 0);
     return 0;
   });
 
@@ -199,10 +203,24 @@ const Dishes = () => {
                   </option>
                 ))}
               </select>
+              <select 
+                value={selectedPopularity} 
+                onChange={(e) => setSelectedPopularity(e.target.value)}
+                style={{ marginRight: 12 }}
+              >
+                <option value="">Tất cả độ phổ biến</option>
+                <option value="5">⭐⭐⭐⭐⭐ Cực kỳ phổ biến</option>
+                <option value="4">⭐⭐⭐⭐ Rất phổ biến</option>
+                <option value="3">⭐⭐⭐ Phổ biến</option>
+                <option value="2">⭐⭐ Khá phổ biến</option>
+                <option value="1">⭐ Ít phổ biến</option>
+              </select>
               <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
                 <option value="">Sắp xếp theo</option>
                 <option value="name_asc">Tên (A-Z)</option>
                 <option value="name_desc">Tên (Z-A)</option>
+                <option value="popularity_desc">Độ phổ biến (Cao → Thấp)</option>
+                <option value="popularity_asc">Độ phổ biến (Thấp → Cao)</option>
               </select>
             </div>
           </div>
@@ -216,8 +234,9 @@ const Dishes = () => {
                     <tr>
                       <th style={{ width: '50px' }}>STT</th>
                       <th style={{ width: '80px' }}>Ảnh</th>
-                      <th style={{ width: '40%' }}>Tên món</th>
-                      <th style={{ width: '25%' }}>Danh mục</th>
+                      <th style={{ width: '30%' }}>Tên món</th>
+                      <th style={{ width: '20%' }}>Danh mục</th>
+                      <th style={{ width: '15%' }}>Độ phổ biến</th>
                       <th style={{ width: '100px' }}>Số thành phần</th>
                     </tr>
                   </thead>
@@ -247,6 +266,13 @@ const Dishes = () => {
                             <span className="category-badge">
                               {meal.mealCategory ? getCategoryTitle(meal.mealCategory) : 'Chưa phân loại'}
                             </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <span style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                                ({meal.popularity || 1}/5⭐)
+                              </span>
+                            </div>
                           </td>
                           <td className="text-left">
                             {meal.ingredients?.length || 0}
