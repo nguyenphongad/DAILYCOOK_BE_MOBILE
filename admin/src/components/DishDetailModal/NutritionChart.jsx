@@ -28,12 +28,12 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
   );
 };
 
-const NutritionChart = ({ nutrition, cookingEffect }) => {
+const NutritionChart = ({ nutrition, nutritionEffect }) => {
   // Chuẩn bị dữ liệu cho biểu đồ
   const data = [
-    { name: 'Protein', value: parseFloat(nutrition.protein), color: COLORS[0], retention: cookingEffect?.protein || 100 },
-    { name: 'Carbs', value: parseFloat(nutrition.carbs), color: COLORS[1], retention: cookingEffect?.carb || 100 },
-    { name: 'Fat', value: parseFloat(nutrition.fat), color: COLORS[2], retention: cookingEffect?.fat || 100 },
+    { name: 'Protein', value: parseFloat(nutrition.protein), color: COLORS[0], retention: nutritionEffect?.protein || 100 },
+    { name: 'Carbs', value: parseFloat(nutrition.carbs), color: COLORS[1], retention: nutritionEffect?.carbs || 100 },
+    { name: 'Fat', value: parseFloat(nutrition.fat), color: COLORS[2], retention: nutritionEffect?.fat || 100 },
   ];
 
   // Lọc bỏ các giá trị là 0
@@ -56,52 +56,62 @@ const NutritionChart = ({ nutrition, cookingEffect }) => {
           <Text type="secondary">Tổng calories mỗi khẩu phần</Text>
         </div>
 
-        <div style={{ width: '100%', height: 250 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={filteredData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={renderCustomizedLabel}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                animationBegin={0}
-                animationDuration={1500}
-                animationEasing="ease-out"
-              >
-                {filteredData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip 
-                formatter={(value, name, props) => [`${value}g (${props.payload.retention}% giữ lại)`, name]}
-                contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-              />
-              <Legend 
-                formatter={(value, entry) => (
-                  <span style={{ color: entry.color }}>
-                    {value}: <strong>{entry.payload.value}g</strong>
-                  </span>
-                )}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-        
-        <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%', marginTop: 16 }}>
-          {filteredData.map((item, index) => (
-            <div key={index} style={{ textAlign: 'center', padding: '8px 12px', borderRadius: 4, backgroundColor: `${item.color}20` }}>
-              <Text strong style={{ color: item.color }}>{item.name}</Text>
-              <div>
-                <Text style={{ fontSize: '16px', fontWeight: 'bold' }}>{item.value}g</Text>
-                <br />
-                <Text type="secondary" style={{ fontSize: '12px' }}>Giữ lại: {item.retention}%</Text>
+        {/* Layout flex ngang cho biểu đồ và thông tin chi tiết */}
+        <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 24 }}>
+          {/* Biểu đồ */}
+          <div style={{ width: '60%', height: 250 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={filteredData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  animationBegin={0}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
+                >
+                  {filteredData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value, name, props) => [`${value}g (${props.payload.retention}% sau chế biến)`, name]}
+                  contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                />
+                <Legend 
+                  formatter={(value, entry) => (
+                    <span style={{ color: entry.color }}>
+                      {value}: <strong>{entry.payload.value}g</strong>
+                    </span>
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          
+          {/* Thông tin chi tiết */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '40%' }}>
+            {filteredData.map((item, index) => (
+              <div key={index} style={{ 
+                textAlign: 'center', 
+                padding: '12px 16px', 
+                borderRadius: 6, 
+                backgroundColor: `${item.color}20`,
+                border: `1px solid ${item.color}40`
+              }}>
+                <Text strong style={{ color: item.color, fontSize: '14px' }}>{item.name}</Text>
+                <div>
+                  <Text style={{ fontSize: '18px', fontWeight: 'bold', display: 'block' }}>{item.value}g</Text>
+                  <Text type="secondary" style={{ fontSize: '12px' }}>Tỉ lệ: {item.retention}%</Text>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </Card>
