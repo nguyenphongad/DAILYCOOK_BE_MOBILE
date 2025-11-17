@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -321,6 +322,11 @@ app.use('/api/mealplans', authMiddleware, createProxyMiddleware({
   },
   logLevel: 'debug',
   onProxyReq: (proxyReq, req, res) => {
+    // Tự động thêm API key nếu mealplan service cần
+    if (process.env.API_KEY) {
+      proxyReq.setHeader('x-api-key', process.env.API_KEY);
+    }
+    
     if (req.body && Object.keys(req.body).length > 0) {
       const bodyData = JSON.stringify(req.body);
       proxyReq.setHeader('Content-Type', 'application/json');
@@ -373,6 +379,9 @@ app.use('/api/surveys', authMiddleware, createProxyMiddleware({
   },
   logLevel: 'debug',
   onProxyReq: (proxyReq, req, res) => {
+    // Tự động thêm API key từ env
+    proxyReq.setHeader('x-api-key', process.env.API_KEY);
+    
     if (req.body && Object.keys(req.body).length > 0) {
       const bodyData = JSON.stringify(req.body);
       proxyReq.setHeader('Content-Type', 'application/json');
