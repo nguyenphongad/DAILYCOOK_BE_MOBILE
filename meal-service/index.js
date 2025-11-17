@@ -28,15 +28,6 @@ app.use(cors({
 
 dotenv.config();
 
-mongoose
-    .connect(process.env.MONGODB_URI)
-    .then(() => {
-        app.listen(process.env.PORT, () => {
-            console.log('MEAL-SERVICE listening at port ' + process.env.PORT);
-        })
-    })
-    .catch((error) => console.log(error));
-
 // Thêm health endpoint ở root level
 app.get('/health', (req, res) => {
     res.status(200).json({
@@ -45,6 +36,15 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
+
+mongoose
+    .connect(process.env.MONGODB_URI)
+    .then(() => {
+        app.listen(process.env.PORT, () => {
+            console.log('MEAL-SERVICE listening at port ' + process.env.PORT);
+        })
+    })
+    .catch((error) => console.log(error));
 
 // Thêm error handling middleware
 app.use((err, req, res, next) => {

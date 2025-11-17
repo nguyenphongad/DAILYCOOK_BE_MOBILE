@@ -29,12 +29,11 @@ const Home = () => {
   const [services, setServices] = useState([
     { id: 1, name: 'Auth Service', status: 'checking', url: 'http://localhost:5000/api/auth/health' },
     { id: 2, name: 'User Service', status: 'checking', url: 'http://localhost:5000/api/users/health' },
-    { id: 3, name: 'Ingredient Service', status: 'checking', url: 'http://localhost:5000/api/ingredient/health' },
-    { id: 4, name: 'Meal Service', status: 'checking', url: 'http://localhost:5000/api/meal/health' },
-    { id: 5, name: 'MealPlan Service', status: 'checking', url: 'http://localhost:5000/api/mealPlan/health' },
-    { id: 6, name: 'Recipe Service', status: 'checking', url: 'http://localhost:5000/api/recipe/health' },
-    { id: 7, name: 'Shopping Service', status: 'checking', url: 'http://localhost:5000/api/shopping/health' },
-    { id: 8, name: 'Survey Service', status: 'checking', url: 'http://localhost:5000/api/survey/health' }
+    { id: 3, name: 'Ingredient Service', status: 'checking', url: 'http://localhost:5000/api/ingredients/health' },
+    { id: 4, name: 'Meal Service', status: 'checking', url: 'http://localhost:5000/api/meals/health' },
+    { id: 5, name: 'MealPlan Service', status: 'checking', url: 'http://localhost:5000/api/mealplans/health' },
+    { id: 6, name: 'Recipe Service', status: 'checking', url: 'http://localhost:5000/api/recipes/health' },
+    { id: 8, name: 'Survey Service', status: 'checking', url: 'http://localhost:5000/api/surveys/health' }
   ])
 
   const [logs, setLogs] = useState([

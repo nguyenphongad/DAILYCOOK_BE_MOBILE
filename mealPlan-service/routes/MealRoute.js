@@ -3,6 +3,15 @@ const router = express.Router();
 const MealPlanController = require('../controller/MealPlanController');
 const { authenticateUser, validateApiKey } = require('../middleware/MealPlanMiddleware');
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'mealPlan-service',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Middleware cho tất cả routes
 router.use(validateApiKey);
 router.use(authenticateUser);

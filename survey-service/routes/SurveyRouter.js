@@ -2,6 +2,15 @@ const router = require('express').Router();
 const surveyController = require('../controllers/SurveyController');
 const { verifyToken, verifyAdmin, verifyApiKey } = require('../middleware/SurveyMiddleware');
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'survey-service',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // =================================
 // ONBOARDING ROUTES (Câu hỏi cứng)
 // =================================

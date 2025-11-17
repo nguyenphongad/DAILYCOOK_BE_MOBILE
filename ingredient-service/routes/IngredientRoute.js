@@ -21,6 +21,15 @@ const { getAllMeasurementUnits } = require('../controllers/MeasurementUnitsContr
 
 const router = express.Router();
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'ingredient-service',
+    timestamp: new Date().toISOString()
+  });
+});
+
 /* ==========================    Ingredient Categories   ========================== */
 router.post(
     '/add-ingredient-category',

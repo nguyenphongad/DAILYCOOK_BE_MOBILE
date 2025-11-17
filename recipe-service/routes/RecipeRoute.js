@@ -3,6 +3,15 @@ const router = express.Router();
 const recipeController = require('../controllers/RecipeController');
 const recipeMiddleware = require('../middleware/RecipeMiddleware');
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'recipe-service',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Lấy tất cả công thức
 router.get('/', recipeMiddleware.authenticateToken, recipeController.getAllRecipes);
 

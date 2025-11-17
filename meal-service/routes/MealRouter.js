@@ -28,6 +28,15 @@ const {
 
 const router = express.Router();
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'meal-service',
+    timestamp: new Date().toISOString()
+  });
+});
+
 /* ==========================   Meal Categories   ========================== */
 // Thêm mới một danh mục bữa ăn
 router.post(
