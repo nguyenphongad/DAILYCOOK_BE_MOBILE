@@ -16,6 +16,15 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => console.error('MongoDB connection error:', err));
 
+// Thêm health endpoint ở root level
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        service: 'survey-service',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Routes
 app.use('/api/surveys', surveyRouter);
 

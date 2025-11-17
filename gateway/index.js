@@ -66,6 +66,117 @@ app.get('/check-auth-service', async (req, res) => {
   }
 });
 
+// Kiểm tra user service
+app.get('/check-user-service', async (req, res) => {
+  try {
+    const response = await fetch(`${config.services.user.url}/health`);
+    const data = await response.json();
+    res.status(200).json({ status: 'ok', serviceStatus: data });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: `Không thể kết nối đến user service: ${error.message}` });
+  }
+});
+
+// Kiểm tra ingredient service
+app.get('/check-ingredients-service', async (req, res) => {
+  try {
+    const response = await fetch(`${config.services.ingredient.url}/health`);
+    const data = await response.json();
+    res.status(200).json({ status: 'ok', serviceStatus: data });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: `Không thể kết nối đến ingredients service: ${error.message}` });
+  }
+});
+
+// Kiểm tra recipe service
+app.get('/check-recipe-service', async (req, res) => {
+  try {
+    const response = await fetch(`${config.services.recipe.url}/health`);
+    const data = await response.json();
+    res.status(200).json({ status: 'ok', serviceStatus: data });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: `Không thể kết nối đến recipe service: ${error.message}` });
+  }
+});
+
+// Kiểm tra meal service
+app.get('/check-meal-service', async (req, res) => {
+  try {
+    const response = await fetch(`${config.services.meal.url}/health`);
+    const data = await response.json();
+    res.status(200).json({ status: 'ok', serviceStatus: data });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: `Không thể kết nối đến meal service: ${error.message}` });
+  }
+});
+
+// Kiểm tra mealplan service
+app.get('/check-mealplan-service', async (req, res) => {
+  try {
+    const response = await fetch(`${config.services.mealplan.url}/health`);
+    const data = await response.json();
+    res.status(200).json({ status: 'ok', serviceStatus: data });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: `Không thể kết nối đến mealplan service: ${error.message}` });
+  }
+});
+
+// Kiểm tra shopping service
+app.get('/check-shopping-service', async (req, res) => {
+  try {
+    const response = await fetch(`${config.services.shopping.url}/health`);
+    const data = await response.json();
+    res.status(200).json({ status: 'ok', serviceStatus: data });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: `Không thể kết nối đến shopping service: ${error.message}` });
+  }
+});
+
+// Kiểm tra survey service
+app.get('/check-survey-service', async (req, res) => {
+  try {
+    const response = await fetch(`${config.services.survey.url}/health`);
+    const data = await response.json();
+    res.status(200).json({ status: 'ok', serviceStatus: data });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: `Không thể kết nối đến survey service: ${error.message}` });
+  }
+});
+
+// Kiểm tra tất cả service
+app.get('/check-all-services', async (req, res) => {
+  const services = [
+    { name: 'auth', url: config.services.auth.url },
+    { name: 'user', url: config.services.user.url },
+    { name: 'ingredients', url: config.services.ingredient.url },
+    { name: 'recipe', url: config.services.recipe.url },
+    { name: 'meal', url: config.services.meal.url },
+    { name: 'mealplan', url: config.services.mealplan.url },
+    { name: 'shopping', url: config.services.shopping.url },
+    { name: 'survey', url: config.services.survey.url }
+  ];
+
+  const results = {};
+  let allHealthy = true;
+
+  for (const service of services) {
+    try {
+      const response = await fetch(`${service.url}/health`);
+      const data = await response.json();
+      results[service.name] = { status: 'ok', data };
+    } catch (error) {
+      results[service.name] = { status: 'error', message: error.message };
+      allHealthy = false;
+    }
+  }
+
+  res.status(allHealthy ? 200 : 500).json({
+    status: allHealthy ? 'ok' : 'partial',
+    message: allHealthy ? 'Tất cả service đang hoạt động' : 'Một số service gặp sự cố',
+    services: results
+  });
+});
+
 // Chuyển tiếp đến service xác thực - KHÔNG yêu cầu xác thực để đăng nhập
 // Đặt trước các middleware khác để đảm bảo không bị chặn
 app.use('/api/auth', createProxyMiddleware({
@@ -140,7 +251,7 @@ app.use('/api/ingredients', authMiddleware, createProxyMiddleware({
     }
   },
   onError: (err, req, res) => {
-    logger.error(`Proxy error (ingredient service): ${err.message}`);
+    logger.error(`Proxy error (ingredients service): ${err.message}`);
     res.status(500).json({
       status: 'error',
       message: 'Gateway không thể kết nối đến service nguyên liệu',

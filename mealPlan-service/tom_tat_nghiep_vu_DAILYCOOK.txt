@@ -1,0 +1,263 @@
+=========================================================
+TÓM TẮT NGHIỆP VỤ HỆ THỐNG DAILYCOOK
+(Phân tích từ Backend Code)
+=========================================================
+
+1. TỔNG QUAN HỆ THỐNG
+====================
+
+DAILYCOOK là một ứng dụng mobile hỗ trợ lập kế hoạch bữa ăn thông minh với các tính năng:
+- Quản lý nguyên liệu và món ăn
+- Tư vấn chế độ dinh dưỡng cá nhân hóa  
+- Tạo thực đơn tự động dựa trên AI
+- Theo dõi và nhắc nhở uống nước
+- Hỗ trợ cả cá nhân và gia đình
+
+2. CÁC SERVICE CHÍNH
+==================
+
+A. USER-SERVICE (Quản lý người dùng)
+-----------------------------------
+CHỨC NĂNG:
+- Quản lý thông tin người dùng (fullName, userImage)
+- Tích hợp với auth service để xác thực
+- Admin có thể khóa/mở khóa tài khoản
+- Thống kê tổng số người dùng
+
+NGHIỆP VỤ:
+- Đăng ký tự động từ auth service
+- Phân quyền admin/user
+- Theo dõi hoạt động người dùng
+
+B. INGREDIENT-SERVICE (Quản lý nguyên liệu)
+------------------------------------------
+CHỨC NĂNG:
+- Quản lý danh mục nguyên liệu (IngredientCategory)
+- Quản lý nguyên liệu (Ingredient) với thông tin dinh dưỡng chi tiết
+- Đơn vị đo lường chuẩn hóa (MeasurementUnits)
+- Thông tin dinh dưỡng: calories, protein, carbs, fat
+
+NGHIỆP VỤ:
+- Cung cấp database nguyên liệu phong phú
+- Tính toán dinh dưỡng chính xác
+- Hỗ trợ nhiều đơn vị đo lường
+- Phân loại nguyên liệu theo category
+
+C. MEAL-SERVICE (Quản lý món ăn)
+-------------------------------
+CHỨC NĂNG:
+- Quản lý danh mục món ăn (MealCategory: breakfast, lunch, dinner)
+- Quản lý chế độ ăn uống (DietType: normal, vegetarian, vegan, ketogenic, paleo)
+- Quản lý món ăn với công thức chi tiết
+- Tương thích với các chế độ ăn khác nhau
+- Độ phổ biến của món ăn (1-5 sao)
+
+NGHIỆP VỤ:
+- Tạo database món ăn đa dạng
+- Phân loại theo bữa ăn và chế độ dinh dưỡng
+- Tích hợp công thức nấu ăn từ recipe-service
+- Hỗ trợ khẩu phần cho cá nhân/gia đình
+
+D. SURVEY-SERVICE (Khảo sát & Hồ sơ cá nhân)
+-------------------------------------------
+CHỨC NĂNG CỐT LÕI:
+
+1. ONBOARDING SYSTEM (Câu hỏi cứng):
+   - Thu thập thông tin cá nhân: tuổi, giới tính, chiều cao, cân nặng
+   - Phân loại: Cá nhân vs Gia đình
+   - Thông tin gia đình: children, teenagers, adults, elderly
+   - Sở thích ăn uống: loại chế độ ăn, dị ứng, nguyên liệu không thích
+   - Mục tiêu dinh dưỡng: calories/ngày, tỷ lệ protein/carbs/fat
+   - Cài đặt nhắc nhở uống nước
+
+2. SOFT SURVEYS (Câu hỏi mềm):
+   - Câu hỏi khảo sát linh hoạt do admin tạo
+   - Nhiều loại câu hỏi: text, select, radio, checkbox, rating
+   - Phân loại theo category
+   - Admin có thể bật/tắt câu hỏi
+
+NGHIỆP VỤ:
+- Cá nhân hóa trải nghiệm người dùng
+- Thu thập dữ liệu để AI recommendation
+- Hỗ trợ cả hộ gia đình và cá nhân
+- Flexible survey system cho nghiên cứu
+
+E. MEALPLAN-SERVICE (Lập kế hoạch thực đơn - CORE)
+------------------------------------------------
+CHỨC NĂNG HIỆN TẠI:
+- Tạo thực đơn random từ database món ăn
+- Lưu trữ thực đơn theo ngày
+- Thay đổi/xóa món ăn trong thực đơn
+- Gợi ý món ăn tương tự
+- Cache thực đơn trong Redis
+- Hỗ trợ khẩu phần gia đình/cá nhân
+
+CHỨC NĂNG ĐANG PHÁT TRIỂN (AI):
+- AI recommendation sử dụng Gemini API
+- Generate training data cho machine learning
+- KNN model để gợi ý dựa trên user tương tự
+- Hybrid approach: AI + Rule-based + ML
+
+3. NGHIỆP VỤ CHI TIẾT THEO FLOW
+==============================
+
+A. FLOW ĐĂNG KÝ & ONBOARDING
+----------------------------
+1. User đăng ký tài khoản → Auth service
+2. Auth service gọi User service tạo profile
+3. User hoàn thành onboarding trong Survey service:
+   - Chọn loại hồ sơ: Cá nhân/Gia đình
+   - Nhập thông tin cơ bản
+   - Chọn chế độ ăn uống, dị ứng
+   - Đặt mục tiêu dinh dưỡng
+   - Cài đặt nhắc nhở uống nước
+4. Survey service lưu UserProfile với isOnboardingCompleted = true
+
+B. FLOW TạO THỰC ĐƠN
+------------------
+1. User request tạo thực đơn cho một ngày
+2. MealPlan service kiểm tra Redis cache
+3. Nếu chưa có, gọi các service:
+   - Survey service: lấy UserProfile (sở thích, dị ứng, mục tiêu dinh dưỡng)
+   - Meal service: lấy danh sách món ăn phù hợp
+   - Ingredient service: lấy thông tin dinh dưỡng
+4. Tạo thực đơn:
+   - HIỆN TẠI: Random selection với rule-based filtering
+   - TƯƠNG LAI: AI recommendation với Gemini + KNN
+5. Lưu vào Redis và trả về user
+
+C. FLOW AI RECOMMENDATION (Đang phát triển)
+------------------------------------------
+1. PHASE 1: Data generation
+   - Dùng Gemini AI tạo ~100+ user profiles giả
+   - Generate meal selection history cho từng user
+   - Lưu vào TrainingDataModel
+
+2. PHASE 2: KNN Training
+   - Extract features từ user profile và meal data
+   - Train KNN model với generated data
+   - Feature vector: [age, gender, BMI, diet_type, calories_goal, ...]
+
+3. PHASE 3: Hybrid Recommendation
+   - KNN recommendation (nếu có đủ confidence)
+   - Fallback to Gemini API (real-time AI)
+   - Ultimate fallback to rule-based
+
+D. FLOW QUẢN LÝ DINH DƯỠNG
+-------------------------
+1. Ingredient service cung cấp thông tin dinh dưỡng chuẩn
+2. Meal service tính toán dinh dưỡng tổng của món ăn
+3. MealPlan service tính toán dinh dưỡng của cả thực đơn
+4. So sánh với mục tiêu dinh dưỡng từ UserProfile
+5. Đưa ra gợi ý điều chỉnh nếu cần
+
+4. CÁC TÍNH NĂNG ĐẶC BIỆT
+========================
+
+A. HỖ TRỢ GIA ĐÌNH
+-----------------
+- Phân biệt cá nhân vs gia đình trong UserProfile
+- Tính toán khẩu phần cho nhiều thành viên
+- Thông tin gia đình: số trẻ em, thanh thiếu niên, người lớn, người cao tuổi
+- Cân bằng dinh dưỡng cho cả gia đình
+
+B. TÍNH NĂNG AI THÔNG MINH
+-------------------------
+- Học từ hành vi người dùng
+- Personalized recommendations
+- Tránh món ăn dị ứng/không thích
+- Cân bằng dinh dưỡng tự động
+- Đa dạng hóa thực đơn
+
+C. CHĂM SÓC SỨC KHỎE
+-------------------
+- Theo dõi mục tiêu calories hàng ngày
+- Cân bằng tỷ lệ protein/carbs/fat
+- Nhắc nhở uống nước
+- Hỗ trợ các chế độ ăn đặc biệt (keto, chay, ...)
+
+5. KIẾN TRÚC HỆ THỐNG
+====================
+
+A. MICROSERVICES ARCHITECTURE
+-----------------------------
+- User Service (Port 5001)
+- Ingredient Service (Port 5000) 
+- Meal Service (Port 5002)
+- Survey Service (Port 5003)
+- MealPlan Service (Port 5004)
+- Recipe Service (External)
+- Auth Service (External)
+
+B. DATABASE
+----------
+- MongoDB cho mỗi service
+- Redis cache cho performance
+- Training data cho AI models
+
+C. SECURITY
+----------
+- JWT authentication
+- API key validation
+- Admin role authorization
+- Service-to-service authentication
+
+6. ROADMAP PHÁT TRIỂN
+===================
+
+A. HIỆN TẠI (V1.0)
+-----------------
+✅ Basic meal planning với random selection
+✅ User onboarding system
+✅ Ingredient & meal management
+✅ Survey system
+✅ Redis caching
+
+B. ĐANG PHÁT TRIỂN (V2.0)
+------------------------
+🔄 AI recommendation với Gemini API
+🔄 KNN machine learning model
+🔄 Training data generation
+🔄 Hybrid recommendation system
+
+C. TƯƠNG LAI (V3.0+)
+------------------
+⏳ Advanced ML models (TensorFlow.js)
+⏳ Collaborative filtering
+⏳ Nutrition tracking
+⏳ Social features
+⏳ Recipe suggestions
+⏳ Grocery shopping integration
+
+7. GIÁ TRỊ NGHIỆP VỤ
+==================
+
+A. CHO NGƯỜI DÙNG
+----------------
+- Tiết kiệm thời gian lập kế hoạch bữa ăn
+- Đảm bảo dinh dưỡng cân bằng
+- Hỗ trợ chế độ ăn đặc biệt
+- Tránh dị ứng thực phẩm
+- Đa dạng hóa bữa ăn
+
+B. CHO GIA ĐÌNH
+--------------
+- Lập thực đơn cho cả gia đình
+- Cân nhắc nhu cầu dinh dưỡng theo độ tuổi
+- Tối ưu hóa chi phí mua sắm
+- Giảm stress cho bà mẹ
+
+C. CHO CHUYÊN GIA DINH DƯỠNG
+---------------------------
+- Thu thập dữ liệu thói quen ăn uống
+- Nghiên cứu xu hướng dinh dưỡng
+- Tư vấn cá nhân hóa
+- A/B testing các approach khác nhau
+
+=========================================================
+KẾT LUẬN:
+DAILYCOOK là một hệ thống meal planning thông minh, 
+kết hợp AI và machine learning để cung cấp gợi ý 
+thực đơn cá nhân hóa, hỗ trợ cả cá nhân và gia đình 
+trong việc duy trì chế độ ăn uống lành mạnh và cân bằng.
+=========================================================

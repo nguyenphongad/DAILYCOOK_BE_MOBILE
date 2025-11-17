@@ -28,27 +28,27 @@ app.use(cors({
 
 dotenv.config();
 
-mongoose
-    .connect(process.env.MONGODB_URI)
-    .then(() => {
-        app.listen(process.env.PORT, () => {
-            console.log('INGREDIENT-SERVICE listening at port ' + process.env.PORT);
-        })
-    })
-    .catch((error) => console.log(error));
-
 // Thêm health endpoint ở root level
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'OK',
-        service: 'ingrdient-service',
+        service: 'ingredients-service',
         timestamp: new Date().toISOString()
     });
 });
 
+mongoose
+    .connect(process.env.MONGODB_URI)
+    .then(() => {
+        app.listen(process.env.PORT, () => {
+            console.log('INGREDIENTS-SERVICE listening at port ' + process.env.PORT);
+        })
+    })
+    .catch((error) => console.log(error));
+
 // Thêm error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Ingredient service error:', err);
+    console.error('Ingredients service error:', err);
     res.status(500).json({
         message: 'Internal Server Error',
         error: err.message

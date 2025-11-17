@@ -30,6 +30,15 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.error('MongoDB connection error:', error);
 });
 
+// Thêm health endpoint ở root level
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'user-service',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes
 app.use('/api/users', userRoutes);
 

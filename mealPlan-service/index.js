@@ -26,13 +26,17 @@ mongoose.connect(process.env.MONGODB_URI)
 // Make Redis available globally
 app.locals.redis = redisClient;
 
+// Thêm health endpoint ở root level
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        service: 'mealPlan-service',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Routes
 app.use('/api/mealplans', MealRoute);
-
-// Health check
-app.get('/health', (req, res) => {
-    res.json({ status: 'Meal Plan Service is running' });
-});
 
 const PORT = process.env.PORT || 5004;
 app.listen(PORT, () => {
