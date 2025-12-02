@@ -43,3 +43,4 @@
 {"level":"error","message":"Lỗi xác thực: jwt expired","service":"api-gateway","timestamp":"2025-11-30 16:01:43"}
 {"level":"error","message":"Lỗi xác thực: jwt expired","service":"api-gateway","timestamp":"2025-11-30 16:08:06"}
 {"level":"error","message":"Proxy error (user service): ","service":"api-gateway","timestamp":"2025-12-01 10:12:10"}
+{"level":"error","message":"Lỗi xác thực: jwt expired","service":"api-gateway","timestamp":"2025-12-02 19:29:05"}

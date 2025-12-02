@@ -396,7 +396,7 @@ const getListMeals = async (req, res) => {
         const meals = await MealModel.find()
             .skip(skip)
             .limit(limit)
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1, _id: -1 }); // Thêm _id để sắp xếp ổn định
         return res.status(200).json({
             stype: "meal",
             message: "Lấy danh sách món ăn thành công!",
