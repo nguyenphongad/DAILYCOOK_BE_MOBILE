@@ -87,7 +87,6 @@ const userProfileSchema = new mongoose.Schema({
         type: {
             DietType_id: {
                 type: String,
-                enum: ['normal', 'vegetarian', 'vegan', 'ketogenic', 'paleo'],
                 default: null
             },
             allergies: { type: [String], default: [] },

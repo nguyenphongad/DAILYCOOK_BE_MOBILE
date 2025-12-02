@@ -116,36 +116,74 @@ const surveyController = {
                 userProfile = new UserProfile({ user_id: userId });
             }
 
+            // Validation helper functions
+            const isValidPersonalInfo = (personalInfo) => {
+                return personalInfo && 
+                       personalInfo.height && 
+                       personalInfo.weight && 
+                       personalInfo.age && 
+                       personalInfo.gender;
+            };
+
+            const isValidFamilyInfo = (familyInfo) => {
+                return familyInfo && 
+                       (familyInfo.children > 0 || 
+                        familyInfo.teenagers > 0 || 
+                        familyInfo.adults > 0 || 
+                        familyInfo.elderly > 0);
+            };
+
+            const isValidDietaryPreferences = (dietaryPreferences) => {
+                return dietaryPreferences && dietaryPreferences.DietType_id;
+            };
+
             switch(type) {
                 case 'personal':
                     userProfile.isFamily = false;
+                    
+                    // Cập nhật personalInfo
                     if (data.personalInfo) {
                         userProfile.personalInfo = { ...userProfile.personalInfo, ...data.personalInfo };
+                    }
+                    
+                    // Cập nhật dietaryPreferences
+                    if (data.dietaryPreferences) {
+                        userProfile.dietaryPreferences = { ...userProfile.dietaryPreferences, ...data.dietaryPreferences };
+                    }
+
+                    // Validation và auto complete
+                    if (isValidPersonalInfo(userProfile.personalInfo) && 
+                        isValidDietaryPreferences(userProfile.dietaryPreferences)) {
+                        userProfile.isOnboardingCompleted = true;
                     }
                     break;
                     
                 case 'family':
                     userProfile.isFamily = true;
+                    
+                    // Cập nhật familyInfo
                     if (data.familyInfo) {
                         userProfile.familyInfo = { ...userProfile.familyInfo, ...data.familyInfo };
                     }
-                    break;
                     
-                case 'common':
+                    // Cập nhật dietaryPreferences
                     if (data.dietaryPreferences) {
                         userProfile.dietaryPreferences = { ...userProfile.dietaryPreferences, ...data.dietaryPreferences };
                     }
-                    if (data.nutritionGoals) {
-                        userProfile.nutritionGoals = { ...userProfile.nutritionGoals, ...data.nutritionGoals };
-                    }
-                    if (data.waterReminders) {
-                        userProfile.waterReminders = { ...userProfile.waterReminders, ...data.waterReminders };
+
+                    // Validation và auto complete
+                    if (isValidFamilyInfo(userProfile.familyInfo) && 
+                        isValidDietaryPreferences(userProfile.dietaryPreferences)) {
+                        userProfile.isOnboardingCompleted = true;
                     }
                     break;
-                    
-                case 'complete':
-                    userProfile.isOnboardingCompleted = true;
-                    break;
+
+                default:
+                    return res.status(400).json({
+                        type: "SAVE_ONBOARDING_DATA",
+                        status: false,
+                        message: "Type không hợp lệ. Chỉ chấp nhận 'personal' hoặc 'family'"
+                    });
             }
 
             await userProfile.save();
@@ -154,7 +192,10 @@ const surveyController = {
                 type: "SAVE_ONBOARDING_DATA",
                 status: true,
                 message: "Lưu dữ liệu onboarding thành công",
-                data: userProfile
+                data: {
+                    ...userProfile.toObject(),
+                    isAutoCompleted: userProfile.isOnboardingCompleted
+                }
             });
         } catch (error) {
             res.status(500).json({
@@ -363,7 +404,7 @@ const surveyController = {
             res.status(200).json({
                 type: "SUBMIT_SURVEY_RESPONSE",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Lưu câu trả lời mềm thành công",
                 data: userResponse
             });
         } catch (error) {
