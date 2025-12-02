@@ -436,6 +436,101 @@ const surveyController = {
                 error: error.message
             });
         }
+    },
+
+    // DIETARY PREFERENCES CONTROLLERS
+    getDietaryPreferences: async (req, res) => {
+        try {
+            const userId = req.params.id;
+            const currentUserId = req.user._id;
+
+            // Kiểm tra quyền: chỉ user đó mới được xem chế độ ăn của chính mình
+            if (userId !== currentUserId.toString()) {
+                return res.status(403).json({
+                    type: "GET_DIETARY_PREFERENCES",
+                    status: false,
+                    message: "Bạn chỉ có thể xem chế độ ăn của chính mình"
+                });
+            }
+
+            const userProfile = await UserProfile.findOne({ user_id: userId });
+
+            if (!userProfile) {
+                return res.status(404).json({
+                    type: "GET_DIETARY_PREFERENCES",
+                    status: false,
+                    message: "Không tìm thấy thông tin người dùng"
+                });
+            }
+
+            res.status(200).json({
+                type: "GET_DIETARY_PREFERENCES",
+                status: true,
+                message: "Truy vấn thành công",
+                data: {
+                    user_id: userProfile.user_id,
+                    dietaryPreferences: userProfile.dietaryPreferences
+                }
+            });
+        } catch (error) {
+            res.status(500).json({
+                type: "GET_DIETARY_PREFERENCES",
+                status: false,
+                message: "Lỗi khi lấy thông tin chế độ ăn",
+                error: error.message
+            });
+        }
+    },
+
+    updateDietaryPreferences: async (req, res) => {
+        try {
+            const userId = req.params.id;
+            const currentUserId = req.user._id;
+            const { DietType_id } = req.body;
+
+            // Kiểm tra quyền: chỉ user đó mới được cập nhật chế độ ăn của chính mình
+            if (userId !== currentUserId.toString()) {
+                return res.status(403).json({
+                    type: "UPDATE_DIETARY_PREFERENCES",
+                    status: false,
+                    message: "Bạn chỉ có thể cập nhật chế độ ăn của chính mình"
+                });
+            }
+
+            const userProfile = await UserProfile.findOne({ user_id: userId });
+            if (!userProfile) {
+                return res.status(404).json({
+                    type: "UPDATE_DIETARY_PREFERENCES",
+                    status: false,
+                    message: "Không tìm thấy thông tin người dùng"
+                });
+            }
+
+            // Cập nhật DietType_id
+            userProfile.dietaryPreferences = {
+                ...userProfile.dietaryPreferences,
+                DietType_id: DietType_id
+            };
+
+            await userProfile.save();
+
+            res.status(200).json({
+                type: "UPDATE_DIETARY_PREFERENCES",
+                status: true,
+                message: "Cập nhật chế độ ăn thành công",
+                data: {
+                    user_id: userProfile.user_id,
+                    dietaryPreferences: userProfile.dietaryPreferences
+                }
+            });
+        } catch (error) {
+            res.status(500).json({
+                type: "UPDATE_DIETARY_PREFERENCES",
+                status: false,
+                message: "Lỗi khi cập nhật chế độ ăn",
+                error: error.message
+            });
+        }
     }
 };
 

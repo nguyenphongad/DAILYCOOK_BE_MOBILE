@@ -39,4 +39,10 @@ router.get('/surveys', verifyApiKey, verifyToken, surveyController.getAllSurveys
 router.get('/surveys/responses', verifyApiKey, verifyToken, surveyController.getUserResponse); // User xem câu trả lời của mình
 router.post('/surveys/responses', verifyApiKey, verifyToken, surveyController.submitUserResponse); // User gửi câu trả lời khảo sát
 
+// =================================
+// DIETARY PREFERENCES ROUTES
+// =================================
+router.get('/users/:id/dietary-preferences', verifyApiKey, verifyToken, surveyController.getDietaryPreferences); // Xem chế độ ăn của user
+router.put('/users/:id/dietary-preferences', verifyApiKey, verifyToken, surveyController.updateDietaryPreferences); // Cập nhật chế độ ăn của user
+
 module.exports = router;
