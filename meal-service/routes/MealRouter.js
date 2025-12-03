@@ -14,7 +14,8 @@ const {
     getListMeals,
     updateMeal,
     deleteMeal,
-    getTotalMeals
+    getTotalMeals,
+    getMealsByCategory
 } = require('../controllers/MealController');
 
 const { 
@@ -79,6 +80,13 @@ router.get(
     "/total",
     MealMiddleware,
     getTotalMeals
+);
+
+// Lấy món ăn theo danh mục với phân trang
+router.get(
+    '/category/:meal_category_id',
+    MealMiddleware,
+    getMealsByCategory
 );
 
 // Thêm mới một bữa ăn

@@ -6,6 +6,7 @@ import {
     setError,
     setLoading,
     setMeals,
+    setMealsByCategory, // Import reducer mới
     setSelectedMeal,
     addMealToList,
     updateMealInList,
@@ -192,6 +193,47 @@ export const deleteMeal = createAsyncThunk(
             dispatch(setError(error.message));
             toast.error(error.message);
             return rejectWithValue(error.message);
+        }
+    }
+);
+
+// Thêm thunk mới để lấy meals theo category
+export const fetchMealsByCategory = createAsyncThunk(
+    'meals/fetchMealsByCategory',
+    async ({ categoryId, page = 1, limit = 10 }, { dispatch, getState, rejectWithValue }) => {
+        try {
+            dispatch(setLoading(true));
+
+            const { token } = getState().auth;
+            const response = await get(
+                `${ENDPOINT.GET_MEALS_BY_CATEGORY}/${categoryId}?page=${page}&limit=${limit}`,
+                token
+            );
+
+
+            if (response.status) {
+                
+                // Chỉ dispatch data, không dispatch toàn bộ response
+                dispatch(setMealsByCategory(response.data));
+                return {
+                    data: response.data,
+                    pagination: {
+                        page: page,
+                        limit: limit,
+                        total: response.data?.total || 0,
+                        totalPages: response.data?.totalPages || 1
+                    }
+                };
+            } else {
+                dispatch(setError(response.message));
+                toast.error(response.message || 'Không thể tải danh sách món ăn theo danh mục');
+                return rejectWithValue(response.message);
+            }
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || error.message || 'Lỗi kết nối đến server';
+            dispatch(setError(errorMessage));
+            toast.error(errorMessage);
+            return rejectWithValue(errorMessage);
         }
     }
 );

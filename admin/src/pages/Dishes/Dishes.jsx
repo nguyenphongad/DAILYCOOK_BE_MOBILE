@@ -9,7 +9,7 @@ import DishDetailModal from '../../components/DishDetailModal/DishDetailModal';
 import DishForm from '../../components/DishForm/DishForm';
 import Loading from '../../components/Loading/Loading';
 
-import { fetchMeals, addMeal, updateMeal, deleteMeal } from '../../redux/thunks/mealThunk';
+import { fetchMeals, fetchMealsByCategory, addMeal, updateMeal, deleteMeal } from '../../redux/thunks/mealThunk';
 import { fetchMealCategories } from '../../redux/thunks/mealCategoryThunk';
 import { fetchIngredients } from '../../redux/thunks/ingredientThunk';
 
@@ -52,13 +52,34 @@ const Dishes = () => {
     dispatch(fetchMealCategories({ page: 1, limit: 100 })); // Thêm params
   }, [dispatch, currentPage]);
 
-  // --- Tìm kiếm + Sắp xếp ---
+  // Thêm useEffect mới để fetch meals theo category
+  useEffect(() => {
+    if (selectedCategory) {
+      // Nếu có category được chọn, fetch meals theo category
+      dispatch(fetchMealsByCategory({ 
+        categoryId: selectedCategory, 
+        page: currentPage, 
+        limit: 9 
+      }));
+    } else {
+      // Nếu không có category, fetch tất cả meals
+      dispatch(fetchMeals({ page: currentPage, limit: 9 }));
+    }
+  }, [dispatch, selectedCategory, currentPage]);
+
+  // --- Tìm kiếm + Sắp xếp --- (cập nhật để không lọc category nữa vì đã fetch theo category)
   const filteredMeals = meals.filter((meal) => {
     const matchesSearch = (meal.nameMeal || '').toLowerCase().includes(searchKeyword.toLowerCase());
-    const matchesCategory = !selectedCategory || meal.mealCategory === selectedCategory;
     const matchesPopularity = !selectedPopularity || meal.popularity === parseInt(selectedPopularity);
-    return matchesSearch && matchesCategory && matchesPopularity;
+    return matchesSearch && matchesPopularity; // Bỏ matchesCategory vì đã fetch theo category
   });
+
+  // Debug: Log dữ liệu meals
+  console.log('Current meals from Redux:', meals);
+  console.log('Meals length:', meals?.length);
+  console.log('Full meal state:', mealState); // Thêm log này
+  console.log('Filtered meals:', filteredMeals);
+  console.log('Selected category:', selectedCategory);
 
   const sortedMeals = [...filteredMeals].sort((a, b) => {
     if (sortOrder === 'name_asc') return a.nameMeal.localeCompare(b.nameMeal);
@@ -69,12 +90,22 @@ const Dishes = () => {
   });
 
   // --- Helper functions ---
-  const getCategoryTitle = (categoryId) => {
-    if (!Array.isArray(mealCategories)) {
-      return 'Chưa phân loại';
+  const getCategoryTitle = (mealCategory) => {
+    // Kiểm tra nếu mealCategory là object (đã populated)
+    if (typeof mealCategory === 'object' && mealCategory !== null) {
+      return mealCategory.title || mealCategory.nameCategory || 'Chưa phân loại';
     }
-    const found = mealCategories.find(cat => cat._id === categoryId);
-    return found ? found.title || found.nameCategory : 'Chưa phân loại';
+    
+    // Nếu mealCategory là string ID, tìm trong mealCategories
+    if (typeof mealCategory === 'string') {
+      if (!Array.isArray(mealCategories)) {
+        return 'Chưa phân loại';
+      }
+      const found = mealCategories.find(cat => cat._id === mealCategory);
+      return found ? found.title || found.nameCategory : 'Chưa phân loại';
+    }
+    
+    return 'Chưa phân loại';
   };
 
   // --- Mở modal thêm món ăn ---
@@ -153,9 +184,31 @@ const Dishes = () => {
     dispatch(fetchMeals({ page: currentPage, limit: 9 }));
   };
 
-  // --- Đổi trang ---
+  // --- Đổi trang --- (cập nhật để xử lý cả trường hợp có category và không có)
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  // Thêm handler để reset trang khi thay đổi category
+  const handleCategoryChange = (categoryId) => {
+    console.log('Category changed to:', categoryId); // Debug log
+    setSelectedCategory(categoryId);
+    setCurrentPage(1); // Reset về trang 1 khi thay đổi category
+    
+    // Force refresh nếu cần
+    if (categoryId) {
+      setTimeout(() => {
+        dispatch(fetchMealsByCategory({ 
+          categoryId: categoryId, 
+          page: 1, 
+          limit: 9 
+        }));
+      }, 100);
+    } else {
+      setTimeout(() => {
+        dispatch(fetchMeals({ page: 1, limit: 9 }));
+      }, 100);
+    }
   };
 
   // --- JSX ---
@@ -193,7 +246,7 @@ const Dishes = () => {
             <div className="filters">
               <select 
                 value={selectedCategory} 
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 style={{ marginRight: 12 }}
               >
                 <option value="">Tất cả danh mục</option>
@@ -264,7 +317,7 @@ const Dishes = () => {
                           </td>
                           <td>
                             <span className="category-badge">
-                              {meal.mealCategory ? getCategoryTitle(meal.mealCategory) : 'Chưa phân loại'}
+                              {getCategoryTitle(meal.mealCategory)}
                             </span>
                           </td>
                           <td>

@@ -396,7 +396,7 @@ const getListMeals = async (req, res) => {
         const meals = await MealModel.find()
             .skip(skip)
             .limit(limit)
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1, _id: -1 }); // Thêm _id để sắp xếp ổn định
         return res.status(200).json({
             stype: "meal",
             message: "Lấy danh sách món ăn thành công!",
@@ -455,4 +455,58 @@ const getTotalMeals = async (req, res) => {
     }
 };
 
-module.exports = { addMeal, updateMeal, deleteMeal, findByIdMeal, getListMeals, getTotalMeals };
+// Lấy danh sách món ăn theo danh mục với phân trang
+const getMealsByCategory = async (req, res) => {
+    try {
+        const { meal_category_id } = req.params;
+        let { page = 1, limit = 10 } = req.query;
+        page = parseInt(page);
+        limit = parseInt(limit);
+        
+        // Kiểm tra danh mục tồn tại
+        const categoryExists = await MealCategoryModel.findById(meal_category_id);
+        if (!categoryExists) {
+            return res.status(404).json({
+                stype: "meal",
+                message: "Danh mục bữa ăn không tồn tại",
+                status: false
+            });
+        }
+
+        const skip = (page - 1) * limit;
+        
+        // Đếm tổng số món ăn trong danh mục
+        const total = await MealModel.countDocuments({ mealCategory: meal_category_id });
+        
+        // Lấy danh sách món ăn theo danh mục
+        const meals = await MealModel.find({ mealCategory: meal_category_id })
+            .populate('mealCategory', 'keyword title')
+            .populate('dietaryCompatibility', 'keyword title')
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1, _id: -1 });
+
+        return res.status(200).json({
+            stype: "meal",
+            message: "Lấy danh sách món ăn theo danh mục thành công!",
+            status: true,
+            data: {
+                category: categoryExists,
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                meals
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            stype: "meal",
+            message: "Lỗi server, vui lòng thử lại sau!",
+            status: false,
+            error: error.message
+        });
+    }
+};
+
+module.exports = { addMeal, updateMeal, deleteMeal, findByIdMeal, getListMeals, getTotalMeals, getMealsByCategory };

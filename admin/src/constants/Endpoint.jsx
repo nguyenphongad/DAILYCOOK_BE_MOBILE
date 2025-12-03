@@ -26,6 +26,7 @@ const ENDPOINT = {
     GET_LIST_MEAL: 'meals',
     GET_MEAL: 'meals/meal',
     GET_TOTAL_MEALS: 'meals/total',
+    GET_MEALS_BY_CATEGORY: 'meals/category', // Endpoint base - sẽ thêm /:meal_category_id trong thunk
 
     // INGREDIENT CATEGORY
     ADD_INGREDIENT_CATEGORY: 'ingredients/add-ingredient-category',
