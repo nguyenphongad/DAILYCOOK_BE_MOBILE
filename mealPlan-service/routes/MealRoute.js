@@ -22,8 +22,11 @@ router.post('/generate', MealPlanController.generateMealPlan);
 // Tạo thực đơn bằng AI dựa trên user profile
 router.post('/generate-ai', MealPlanController.generateAIMealPlan);
 
-// Lấy thực đơn
-router.get('/', MealPlanController.getMealPlan);
+// Lấy thực đơn từ REDIS (cache) - nhanh nhưng có thể không có
+router.post('/get-from-cache', MealPlanController.getMealPlanFromCache);
+
+// Lấy thực đơn từ DATABASE - chính xác, có đầy đủ chi tiết
+router.post('/get-from-database', MealPlanController.getMealPlanFromDatabase);
 
 // Gợi ý món ăn tương tự
 router.get('/similar/:mealId', MealPlanController.getSimilarMeals);
@@ -38,5 +41,14 @@ router.delete('/remove-meal', MealPlanController.removeMeal);
 // Lưu thực đơn vào database
 router.post('/save', MealPlanController.saveMealPlan);
 
+// ============= MEAL HISTORY ROUTES =============
+// Toggle trạng thái "Đã ăn" (tick/untick)
+router.post('/toggle-eaten', MealPlanController.toggleMealEatenStatus);
+
+// Lấy lịch sử ăn uống (có lọc món đã ăn)
+router.get('/history', MealPlanController.getMealHistory);
+
+// Lấy trạng thái cuối cùng của một món
+router.get('/meal-status', MealPlanController.getLastMealStatus);
 
 module.exports = router;

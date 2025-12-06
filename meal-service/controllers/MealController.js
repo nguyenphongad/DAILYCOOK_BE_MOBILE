@@ -361,7 +361,15 @@ const deleteMeal = async (req, res) => {
 const findByIdMeal = async (req, res) => {
     try {
         const { meal_id } = req.params;
+        
+        // Lấy token từ header
+        const tokenHeader = req.headers.authorization || "";
+        const token = tokenHeader.startsWith("Bearer ") ? tokenHeader.split(" ")[1] : tokenHeader;
+
         const meal = await MealModel.findById(meal_id)
+            .populate('mealCategory', 'keyword title description')
+            .populate('dietaryCompatibility', 'keyword title description');
+
         if (!meal) {
             return res.status(404).json({
                 stype: "meal",
@@ -369,11 +377,67 @@ const findByIdMeal = async (req, res) => {
                 status: false
             });
         }
+
+        // Chuyển đổi meal sang plain object
+        const mealObject = meal.toObject();
+
+        // Lấy chi tiết từng ingredient nếu có token
+        if (token && mealObject.ingredients && mealObject.ingredients.length > 0) {
+            const ingredientsWithDetails = [];
+
+            for (const ingredient of mealObject.ingredients) {
+                try {
+                    // Gọi service lấy chi tiết ingredient
+                    const ingredientDetail = await getIngredientById(ingredient.ingredient_id, token);
+                    
+                    if (ingredientDetail && ingredientDetail.data) {
+                        ingredientsWithDetails.push({
+                            ingredient_id: ingredient.ingredient_id,
+                            quantity: ingredient.quantity,
+                            unit: ingredient.unit,
+                            // Thêm chi tiết đầy đủ của ingredient
+                            detail: {
+                                _id: ingredientDetail.data._id,
+                                nameIngredient: ingredientDetail.data.nameIngredient,
+                                description: ingredientDetail.data.description,
+                                ingredientImage: ingredientDetail.data.ingredientImage,
+                                ingredientCategory: ingredientDetail.data.ingredientCategory,
+                                nutrition: ingredientDetail.data.nutrition,
+                                allergenInfo: ingredientDetail.data.allergenInfo,
+                                storageInstructions: ingredientDetail.data.storageInstructions,
+                                shelfLife: ingredientDetail.data.shelfLife
+                            }
+                        });
+                    } else {
+                        // Nếu không lấy được detail, giữ nguyên info cơ bản
+                        ingredientsWithDetails.push({
+                            ingredient_id: ingredient.ingredient_id,
+                            quantity: ingredient.quantity,
+                            unit: ingredient.unit,
+                            detail: null
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error fetching ingredient ${ingredient.ingredient_id}:`, error.message);
+                    // Nếu có lỗi, vẫn giữ info cơ bản
+                    ingredientsWithDetails.push({
+                        ingredient_id: ingredient.ingredient_id,
+                        quantity: ingredient.quantity,
+                        unit: ingredient.unit,
+                        detail: null
+                    });
+                }
+            }
+
+            // Thay thế ingredients cũ bằng ingredients có chi tiết
+            mealObject.ingredients = ingredientsWithDetails;
+        }
+
         return res.status(200).json({
             stype: "meal",
             message: "Lấy thông tin món ăn thành công!",
             status: true,
-            data: meal
+            data: mealObject
         });
     }
     catch (error) {

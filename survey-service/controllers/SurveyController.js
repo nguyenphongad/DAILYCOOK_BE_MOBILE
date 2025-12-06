@@ -878,6 +878,75 @@ const surveyController = {
             });
         }
     },
+
+    // Lấy toàn bộ thông tin profile của user (bao gồm cả soft questions)
+    getUserFullProfile: async (req, res) => {
+        try {
+            const userId = req.user._id;
+
+            // Lấy user profile (hard questions - onboarding) - KHÔNG POPULATE
+            const userProfile = await UserProfile.findOne({ user_id: userId });
+
+            if (!userProfile) {
+                return res.status(404).json({
+                    type: "GET_USER_FULL_PROFILE",
+                    status: false,
+                    message: "Không tìm thấy thông tin người dùng"
+                });
+            }
+
+            // Lấy user responses (soft questions - survey)
+            const userResponse = await UserResponse.findOne({ userId });
+
+            // Tổng hợp toàn bộ thông tin
+            const fullProfile = {
+                _id: userProfile._id,
+                user_id: userProfile.user_id,
+                isOnboardingCompleted: userProfile.isOnboardingCompleted,
+                isFamily: userProfile.isFamily,
+                
+                // Thông tin cá nhân
+                personalInfo: userProfile.personalInfo,
+                
+                // Thông tin gia đình
+                familyInfo: userProfile.familyInfo,
+                
+                // Sở thích ăn uống
+                dietaryPreferences: userProfile.dietaryPreferences,
+                
+                // Mục tiêu dinh dưỡng
+                nutritionGoals: userProfile.nutritionGoals,
+                
+                // Nhắc nhở uống nước
+                waterReminders: userProfile.waterReminders,
+                
+                // Câu hỏi mềm (survey responses)
+                surveyResponses: userResponse ? userResponse.responses : null,
+                
+                // Soft questions từ userProfile
+                softQuestions: userProfile.softQuestions,
+                
+                // Metadata
+                createdAt: userProfile.createdAt,
+                updatedAt: userProfile.updatedAt
+            };
+
+            res.status(200).json({
+                type: "GET_USER_FULL_PROFILE",
+                status: true,
+                message: "Lấy thông tin profile đầy đủ thành công",
+                data: fullProfile
+            });
+        } catch (error) {
+            console.error('Error getting user full profile:', error);
+            res.status(500).json({
+                type: "GET_USER_FULL_PROFILE",
+                status: false,
+                message: "Lỗi khi lấy thông tin profile",
+                error: error.message
+            });
+        }
+    },
 };
 
 module.exports = surveyController;

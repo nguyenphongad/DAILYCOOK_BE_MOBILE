@@ -15,7 +15,8 @@ const {
     updateMeal,
     deleteMeal,
     getTotalMeals,
-    getMealsByCategory
+    getMealsByCategory,
+    findByIdMeal
 } = require('../controllers/MealController');
 
 const { 
@@ -122,7 +123,7 @@ router.get(
 router.get(
     "/meal/:meal_id",
     MealMiddleware,
-    getListMeals
+    findByIdMeal
 );
 
 /* ==========================   Diet Type   ========================== */

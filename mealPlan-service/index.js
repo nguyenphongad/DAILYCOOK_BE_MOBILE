@@ -1,37 +1,51 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const redis = require('redis');
+const { Redis } = require('@upstash/redis');
 require('dotenv').config();
 
 const MealRoute = require('./routes/MealRoute');
 
 const app = express();
 
+// ============= CORS Configuration =============
+// Allow all origins for development
+app.use(cors({
+    origin: '*', // Cho phép tất cả origins (development)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
+    credentials: true
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Redis connection
-const redisClient = redis.createClient();
-redisClient.on('error', (err) => console.log('Redis Client Error', err));
-redisClient.connect();
+// Upstash Redis connection
+const redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN
+});
+
+console.log('✓ Upstash Redis initialized');
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('MongoDB connected successfully'))
-    .catch(err => console.log('MongoDB connection error:', err));
+    .then(() => console.log('✓ MongoDB connected successfully'))
+    .catch(err => console.error('✗ MongoDB connection error:', err));
 
 // Make Redis available globally
-app.locals.redis = redisClient;
+app.locals.redis = redis;
 
-// Thêm health endpoint ở root level
+
+// Health endpoint
 app.get('/health', (req, res) => {
     res.status(200).json({
         status: 'OK',
         service: 'mealPlan-service',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        redis: 'Upstash Redis',
+        cors: 'enabled'
     });
 });
 
@@ -39,6 +53,8 @@ app.get('/health', (req, res) => {
 app.use('/api/mealplans', MealRoute);
 
 const PORT = process.env.PORT || 5004;
-app.listen(PORT, () => {
-    console.log(`Meal Plan Service running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✓ Meal Plan Service running on port ${PORT}`);
+    console.log(`✓ Server accessible at: http://0.0.0.0:${PORT}`);
+    console.log(`✓ Test API: http://YOUR_IP:${PORT}/api/test`);
 });
