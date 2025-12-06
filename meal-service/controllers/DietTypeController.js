@@ -255,6 +255,48 @@ const findByIdDietType = async (req, res) => {
     }
 }
 
+// Tìm loại chế độ ăn uống theo keyword
+const findByKeywordDietType = async (req, res) => {
+    try {
+        const { keyword } = req.params;
+        
+        if (!keyword) {
+            return res.status(400).json({
+                stype: "diet type",
+                message: "Keyword không được để trống!",
+                status: false
+            });
+        }
+
+        // Tìm diet type theo keyword (case-insensitive)
+        const dietType = await DietTypeModel.findOne({ 
+            keyword: { $regex: new RegExp(`^${keyword}$`, 'i') }
+        });
+
+        if (!dietType) {
+            return res.status(404).json({
+                stype: "diet type",
+                message: `Không tìm thấy chế độ ăn với keyword: ${keyword}`,
+                status: false
+            });
+        }
+
+        return res.status(200).json({
+            stype: "diet type",
+            message: "Lấy thông tin loại chế độ ăn uống theo keyword thành công!",
+            status: true,
+            data: dietType
+        });
+    } catch (error) {
+        return res.status(500).json({
+            stype: "diet type",
+            message: "Lấy thông tin chế độ ăn uống theo keyword thất bại!",
+            status: false,
+            error: error.message
+        });
+    }
+}
+
 // Lấy tổng số chế độ ăn - truy vấn tối ưu
 const getTotalDietTypes = async (req, res) => {
     try {
@@ -297,5 +339,6 @@ module.exports = {
     deleteDietType,
     getListDietTypes,
     findByIdDietType,
+    findByKeywordDietType,
     getTotalDietTypes
 }

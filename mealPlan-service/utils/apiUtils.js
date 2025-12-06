@@ -12,10 +12,11 @@ const createApiClient = (baseURL) => {
 };
 
 // API clients for different services
-const authServiceClient = createApiClient('http://localhost:5000/api/auth');
-const mealServiceClient = createApiClient('http://localhost:5000/api/meals');
-const ingredientServiceClient = createApiClient('http://localhost:5000/api/ingredients');
-const recipeServiceClient = createApiClient('http://localhost:5000/api/recipes');
+const authServiceClient = createApiClient(process.env.AUTH_SERVICE_URL || 'http://localhost:5000/api/auth');
+const mealServiceClient = createApiClient(process.env.MEAL_SERVICE_URL || 'http://localhost:5001/api/meals');
+const ingredientServiceClient = createApiClient(process.env.INGREDIENT_SERVICE_URL || 'http://localhost:5000/api/ingredients');
+const recipeServiceClient = createApiClient(process.env.RECIPE_SERVICE_URL || 'http://localhost:5000/api/recipes');
+const surveyServiceClient = createApiClient(process.env.SURVEY_SERVICE_URL || 'http://localhost:5008/api/survey'); // TODO: Cập nhật URL thực tế
 
 // Error handler for API calls
 const handleApiError = (error, serviceName) => {
@@ -63,6 +64,21 @@ const getAllMeals = async (token = null) => {
     }
 };
 
+// Lấy thông tin Diet Type theo ID
+const getDietTypeById = async (dietTypeId, token = null) => {
+    try {
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await mealServiceClient.get(`/diet-type/${dietTypeId}`, { headers });
+        return response.data;
+    } catch (error) {
+        handleApiError(error, 'Meal Service');
+    }
+};
+
 // ==================== RECIPE SERVICE APIs ====================
 
 // Lấy recipe theo ID với token
@@ -94,6 +110,55 @@ const getIngredientById = async (ingredientId, token = null) => {
         return response.data;
     } catch (error) {
         handleApiError(error, 'Ingredient Service');
+    }
+};
+
+// ==================== SURVEY SERVICE APIs ====================
+
+// Lấy user profile từ survey service
+const getUserProfile = async (userId, token = null) => {
+    try {
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await surveyServiceClient.get(`/profile/${userId}`, { headers });
+        return response.data;
+    } catch (error) {
+        handleApiError(error, 'Survey Service');
+    }
+};
+
+// ==================== MEAL CATEGORY APIs ====================
+
+// Lấy danh mục món ăn
+const getMealCategories = async (token = null) => {
+    try {
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await mealServiceClient.get('/categories', { headers });
+        return response.data;
+    } catch (error) {
+        handleApiError(error, 'Meal Service');
+    }
+};
+
+// Lấy món ăn theo danh mục
+const getMealsByCategory = async (categoryId, token = null) => {
+    try {
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await mealServiceClient.get(`/category/${categoryId}`, { headers });
+        return response.data;
+    } catch (error) {
+        handleApiError(error, 'Meal Service');
     }
 };
 
@@ -175,12 +240,18 @@ module.exports = {
     
     // Meal Service APIs
     getAllMeals,
+    getMealCategories,
+    getMealsByCategory,
+    getDietTypeById,
     
     // Recipe Service APIs
     getRecipeById,
     
     // Ingredient Service APIs
     getIngredientById,
+    
+    // Survey Service APIs
+    getUserProfile,
     
     // Utility Functions
     getMealWithFullDetails,

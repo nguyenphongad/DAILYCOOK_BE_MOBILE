@@ -13003,3 +13003,87 @@
 {"level":"info","message":"::1 - - [02/Dec/2025:15:02:42 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-02 22:02:42"}
 {"level":"info","message":"::1 - - [02/Dec/2025:15:02:42 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-02 22:02:42"}
 {"level":"info","message":"::ffff:192.168.2.196 - - [02/Dec/2025:15:02:42 +0000] \"GET /api/users/6908a272cc5896aab9b14715/dietary-preferences HTTP/1.1\" 403 88 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-02 22:02:42"}
+{"level":"info","message":"Gateway đang chạy tại cổng 5000","service":"api-gateway","timestamp":"2025-12-04 21:15:52"}
+{"level":"info","message":"Auth service URL: http://localhost:5001","service":"api-gateway","timestamp":"2025-12-04 21:15:52"}
+{"level":"info","message":"User service URL: http://localhost:5007","service":"api-gateway","timestamp":"2025-12-04 21:15:52"}
+{"level":"info","message":"Recipe service URL: http://localhost:5005","service":"api-gateway","timestamp":"2025-12-04 21:15:52"}
+{"level":"info","message":"Ingredient service URL: http://localhost:5002","service":"api-gateway","timestamp":"2025-12-04 21:15:52"}
+{"level":"info","message":"Meal service URL: http://localhost:5003","service":"api-gateway","timestamp":"2025-12-04 21:15:52"}
+{"level":"info","message":"MealPlan service URL: http://localhost:5004","service":"api-gateway","timestamp":"2025-12-04 21:15:52"}
+{"level":"info","message":"Shopping service URL: http://localhost:5006","service":"api-gateway","timestamp":"2025-12-04 21:15:52"}
+{"level":"info","message":"Survey service URL: http://localhost:5008","service":"api-gateway","timestamp":"2025-12-04 21:15:52"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:25:20 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:25:20"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:25:20 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:25:20"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:25:20 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:25:20"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:26:14 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:26:14"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:26:14 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:26:14"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:26:14 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:26:14"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:26:33 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:26:33"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:26:33 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:26:33"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:26:33 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:26:33"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:26:48 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:26:48"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:26:48 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:26:48"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:26:49 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:26:49"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:27:14 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:27:14"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:27:14 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:27:14"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:27:14 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:27:14"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:28:21 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:28:21"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:28:21 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:28:21"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:28:21 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:28:21"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:29:27 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:29:27"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:29:28 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:29:28"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:29:28 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:29:28"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:29:31 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:29:31"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:29:31 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:29:31"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:29:31 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:29:31"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:30:37 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:30:37"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:30:37 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:30:37"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:30:38 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:30:38"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:31:23 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:31:23"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:31:23 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:31:23"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:31:23 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:31:23"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:32:29 +0000] \"POST /api/auth/google-login HTTP/1.1\" 200 598 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:32:29"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:33:03 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:33:03"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:33:03 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:33:03"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:33:03 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:33:03"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:33:36 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:33:36"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:33:36 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:33:36"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:33:36 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:33:36"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:33:58 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:33:58"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:33:58 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:33:58"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:33:58 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:33:58"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:36:10 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:36:10"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:36:10 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:36:10"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:36:10 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:36:10"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:39:21 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:39:21"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:39:21 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:39:21"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:39:21 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:39:21"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:41:04 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 21:41:04"}
+{"level":"info","message":"::1 - - [04/Dec/2025:14:41:04 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 21:41:04"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:14:41:04 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 21:41:04"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:15:50 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 22:15:50"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:15:50 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 22:15:50"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:15:15:50 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 22:15:50"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:16:54 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 22:16:54"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:16:54 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 22:16:54"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:15:16:54 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 22:16:54"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:17:28 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 22:17:28"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:17:28 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 22:17:28"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:15:17:28 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 22:17:28"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:17:50 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 22:17:50"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:17:50 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 22:17:50"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:15:17:50 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 22:17:50"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:18:10 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 22:18:10"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:18:10 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 22:18:10"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:15:18:10 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 22:18:10"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:18:59 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 22:18:59"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:18:59 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 22:18:59"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:15:18:59 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 22:18:59"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:19:33 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 22:19:33"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:19:33 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 22:19:33"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:15:19:33 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 304 - \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 22:19:33"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:54:00 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 22:54:00"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:54:00 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"axios/1.12.2\"","service":"api-gateway","timestamp":"2025-12-04 22:54:00"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:15:54:00 +0000] \"GET /api/surveys/onboarding/status HTTP/1.1\" 200 830 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 22:54:00"}
+{"level":"info","message":"::1 - - [04/Dec/2025:15:54:49 +0000] \"GET /api/users/profile/6908a272cc5896aab9b14715 HTTP/1.1\" 200 333 \"-\" \"axios/1.13.1\"","service":"api-gateway","timestamp":"2025-12-04 22:54:49"}
+{"level":"info","message":"::ffff:192.168.1.5 - - [04/Dec/2025:15:54:49 +0000] \"GET /api/auth/check-token HTTP/1.1\" 200 591 \"-\" \"okhttp/4.9.2\"","service":"api-gateway","timestamp":"2025-12-04 22:54:49"}

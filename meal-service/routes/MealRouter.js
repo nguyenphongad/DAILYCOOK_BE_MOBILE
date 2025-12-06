@@ -24,6 +24,7 @@ const {
     deleteDietType, 
     getListDietTypes, 
     findByIdDietType,
+    findByKeywordDietType,
     getTotalDietTypes
 } = require('../controllers/DietTypeController');
 
@@ -160,7 +161,14 @@ router.get(
     getListDietTypes
 );
 
-// Lấy thông tin chi tiết một loại chế độ ăn uống
+// Tìm loại chế độ ăn uống theo keyword (đặt trước route :diet_type_id)
+router.get(
+    "/diet-type/keyword/:keyword",
+    MealMiddleware,
+    findByKeywordDietType
+);
+
+// Lấy thông tin chi tiết một loại chế độ ăn uống theo ID
 router.get(
     "/diet-type/:diet_type_id",
     MealMiddleware,
