@@ -52,4 +52,9 @@ router.post('/nutrition-goals/calculate', verifyApiKey, verifyToken, surveyContr
 router.get('/nutrition-goals', verifyApiKey, verifyToken, surveyController.getNutritionGoals); // Xem mục tiêu dinh dưỡng hiện tại
 router.put('/nutrition-goals', verifyApiKey, verifyToken, surveyController.updateNutritionGoals); // Cập nhật mục tiêu dinh dưỡng thủ công
 
+// =================================
+// USER PROFILE ROUTES
+// =================================
+router.get('/profile-survey', verifyApiKey, verifyToken, surveyController.getUserFullProfile); // Lấy toàn bộ thông tin profile của user (hard + soft questions)
+
 module.exports = router;

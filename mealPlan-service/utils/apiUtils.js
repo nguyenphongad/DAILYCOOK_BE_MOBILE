@@ -12,11 +12,11 @@ const createApiClient = (baseURL) => {
 };
 
 // API clients for different services
-const authServiceClient = createApiClient(process.env.AUTH_SERVICE_URL || 'http://localhost:5000/api/auth');
-const mealServiceClient = createApiClient(process.env.MEAL_SERVICE_URL || 'http://localhost:5001/api/meals');
-const ingredientServiceClient = createApiClient(process.env.INGREDIENT_SERVICE_URL || 'http://localhost:5000/api/ingredients');
-const recipeServiceClient = createApiClient(process.env.RECIPE_SERVICE_URL || 'http://localhost:5000/api/recipes');
-const surveyServiceClient = createApiClient(process.env.SURVEY_SERVICE_URL || 'http://localhost:5008/api/survey'); // TODO: Cập nhật URL thực tế
+const authServiceClient = createApiClient(process.env.AUTH_SERVICE_URL );
+const mealServiceClient = createApiClient(process.env.MEAL_SERVICE_URL );
+const ingredientServiceClient = createApiClient(process.env.INGREDIENT_SERVICE_URL );
+const recipeServiceClient = createApiClient(process.env.RECIPE_SERVICE_URL);
+const surveyServiceClient = createApiClient(process.env.SURVEY_SERVICE_URL ); 
 
 // Error handler for API calls
 const handleApiError = (error, serviceName) => {
@@ -49,15 +49,17 @@ const verifyUserToken = async (token) => {
 
 // ==================== MEAL SERVICE APIs ====================
 
-// Lấy tất cả meals với token
-const getAllMeals = async (token = null) => {
+// Lấy tất cả meals với token và pagination
+const getAllMeals = async (token = null, page = 1, limit = 300) => {
     try {
-        const headers = {};
+        const headers = {
+            'x-api-key': process.env.API_KEY
+        };
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
         
-        const response = await mealServiceClient.get('/', { headers });
+        const response = await mealServiceClient.get(`/?page=${page}&limit=${limit}`, { headers });
         return response.data;
     } catch (error) {
         handleApiError(error, 'Meal Service');
@@ -73,6 +75,24 @@ const getDietTypeById = async (dietTypeId, token = null) => {
         }
         
         const response = await mealServiceClient.get(`/diet-type/${dietTypeId}`, { headers });
+        return response.data;
+    } catch (error) {
+        handleApiError(error, 'Meal Service');
+    }
+};
+
+// Lấy chi tiết meal theo ID (bao gồm ingredients details)
+const getMealDetailById = async (mealId, token = null) => {
+    try {
+        const headers = {
+            'x-api-key': process.env.API_KEY
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const url = process.env.MEAL_DETAIL_SERVICE_URL.replace(':meal_id', mealId);
+        const response = await axios.get(url, { headers });
         return response.data;
     } catch (error) {
         handleApiError(error, 'Meal Service');
@@ -96,6 +116,40 @@ const getRecipeById = async (recipeId, token = null) => {
     }
 };
 
+// ==================== SURVEY SERVICE APIs ====================
+
+// Lấy user profile từ survey service
+const getUserProfile = async (userId, token = null) => {
+    try {
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await surveyServiceClient.get(`/profile/${userId}`, { headers });
+        return response.data;
+    } catch (error) {
+        handleApiError(error, 'Survey Service');
+    }
+};
+
+// Lấy user full profile từ survey service (bao gồm nutrition goals)
+const getUserFullProfile = async (token) => {
+    try {
+        const headers = {
+            'x-api-key': process.env.API_KEY
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await axios.get(process.env.SURVEY_PROFILE_URL, { headers });
+        return response.data;
+    } catch (error) {
+        handleApiError(error, 'Survey Service');
+    }
+};
+
 // ==================== INGREDIENT SERVICE APIs ====================
 
 // Lấy ingredient theo ID với token
@@ -113,20 +167,20 @@ const getIngredientById = async (ingredientId, token = null) => {
     }
 };
 
-// ==================== SURVEY SERVICE APIs ====================
-
-// Lấy user profile từ survey service
-const getUserProfile = async (userId, token = null) => {
+// Lấy danh sách ingredient categories
+const getIngredientCategories = async (token = null) => {
     try {
-        const headers = {};
+        const headers = {
+            'x-api-key': process.env.API_KEY
+        };
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
         
-        const response = await surveyServiceClient.get(`/profile/${userId}`, { headers });
+        const response = await axios.get(`${process.env.INGREDIENT_CATEGORIES_URL}?page=1&limit=200`, { headers });
         return response.data;
     } catch (error) {
-        handleApiError(error, 'Survey Service');
+        handleApiError(error, 'Ingredient Service');
     }
 };
 
@@ -147,6 +201,23 @@ const getMealCategories = async (token = null) => {
     }
 };
 
+// Lấy danh sách meal categories
+const getAllMealCategories = async (token = null) => {
+    try {
+        const headers = {
+            'x-api-key': process.env.API_KEY
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await axios.get(process.env.MEAL_CATEGORIES_URL, { headers });
+        return response.data;
+    } catch (error) {
+        handleApiError(error, 'Meal Service');
+    }
+};
+
 // Lấy món ăn theo danh mục
 const getMealsByCategory = async (categoryId, token = null) => {
     try {
@@ -156,6 +227,26 @@ const getMealsByCategory = async (categoryId, token = null) => {
         }
         
         const response = await mealServiceClient.get(`/category/${categoryId}`, { headers });
+        return response.data;
+    } catch (error) {
+        handleApiError(error, 'Meal Service');
+    }
+};
+
+// Lấy món ăn theo category với pagination
+const getMealsByCategoryWithLimit = async (categoryId, token = null, limit = 200) => {
+    try {
+        const headers = {
+            'x-api-key': process.env.API_KEY
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await axios.get(
+            `${process.env.MEAL_BY_CATEGORY_URL}/${categoryId}?page=1&limit=${limit}`, 
+            { headers }
+        );
         return response.data;
     } catch (error) {
         handleApiError(error, 'Meal Service');
@@ -241,17 +332,22 @@ module.exports = {
     // Meal Service APIs
     getAllMeals,
     getMealCategories,
+    getAllMealCategories,
     getMealsByCategory,
+    getMealsByCategoryWithLimit,
     getDietTypeById,
+    getMealDetailById, // Export function mới
     
     // Recipe Service APIs
     getRecipeById,
     
     // Ingredient Service APIs
     getIngredientById,
+    getIngredientCategories,
     
     // Survey Service APIs
     getUserProfile,
+    getUserFullProfile,
     
     // Utility Functions
     getMealWithFullDetails,

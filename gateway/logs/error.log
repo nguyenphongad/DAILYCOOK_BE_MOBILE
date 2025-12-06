@@ -61,3 +61,8 @@
 {"level":"error","message":"Proxy error (meal service): ","service":"api-gateway","timestamp":"2025-12-04 00:46:43"}
 {"level":"error","message":"Proxy error (meal service): ","service":"api-gateway","timestamp":"2025-12-04 00:46:43"}
 {"level":"error","message":"Proxy error (meal service): ","service":"api-gateway","timestamp":"2025-12-04 00:46:43"}
+{"level":"error","message":"Proxy error (surveys service): ","service":"api-gateway","timestamp":"2025-12-06 16:24:33"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-12-06 16:27:52"}
+{"level":"error","message":"Lỗi xác thực: jwt expired","service":"api-gateway","timestamp":"2025-12-06 16:31:14"}
+{"level":"error","message":"Lỗi xác thực: jwt expired","service":"api-gateway","timestamp":"2025-12-06 20:24:03"}
+{"level":"error","message":"Proxy error (meal service): ","service":"api-gateway","timestamp":"2025-12-06 20:32:01"}
