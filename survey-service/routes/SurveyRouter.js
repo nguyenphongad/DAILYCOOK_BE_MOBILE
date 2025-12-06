@@ -45,4 +45,11 @@ router.post('/surveys/responses', verifyApiKey, verifyToken, surveyController.su
 router.get('/users/:id/dietary-preferences', verifyApiKey, verifyToken, surveyController.getDietaryPreferences); // Xem chế độ ăn của user
 router.put('/users/:id/dietary-preferences', verifyApiKey, verifyToken, surveyController.updateDietaryPreferences); // Cập nhật chế độ ăn của user
 
+// =================================
+// NUTRITION GOALS ROUTES
+// =================================
+router.post('/nutrition-goals/calculate', verifyApiKey, verifyToken, surveyController.calculateNutritionGoals); // Tính toán mục tiêu dinh dưỡng tự động
+router.get('/nutrition-goals', verifyApiKey, verifyToken, surveyController.getNutritionGoals); // Xem mục tiêu dinh dưỡng hiện tại
+router.put('/nutrition-goals', verifyApiKey, verifyToken, surveyController.updateNutritionGoals); // Cập nhật mục tiêu dinh dưỡng thủ công
+
 module.exports = router;

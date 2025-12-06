@@ -43,6 +43,18 @@ const mealPlanSchema = new mongoose.Schema({
     forFamily: {
         type: Boolean,
         default: false
+    },
+    generatedByAI: {
+        type: Boolean,
+        default: false
+    },
+    aiMetadata: {
+        userProfile: {
+            dietType: String,
+            allergies: [String],
+            dislikeIngredients: [String]
+        },
+        generatedAt: Date
     }
 }, {
     timestamps: true

@@ -531,7 +531,353 @@ const surveyController = {
                 error: error.message
             });
         }
-    }
+    },
+
+    // NUTRITION GOALS CALCULATOR
+    calculateNutritionGoals: async (req, res) => {
+        try {
+            const userId = req.user._id;
+            
+            // Lấy user profile
+            const userProfile = await UserProfile.findOne({ user_id: userId });
+            if (!userProfile) {
+                return res.status(404).json({
+                    type: "CALCULATE_NUTRITION_GOALS",
+                    status: false,
+                    message: "Không tìm thấy thông tin người dùng. Vui lòng hoàn thành onboarding trước."
+                });
+            }
+
+            const { personalInfo, familyInfo, dietaryPreferences, isFamily } = userProfile;
+
+            // Kiểm tra chế độ ăn
+            if (!dietaryPreferences?.DietType_id) {
+                return res.status(400).json({
+                    type: "CALCULATE_NUTRITION_GOALS",
+                    status: false,
+                    message: "Thiếu thông tin chế độ ăn. Vui lòng cập nhật."
+                });
+            }
+
+            let bmr, targetCalories;
+            let calculationMethod;
+
+            // ========== XỬ LÝ THEO LOẠI PROFILE ==========
+            if (!isFamily) {
+                // ===== CÁ NHÂN =====
+                if (!personalInfo?.height || !personalInfo?.weight || !personalInfo?.age || !personalInfo?.gender) {
+                    return res.status(400).json({
+                        type: "CALCULATE_NUTRITION_GOALS",
+                        status: false,
+                        message: "Thiếu thông tin cá nhân (chiều cao, cân nặng, tuổi, giới tính). Vui lòng cập nhật."
+                    });
+                }
+
+                // Tính BMR theo công thức Mifflin-St Jeor
+                const { height, weight, age, gender } = personalInfo;
+                
+                if (gender === 'male') {
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+                } else if (gender === 'female') {
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+                } else {
+                    bmr = (10 * weight) + (6.25 * height) - (5 * age) - 78;
+                }
+
+                // Sử dụng BMR trực tiếp, không nhân với activity level
+                targetCalories = Math.round(bmr);
+                calculationMethod = "BMR (Mifflin-St Jeor)";
+
+            } else {
+                // ===== GIA ĐÌNH =====
+                if (!familyInfo?.children && !familyInfo?.teenagers && !familyInfo?.adults && !familyInfo?.elderly) {
+                    return res.status(400).json({
+                        type: "CALCULATE_NUTRITION_GOALS",
+                        status: false,
+                        message: "Thiếu thông tin gia đình. Vui lòng cập nhật số lượng thành viên."
+                    });
+                }
+
+                // Định mức calo cho từng nhóm tuổi
+                const CALORIE_QUOTA = {
+                    children: 1600,    // Trẻ em
+                    teenagers: 2500,   // Thanh thiếu niên
+                    adults: 2100,      // Người lớn
+                    elderly: 1700      // Người cao tuổi
+                };
+
+                // Tính tổng calo gia đình
+                const totalFamilyCalories = 
+                    (familyInfo.children || 0) * CALORIE_QUOTA.children +
+                    (familyInfo.teenagers || 0) * CALORIE_QUOTA.teenagers +
+                    (familyInfo.adults || 0) * CALORIE_QUOTA.adults +
+                    (familyInfo.elderly || 0) * CALORIE_QUOTA.elderly;
+
+                targetCalories = totalFamilyCalories;
+                bmr = null; // Không áp dụng BMR cho gia đình
+                calculationMethod = "Tổng định mức calo gia đình";
+            }
+
+            // ========== GỌI API LẤY DIET TYPE ==========
+            const axios = require('axios');
+
+
+            console.log("dietaryPreferences.DietType_id :", dietaryPreferences.DietType_id);
+
+            const dietTypeUrl = process.env.PORT_MEAL_DIETTYPE_DETAIL_ID.replace(':keyword', dietaryPreferences.DietType_id);
+            const token = req.headers.authorization;
+            
+            let dietTypeData;
+            try {
+                const response = await axios.get(dietTypeUrl, {
+                    headers: {
+                        'x-api-key': process.env.API_KEY,
+                        ...(token && { 'Authorization': token })
+                    }
+                });
+
+                dietTypeData = response.data.data;
+            } catch (error) {
+                console.error('Error fetching diet type:', error.message);
+                return res.status(400).json({
+                    type: "CALCULATE_NUTRITION_GOALS",
+                    status: false,
+                    message: "Không thể lấy thông tin chế độ ăn. Vui lòng kiểm tra lại DietType_id."
+                });
+            }
+
+            // Lấy nutrition từ diet type
+            const { nutrition } = dietTypeData;
+            if (!nutrition || !nutrition.calories) {
+                return res.status(400).json({
+                    type: "CALCULATE_NUTRITION_GOALS",
+                    status: false,
+                    message: "Chế độ ăn không có thông tin dinh dưỡng."
+                });
+            }
+
+            // ========== TÍNH TỶ LỆ % TỪ GRAMS ==========
+            // Protein & Carbs: 1g = 4 kcal, Fat: 1g = 9 kcal
+            const proteinCalories = nutrition.protein * 4;
+            const carbCalories = nutrition.carbs * 4;
+            const fatCalories = nutrition.fat * 9;
+            const dietTypeCalories = nutrition.calories;
+
+            const proteinPercentage = Math.round((proteinCalories / dietTypeCalories) * 100);
+            const carbPercentage = Math.round((carbCalories / dietTypeCalories) * 100);
+            const fatPercentage = Math.round((fatCalories / dietTypeCalories) * 100);
+
+            // ========== TÍNH GRAMS THỰC TẾ CHO TARGET CALORIES ==========
+            const actualCarbGrams = Math.round((targetCalories * carbPercentage / 100) / 4);
+            const actualProteinGrams = Math.round((targetCalories * proteinPercentage / 100) / 4);
+            const actualFatGrams = Math.round((targetCalories * fatPercentage / 100) / 9);
+
+            // Tính lượng nước cần uống
+            let waterIntakeGoal;
+            if (!isFamily) {
+                // Cá nhân: 35ml/kg cân nặng
+                waterIntakeGoal = Math.round((personalInfo.weight * 35) / 1000 * 10) / 10;
+            } else {
+                // Gia đình: Ước tính dựa trên số người (2.5L/người trung bình)
+                const totalMembers = 
+                    (familyInfo.children || 0) + 
+                    (familyInfo.teenagers || 0) + 
+                    (familyInfo.adults || 0) + 
+                    (familyInfo.elderly || 0);
+                waterIntakeGoal = Math.round(totalMembers * 2.5 * 10) / 10;
+            }
+
+            // ========== CẬP NHẬT NUTRITION GOALS ==========
+            userProfile.nutritionGoals = {
+                caloriesPerDay: targetCalories,
+                proteinPercentage: proteinPercentage,
+                carbPercentage: carbPercentage,
+                fatPercentage: fatPercentage,
+                waterIntakeGoal: waterIntakeGoal
+            };
+
+            await userProfile.save();
+
+            // ========== TẠO RESPONSE DATA ==========
+            const responseData = {
+                user_id: userId,
+                profileType: isFamily ? 'family' : 'personal',
+                dietType: {
+                    _id: dietTypeData._id,
+                    title: dietTypeData.title,
+                    keyword: dietTypeData.keyword
+                },
+                calculations: {
+                    method: calculationMethod,
+                    targetCalories: targetCalories
+                },
+                nutritionGoals: {
+                    caloriesPerDay: targetCalories,
+                    proteinPercentage: proteinPercentage,
+                    carbPercentage: carbPercentage,
+                    fatPercentage: fatPercentage,
+                    waterIntakeGoal: waterIntakeGoal
+                },
+                macroDetails: {
+                    carbs: {
+                        percentage: carbPercentage,
+                        calories: Math.round(targetCalories * carbPercentage / 100),
+                        grams: actualCarbGrams
+                    },
+                    protein: {
+                        percentage: proteinPercentage,
+                        calories: Math.round(targetCalories * proteinPercentage / 100),
+                        grams: actualProteinGrams
+                    },
+                    fat: {
+                        percentage: fatPercentage,
+                        calories: Math.round(targetCalories * fatPercentage / 100),
+                        grams: actualFatGrams
+                    }
+                },
+                dietTypeInfo: {
+                    description: dietTypeData.description,
+                    researchSource: dietTypeData.researchSource
+                }
+            };
+
+            // Thêm thông tin chi tiết theo loại profile
+            if (!isFamily) {
+                responseData.personalInfo = {
+                    height: personalInfo.height,
+                    weight: personalInfo.weight,
+                    age: personalInfo.age,
+                    gender: personalInfo.gender
+                };
+                responseData.calculations.bmr = Math.round(bmr);
+                // Xóa activityLevel khỏi response
+            } else {
+                responseData.familyInfo = {
+                    children: familyInfo.children || 0,
+                    teenagers: familyInfo.teenagers || 0,
+                    adults: familyInfo.adults || 0,
+                    elderly: familyInfo.elderly || 0,
+                    totalMembers: 
+                        (familyInfo.children || 0) + 
+                        (familyInfo.teenagers || 0) + 
+                        (familyInfo.adults || 0) + 
+                        (familyInfo.elderly || 0)
+                };
+                responseData.calculations.breakdown = {
+                    children: `${familyInfo.children || 0} × 1,600 = ${(familyInfo.children || 0) * 1600} kcal`,
+                    teenagers: `${familyInfo.teenagers || 0} × 2,500 = ${(familyInfo.teenagers || 0) * 2500} kcal`,
+                    adults: `${familyInfo.adults || 0} × 2,100 = ${(familyInfo.adults || 0) * 2100} kcal`,
+                    elderly: `${familyInfo.elderly || 0} × 1,700 = ${(familyInfo.elderly || 0) * 1700} kcal`
+                };
+            }
+
+            res.status(200).json({
+                type: "CALCULATE_NUTRITION_GOALS",
+                status: true,
+                message: isFamily 
+                    ? "Tính toán mục tiêu dinh dưỡng cho gia đình thành công" 
+                    : "Tính toán mục tiêu dinh dưỡng cá nhân thành công",
+                data: responseData
+            });
+        } catch (error) {
+            console.error('Error in calculateNutritionGoals:', error);
+            res.status(500).json({
+                type: "CALCULATE_NUTRITION_GOALS",
+                status: false,
+                message: "Lỗi khi tính toán mục tiêu dinh dưỡng",
+                error: error.message
+            });
+        }
+    },
+
+    // Cập nhật manual nutrition goals (nếu user muốn tự điều chỉnh)
+    updateNutritionGoals: async (req, res) => {
+        try {
+            const userId = req.user._id;
+            const { caloriesPerDay, proteinPercentage, carbPercentage, fatPercentage, waterIntakeGoal } = req.body;
+
+            // Validate tổng % phải = 100
+            if (proteinPercentage && carbPercentage && fatPercentage) {
+                const totalPercentage = proteinPercentage + carbPercentage + fatPercentage;
+                if (totalPercentage !== 100) {
+                    return res.status(400).json({
+                        type: "UPDATE_NUTRITION_GOALS",
+                        status: false,
+                        message: `Tổng phần trăm macro phải bằng 100. Hiện tại: ${totalPercentage}%`
+                    });
+                }
+            }
+
+            const userProfile = await UserProfile.findOne({ user_id: userId });
+            if (!userProfile) {
+                return res.status(404).json({
+                    type: "UPDATE_NUTRITION_GOALS",
+                    status: false,
+                    message: "Không tìm thấy thông tin người dùng"
+                });
+            }
+
+            // Cập nhật từng field nếu có
+            if (caloriesPerDay) userProfile.nutritionGoals.caloriesPerDay = caloriesPerDay;
+            if (proteinPercentage) userProfile.nutritionGoals.proteinPercentage = proteinPercentage;
+            if (carbPercentage) userProfile.nutritionGoals.carbPercentage = carbPercentage;
+            if (fatPercentage) userProfile.nutritionGoals.fatPercentage = fatPercentage;
+            if (waterIntakeGoal) userProfile.nutritionGoals.waterIntakeGoal = waterIntakeGoal;
+
+            await userProfile.save();
+
+            res.status(200).json({
+                type: "UPDATE_NUTRITION_GOALS",
+                status: true,
+                message: "Cập nhật mục tiêu dinh dưỡng thành công",
+                data: {
+                    user_id: userId,
+                    nutritionGoals: userProfile.nutritionGoals
+                }
+            });
+        } catch (error) {
+            res.status(500).json({
+                type: "UPDATE_NUTRITION_GOALS",
+                status: false,
+                message: "Lỗi khi cập nhật mục tiêu dinh dưỡng",
+                error: error.message
+            });
+        }
+    },
+
+    // Lấy nutrition goals hiện tại
+    getNutritionGoals: async (req, res) => {
+        try {
+            const userId = req.user._id;
+
+            const userProfile = await UserProfile.findOne({ user_id: userId });
+            if (!userProfile) {
+                return res.status(404).json({
+                    type: "GET_NUTRITION_GOALS",
+                    status: false,
+                    message: "Không tìm thấy thông tin người dùng"
+                });
+            }
+
+            res.status(200).json({
+                type: "GET_NUTRITION_GOALS",
+                status: true,
+                message: "Truy vấn thành công",
+                data: {
+                    user_id: userId,
+                    nutritionGoals: userProfile.nutritionGoals,
+                    hasGoals: !!(userProfile.nutritionGoals?.caloriesPerDay)
+                }
+            });
+        } catch (error) {
+            res.status(500).json({
+                type: "GET_NUTRITION_GOALS",
+                status: false,
+                message: "Lỗi khi lấy mục tiêu dinh dưỡng",
+                error: error.message
+            });
+        }
+    },
 };
 
 module.exports = surveyController;

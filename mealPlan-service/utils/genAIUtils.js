@@ -35,140 +35,128 @@ const generateSimpleMealPlan = (allMeals, forFamily = false) => {
     }
 };
 
-// AI tạo thực đơn - COMMENTED OUT
-/*
-const generateMealPlanWithAI = async (date, forFamily, preferences, allMeals) => {
+// AI tạo thực đơn dựa trên user profile và dietary preferences
+const generateAIBasedMealPlan = async ({ date, forFamily, userProfile, allMeals }) => {
     try {
-        const prompt = `
-        Bạn là một chuyên gia dinh dưỡng. Tạo thực đơn cho ${forFamily ? 'gia đình 4 người' : 'cá nhân'} cho ngày ${date}.
+        const { personalInfo = {}, dietaryPreferences = {}, nutritionGoals = {}, familyInfo = {} } = userProfile;
+
+        // Lọc món ăn loại bỏ allergies và dislike ingredients
+        const allergies = dietaryPreferences.allergies || [];
+        const dislikeIngredients = dietaryPreferences.dislikeIngredients || [];
         
-        Yêu cầu:
-        - Cân bằng dinh dưỡng (protein, carb, chất béo, vitamin, khoáng chất)
-        - Đa dạng món ăn
-        - Phù hợp với văn hóa ẩm thực Việt Nam
-        - Khẩu phần ăn hợp lý
-        
-        Sở thích: ${JSON.stringify(preferences)}
-        
-        Chọn từ danh sách món ăn sau (chỉ chọn những món có trong danh sách): 
-        ${JSON.stringify(allMeals.slice(0, 100).map(meal => ({
-            _id: meal._id,
-            name: meal.name,
-            category: meal.category,
-            nutrition: meal.nutrition
-        })))}
-        
-        Trả về JSON format chính xác như sau (không thêm text gì khác):
-        {
-            "breakfast": [{"meal_id": "id_thực_tế", "portionSize": {"amount": số_thực, "unit": "gram|portion|piece"}}],
-            "lunch": [{"meal_id": "id_thực_tế", "portionSize": {"amount": số_thực, "unit": "gram|portion|piece"}}],
-            "dinner": [{"meal_id": "id_thực_tế", "portionSize": {"amount": số_thực, "unit": "gram|portion|piece"}}]
+        const filteredMeals = allMeals.filter(meal => {
+            if (!meal.ingredients) return true;
+            
+            // Kiểm tra có chứa nguyên liệu dị ứng hoặc không thích
+            const hasAllergen = meal.ingredients.some(ing => 
+                allergies.includes(ing.ingredient_id) || 
+                allergies.includes(ing.name)
+            );
+            
+            const hasDisliked = meal.ingredients.some(ing => 
+                dislikeIngredients.includes(ing.ingredient_id) || 
+                dislikeIngredients.includes(ing.name)
+            );
+            
+            return !hasAllergen && !hasDisliked;
+        });
+
+        if (filteredMeals.length < 6) {
+            throw new Error('Không đủ món ăn phù hợp sau khi lọc. Vui lòng cập nhật sở thích.');
         }
-        `;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        // Tính số người ăn
+        const totalPeople = forFamily 
+            ? (familyInfo.adults || 2) + (familyInfo.children || 0) + (familyInfo.teenagers || 0) + (familyInfo.elderly || 0)
+            : 1;
+
+        // Tạo prompt cho Gemini AI
+        const prompt = `
+Bạn là chuyên gia dinh dưỡng chuyên nghiệp. Tạo thực đơn cho ngày ${date}.
+
+**THÔNG TIN:**
+- Đối tượng: ${forFamily ? `Gia đình ${totalPeople} người` : 'Cá nhân'}
+${personalInfo.height ? `- Chiều cao: ${personalInfo.height} cm` : ''}
+${personalInfo.weight ? `- Cân nặng: ${personalInfo.weight} kg` : ''}
+${personalInfo.age ? `- Tuổi: ${personalInfo.age}` : ''}
+${personalInfo.gender ? `- Giới tính: ${personalInfo.gender}` : ''}
+- Chế độ ăn: ${dietaryPreferences.DietType_id || 'Bình thường'}
+${nutritionGoals.caloriesPerDay ? `- Calories mục tiêu: ${nutritionGoals.caloriesPerDay} kcal/ngày` : ''}
+
+**YÊU CẦU:**
+1. Cân bằng dinh dưỡng
+2. Đa dạng món ăn
+3. Phù hợp văn hóa Việt Nam
+4. Khẩu phần: ${totalPeople} người
+
+**MÓN ĂN CÓ SẴN (đã lọc dị ứng & không thích):**
+${JSON.stringify(filteredMeals.slice(0, 50).map(meal => ({
+    _id: meal._id,
+    name: meal.name,
+    category: meal.mealCategory,
+    calories: meal.nutrition?.calories
+})), null, 2)}
+
+**OUTPUT JSON (không thêm text khác):**
+{
+    "breakfast": [
+        {"meal_id": "id_thực_tế", "portionSize": {"amount": ${totalPeople}, "unit": "portion"}}
+    ],
+    "lunch": [
+        {"meal_id": "id_thực_tế", "portionSize": {"amount": ${totalPeople}, "unit": "portion"}}
+    ],
+    "dinner": [
+        {"meal_id": "id_thực_tế", "portionSize": {"amount": ${totalPeople}, "unit": "portion"}}
+    ]
+}
+
+Chọn 2-3 món mỗi bữa từ danh sách trên.`;
+
+        const model = genAI.getGenerativeModel({ 
+            model: process.env.GEMINI_MODEL || "gemini-1.5-flash"
+        });
+        
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
         
-        // Clean response text để đảm bảo parse JSON thành công
-        const cleanText = text.replace(/```json|```/g, '').trim();
-        return JSON.parse(cleanText);
-    } catch (error) {
-        console.error('Error in generateMealPlanWithAI:', error);
-        throw new Error('Lỗi tạo thực đơn với AI: ' + error.message);
-    }
-};
-*/
-
-// AI tìm món tương tự - COMMENTED OUT
-/*
-const findSimilarMealsWithAI = async (currentMeal, allMeals) => {
-    try {
-        const prompt = `
-        Bạn là chuyên gia ẩm thực. Tìm 5 món ăn tương tự nhất với món ăn sau:
-        Món hiện tại: ${JSON.stringify({
-            name: currentMeal.name,
-            category: currentMeal.category,
-            ingredients: currentMeal.ingredients,
-            cookingMethod: currentMeal.cookingMethod,
-            nutrition: currentMeal.nutrition
-        })}
+        // Clean và parse JSON
+        let cleanText = text.trim();
+        cleanText = cleanText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+        cleanText = cleanText.replace(/^[^{]*({[\s\S]*})[^}]*$/, '$1');
         
-        Từ danh sách món ăn:
-        ${JSON.stringify(allMeals.slice(0, 200).map(meal => ({
-            _id: meal._id,
-            name: meal.name,
-            category: meal.category,
-            ingredients: meal.ingredients,
-            cookingMethod: meal.cookingMethod,
-            nutrition: meal.nutrition
-        })))}
+        const parsedResponse = JSON.parse(cleanText);
         
-        Tiêu chí tương tự:
-        1. Cùng category hoặc phù hợp cho cùng bữa ăn
-        2. Tương tự ingredients chính
-        3. Tương tự cooking method
-        4. Tương tự nutrition profile
-        5. Phù hợp thay thế trong thực đơn
-        
-        Trả về JSON array chỉ chứa meal_id (không thêm text gì khác):
-        ["id1", "id2", "id3", "id4", "id5"]
-        `;
-
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-        
-        // Clean response text
-        const cleanText = text.replace(/```json|```/g, '').trim();
-        return JSON.parse(cleanText);
-    } catch (error) {
-        console.error('Error in findSimilarMealsWithAI:', error);
-        throw new Error('Lỗi tìm món tương tự với AI: ' + error.message);
-    }
-};
-*/
-
-// AI đề xuất khẩu phần phù hợp - COMMENTED OUT
-/*
-const suggestPortionSize = async (mealInfo, forFamily, userPreferences = {}) => {
-    try {
-        const prompt = `
-        Đề xuất khẩu phần phù hợp cho món ăn:
-        Món ăn: ${JSON.stringify(mealInfo)}
-        Đối tượng: ${forFamily ? 'Gia đình 4 người (2 người lớn, 2 trẻ em)' : 'Cá nhân'}
-        Sở thích: ${JSON.stringify(userPreferences)}
-        
-        Trả về JSON format:
-        {
-            "amount": số_thực,
-            "unit": "gram|portion|piece|ml"
+        // Validate response
+        if (!parsedResponse.breakfast || !parsedResponse.lunch || !parsedResponse.dinner) {
+            throw new Error('AI response không đúng format');
         }
-        `;
-
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
         
-        const cleanText = text.replace(/```json|```/g, '').trim();
-        return JSON.parse(cleanText);
-    } catch (error) {
-        console.error('Error in suggestPortionSize:', error);
-        // Return default portion size if AI fails
-        return {
-            amount: forFamily ? 4 : 1,
-            unit: "portion"
+        // Validate meal_ids tồn tại
+        const validateMealIds = (meals) => {
+            return meals.every(m => 
+                filteredMeals.some(fm => fm._id === m.meal_id)
+            );
         };
+        
+        if (!validateMealIds(parsedResponse.breakfast) || 
+            !validateMealIds(parsedResponse.lunch) || 
+            !validateMealIds(parsedResponse.dinner)) {
+            throw new Error('AI chọn món không có trong danh sách');
+        }
+        
+        return parsedResponse;
+    } catch (error) {
+        console.error('Error in generateAIBasedMealPlan:', error);
+        
+        // Fallback: nếu AI fail, dùng random selection
+        console.log('Fallback to simple meal plan...');
+        const simplePlan = generateSimpleMealPlan({ data: { meals: allMeals } }, forFamily);
+        return simplePlan;
     }
 };
-*/
 
 module.exports = {
-    generateSimpleMealPlan
-    // generateMealPlanWithAI, // commented out
-    // findSimilarMealsWithAI, // commented out
-    // suggestPortionSize // commented out
+    generateSimpleMealPlan,
+    generateAIBasedMealPlan
 };

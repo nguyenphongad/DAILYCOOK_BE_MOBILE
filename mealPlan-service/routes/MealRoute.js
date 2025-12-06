@@ -19,6 +19,9 @@ router.use(authenticateUser);
 // Tạo thực đơn (random meals với chi tiết đầy đủ)
 router.post('/generate', MealPlanController.generateMealPlan);
 
+// Tạo thực đơn bằng AI dựa trên user profile
+router.post('/generate-ai', MealPlanController.generateAIMealPlan);
+
 // Lấy thực đơn
 router.get('/', MealPlanController.getMealPlan);
 

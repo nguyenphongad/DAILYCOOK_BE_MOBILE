@@ -1,12 +1,15 @@
 const MealPlan = require('../models/MealPlanModel');
-const { generateSimpleMealPlan } = require('../utils/genAIUtils');
+const { generateSimpleMealPlan, generateAIBasedMealPlan } = require('../utils/genAIUtils');
 const {
     saveMealPlanToRedis,
     getMealPlanFromRedis
 } = require('../utils/redisUtils');
 const {
     getAllMeals,
-    getMultipleMealsWithDetails
+    getMultipleMealsWithDetails,
+    getUserProfile,
+    getMealCategories,
+    getMealsByCategory
 } = require('../utils/apiUtils');
 
 // Lấy tất cả món ăn từ Meal Service với token
@@ -34,7 +37,7 @@ const generateMealPlan = async (req, res) => {
 
         // Kiểm tra cache Redis trước
         const cached = await getMealPlanFromRedis(redis, userId, date);
-        if (cached) {
+        if (cached && !cached.generatedByAI) {
             return res.json({ success: true, data: cached, fromCache: true });
         }
 
@@ -73,7 +76,8 @@ const generateMealPlan = async (req, res) => {
             user_id: userId,
             date: new Date(date),
             mealPlan,
-            forFamily
+            forFamily,
+            generatedByAI: false
         };
 
         // Lưu vào Redis
@@ -347,8 +351,118 @@ const getSimilarMeals = async (req, res) => {
     }
 };
 
+// Tạo thực đơn bằng AI dựa trên user profile
+const generateAIMealPlanController = async (req, res) => {
+    try {
+        const { date, forFamily = false } = req.body;
+        const userId = req.user_id;
+        const redis = req.app.locals.redis;
+        const token = req.headers.authorization?.replace('Bearer ', '');
+
+        if (!date) {
+            return res.status(400).json({ error: 'Ngày không được để trống' });
+        }
+
+        // Kiểm tra cache Redis trước
+        const cached = await getMealPlanFromRedis(redis, userId, date);
+        if (cached && cached.generatedByAI) {
+            return res.json({ 
+                success: true, 
+                data: cached, 
+                fromCache: true 
+            });
+        }
+
+        // Lấy thông tin user profile
+        const userProfileResponse = await getUserProfile(userId, token);
+        if (!userProfileResponse.success) {
+            return res.status(404).json({ 
+                error: 'Không tìm thấy thông tin người dùng. Vui lòng hoàn thành khảo sát trước.' 
+            });
+        }
+
+        const userProfile = userProfileResponse.data;
+
+        // Lấy danh mục món ăn
+        const mealCategoriesResponse = await getMealCategories(token);
+        const mealCategories = mealCategoriesResponse.data || [];
+
+        // Lấy tất cả món ăn từ các danh mục
+        const allMealsPromises = mealCategories.map(category => 
+            getMealsByCategory(category._id, token)
+        );
+        const allMealsResults = await Promise.all(allMealsPromises);
+        const allMeals = allMealsResults.flatMap(result => result.data || []);
+
+        if (allMeals.length === 0) {
+            return res.status(404).json({ error: 'Không tìm thấy món ăn nào' });
+        }
+
+        // Gọi AI để tạo thực đơn
+        const aiMealPlan = await generateAIBasedMealPlan({
+            date,
+            forFamily,
+            userProfile,
+            allMeals
+        });
+
+        // Lấy chi tiết đầy đủ của các món ăn đã chọn
+        const mealPlan = [];
+        for (const [servingTime, mealIds] of Object.entries(aiMealPlan)) {
+            const mealsToGet = mealIds.map(mealId => 
+                allMeals.find(m => m._id === mealId.meal_id)
+            ).filter(Boolean);
+            
+            const detailedMeals = await getMultipleMealsWithDetails(mealsToGet, token);
+            
+            mealPlan.push({
+                servingTime,
+                meals: mealIds.map((mealId, index) => ({
+                    meal_id: mealId.meal_id,
+                    isEaten: false,
+                    portionSize: mealId.portionSize,
+                    mealDetail: detailedMeals[index] || null
+                }))
+            });
+        }
+
+        const newMealPlan = {
+            user_id: userId,
+            date: new Date(date),
+            mealPlan,
+            forFamily,
+            generatedByAI: true,
+            aiMetadata: {
+                userProfile: {
+                    dietType: userProfile.dietaryPreferences?.DietType_id,
+                    allergies: userProfile.dietaryPreferences?.allergies,
+                    dislikeIngredients: userProfile.dietaryPreferences?.dislikeIngredients
+                },
+                generatedAt: new Date()
+            }
+        };
+
+        // Lưu vào Redis
+        await saveMealPlanToRedis(redis, userId, date, newMealPlan);
+
+        res.json({ 
+            success: true, 
+            data: newMealPlan, 
+            fromCache: false,
+            message: 'Thực đơn được tạo bởi AI dựa trên thông tin cá nhân và sở thích của bạn'
+        });
+    } catch (error) {
+        console.error('Error generating AI meal plan:', error);
+        res.status(500).json({ 
+            error: 'Lỗi tạo thực đơn bằng AI', 
+            details: error.message 
+        });
+    }
+};
+
 module.exports = {
     generateMealPlan,
+    generateAIMealPlan: generateAIMealPlanController,
     replaceMeal,
     removeMeal,
     saveMealPlan,
