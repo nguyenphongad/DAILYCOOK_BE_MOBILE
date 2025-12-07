@@ -23,7 +23,7 @@ const Ingredients1 = () => {
     const ingredientCategoryState = useSelector((state) => state.ingredientCategory);
     const measurementUnitsState = useSelector((state) => state.measurementUnits);
 
-    const { ingredients = [], loading, pagination = { page: 1, limit: 9, total: 0 } } = ingredientState || {};
+    const { ingredients = [], loading, pagination = { page: 1, limit: 30, total: 0 } } = ingredientState || {};
     const { ingredientCategories = [] } = ingredientCategoryState || {};
     const { measurementUnits = [] } = measurementUnitsState || {};
 
@@ -39,8 +39,8 @@ const Ingredients1 = () => {
 
     // --- Fetch dữ liệu khi mount ---
     useEffect(() => {
-        dispatch(fetchIngredients({ page: 1, limit: 9 }));
-        dispatch(fetchIngredientCategories({ page: 1, limit: 50 }));
+        dispatch(fetchIngredients({ page: 1, limit: 30}));
+        dispatch(fetchIngredientCategories({ page: 1, limit: 100 }));
         dispatch(fetchMeasurementUnits());
     }, [dispatch]);
 

@@ -29,7 +29,7 @@ app.use(morgan('combined', { stream: { write: message => logger.info(message.tri
 // Giới hạn tốc độ request - loại trừ health endpoints
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 phút
-  max: 200, // Tăng giới hạn lên 200 request
+  max: 1000, // Tăng giới hạn lên 1000 request
   message: {
     status: 429,
     message: 'Quá nhiều request, vui lòng thử lại sau.'

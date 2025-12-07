@@ -15,7 +15,7 @@ const ManageMealCategories = () => {
     const dispatch = useDispatch();
     const mealCategoryState = useSelector(state => state.mealCategories);
 
-    const { mealCategories = [], loading, pagination = { page: 1, limit: 9 } } = mealCategoryState || {};
+    const { mealCategories = [], loading, pagination = { page: 1, limit: 30 } } = mealCategoryState || {};
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -25,7 +25,7 @@ const ManageMealCategories = () => {
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
-        dispatch(fetchMealCategories({ page: 1, limit: 9 }));
+        dispatch(fetchMealCategories({ page: 1, limit: 30 }));
     }, [dispatch]);
 
     // Lọc danh sách meal categories theo từ khóa tìm kiếm

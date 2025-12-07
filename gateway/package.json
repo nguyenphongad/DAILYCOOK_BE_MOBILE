@@ -4,7 +4,8 @@
   "description": "API Gateway cho hệ thống DailyCook",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "test": "jest"
   },
   "dependencies": {

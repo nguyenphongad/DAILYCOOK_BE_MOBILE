@@ -60,7 +60,7 @@ export const fetchMealById = createAsyncThunk(
 
             const { token } = getState().auth;
             const response = await get(
-                `${ENDPOINT.GET_MEAL}/${id}}`,
+                `${ENDPOINT.GET_MEAL}/${id}`, // Sửa lỗi: bỏ dấu } thừa
                 token
             );
 
@@ -70,7 +70,7 @@ export const fetchMealById = createAsyncThunk(
                 return response.data;
             } else {
                 dispatch(setError(response.message));
-                toast.error(response.message || 'Không thể tải danh sách');
+                toast.error(response.message || 'Không thể tải chi tiết món ăn');
                 return rejectWithValue(response.message);
             }
         } catch (error) {
@@ -78,6 +78,8 @@ export const fetchMealById = createAsyncThunk(
             dispatch(setError(errorMessage));
             toast.error(errorMessage);
             return rejectWithValue(errorMessage);
+        } finally {
+            dispatch(setLoading(false));
         }
     }
 )

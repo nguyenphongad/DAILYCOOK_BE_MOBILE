@@ -1,1 +1,114 @@
+version: '3.8'
+
 services:
+
+  admin:
+      build:
+        context: ./admin
+        dockerfile: Dockerfile
+      ports:
+        - "5173:5173"
+      env_file:
+        - ./admin/.env
+      networks:
+        - dailycook-network
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./gateway/.env
+    depends_on:
+      - auth-service
+      - ingredient-service
+      - meal-service
+      - mealplan-service
+      - recipe-service
+      - survey-service
+      - user-service
+    networks:
+      - dailycook-network
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: .Dockerfile
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./auth-service/.env
+    networks:
+      - dailycook-network
+
+  ingredient-service:
+    build:
+      context: ./ingredient-service
+      dockerfile: .Dockerfile
+    ports:
+      - "5002:5002"
+    env_file:
+      - ./ingredient-service/.env
+    networks:
+      - dailycook-network
+  
+  meal-service:
+    build:
+      context: ./meal-service
+      dockerfile: .Dockerfile
+    ports:
+      - "5003:5003"
+    env_file:
+      - ./meal-service/.env
+    networks:
+      - dailycook-network
+
+  mealplan-service:
+    build:
+      context: ./mealPlan-service
+      dockerfile: .Dockerfile
+    ports:
+      - "5004:5004"
+    env_file:
+      - ./mealPlan-service/.env
+    networks:
+      - dailycook-network
+
+  recipe-service:
+    build:
+      context: ./recipe-service
+      dockerfile: .Dockerfile
+    ports:
+      - "5005:5005"
+    env_file:
+      - ./recipe-service/.env
+    networks:
+      - dailycook-network
+
+  survey-service:
+    build:
+      context: ./survey-service
+      dockerfile: .Dockerfile
+    ports:
+      - "5008:5008"
+    env_file:
+      - ./survey-service/.env
+    networks:
+      - dailycook-network
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: .Dockerfile
+    ports:
+      - "5007:5007"
+    env_file:
+      - ./user-service/.env
+    networks:
+      - dailycook-network
+
+networks:
+  dailycook-network:
+    driver: bridge

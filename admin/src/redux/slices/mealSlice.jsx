@@ -72,7 +72,9 @@ const mealSlice = createSlice({
         },
 
         setSelectedMeal: (state, action) => {
+            // Cập nhật selectedMeal với data mới, bao gồm cả ảnh
             state.selectedMeal = action.payload;
+            state.loading = false;
         },
 
         addMealToList: (state, action) => {
@@ -87,8 +89,9 @@ const mealSlice = createSlice({
             if (index !== -1) {
                 state.meals[index] = action.payload;
             }
+            // QUAN TRỌNG: Cập nhật selectedMeal nếu đang xem chi tiết meal đó
             if (state.selectedMeal && state.selectedMeal._id === action.payload._id) {
-                state.selectedMeal = action.payload;
+                state.selectedMeal = { ...state.selectedMeal, ...action.payload };
             }
             state.loading = false;
             state.success = true;

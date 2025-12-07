@@ -227,10 +227,17 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
       if (updateMeal.fulfilled.match(resultAction)) {
         // Cập nhật thành công
         setIsEditing(false);
-        // Có thể gọi callback để refresh data nếu cần
+        
+        // QUAN TRỌNG: Fetch lại meal detail để cập nhật ảnh mới
+        await dispatch(fetchMealById(meal._id));
+        
+        // Gọi callback để refresh data nếu cần
         if (onEdit) {
           onEdit(resultAction.payload);
         }
+        
+        // Đóng modal sau khi cập nhật thành công
+        onClose();
       } else {
         // Xử lý lỗi nếu cần
         console.error('Update failed:', resultAction.error);

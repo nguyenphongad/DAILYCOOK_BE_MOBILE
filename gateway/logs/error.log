@@ -66,3 +66,16 @@
 {"level":"error","message":"Lỗi xác thực: jwt expired","service":"api-gateway","timestamp":"2025-12-06 16:31:14"}
 {"level":"error","message":"Lỗi xác thực: jwt expired","service":"api-gateway","timestamp":"2025-12-06 20:24:03"}
 {"level":"error","message":"Proxy error (meal service): ","service":"api-gateway","timestamp":"2025-12-06 20:32:01"}
+{"level":"error","message":"Proxy error (meal service): ","service":"api-gateway","timestamp":"2025-12-06 20:32:17"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-12-07 01:59:35"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-12-07 10:19:58"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-12-07 10:20:01"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-12-07 10:20:33"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-12-07 10:21:33"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-12-07 11:08:29"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-12-07 11:08:33"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-12-07 11:20:45"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-12-07 11:26:47"}
+{"level":"error","message":"Proxy error (mealplan service): ","service":"api-gateway","timestamp":"2025-12-07 11:26:49"}
+{"level":"error","message":"Proxy error (mealplan service): read ECONNRESET","service":"api-gateway","timestamp":"2025-12-07 11:57:29"}
+{"level":"error","message":"Proxy error (surveys service): ","service":"api-gateway","timestamp":"2025-12-07 21:51:08"}

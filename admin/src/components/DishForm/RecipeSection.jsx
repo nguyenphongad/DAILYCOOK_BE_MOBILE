@@ -43,7 +43,7 @@ const RecipeSection = ({
       stepNumber: recipeSteps.length + 1,
       title: '',
       description: '',
-      image: ''
+      recipeImage: ''
     };
     setRecipeSteps([...recipeSteps, newStep]);
   };
@@ -75,7 +75,7 @@ const RecipeSection = ({
         if (file) {
           const reader = new FileReader();
           reader.onload = (event) => {
-            handleStepChange(stepIndex, 'image', event.target.result);
+            handleStepChange(stepIndex, 'recipeImage', event.target.result);
             setPastedStepImages(prev => ({
               ...prev,
               [stepIndex]: file
@@ -99,12 +99,12 @@ const RecipeSection = ({
       delete newState[stepIndex];
       return newState;
     });
-    handleStepChange(stepIndex, 'image', '');
+    handleStepChange(stepIndex, 'recipeImage', '');
   };
 
   // Clear ảnh bước đã upload
   const clearStepImage = (stepIndex) => {
-    handleStepChange(stepIndex, 'image', '');
+    handleStepChange(stepIndex, 'recipeImage', '');
     setStepImageFileLists(prev => ({
       ...prev,
       [stepIndex]: []
@@ -130,7 +130,7 @@ const RecipeSection = ({
       const result = await uploadImage(realFile, { folder: 'recipe-steps' });
 
       if (result && result.secure_url) {
-        handleStepChange(stepIndex, 'image', result.secure_url);
+        handleStepChange(stepIndex, 'recipeImage', result.secure_url);
         message.success('Upload ảnh bước thực hiện thành công!');
         setPastedStepImages(prev => {
           const newState = { ...prev };
@@ -438,10 +438,10 @@ const RecipeSection = ({
                   accept="image/*"
                   disabled={pastedStepImages[index] !== undefined}
                 >
-                  {step.image ? (
+                  {step.recipeImage ? (
                     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
                       <Image
-                        src={step.image}
+                        src={step.recipeImage}
                         alt={`step-${index}`}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         preview={false}
