@@ -62,7 +62,6 @@ const DishForm = ({
     recipe: {
       nameRecipe: '',
       description: '',
-      recipeImage: '',
       prepTimeMinutes: 15,
       cookTimeMinutes: 30,
       difficulty: 'easy',
@@ -96,7 +95,7 @@ const DishForm = ({
           stepNumber: step.stepNumber,
           title: step.title || '',
           description: step.description || '',
-          image: step.image || ''
+          recipeImage: step.recipeImage || step.image || ''
         })));
       }
 
@@ -111,7 +110,6 @@ const DishForm = ({
         recipe: {
           nameRecipe: editData.recipe?.nameRecipe || editData.nameMeal || '',
           description: editData.recipe?.description || '',
-          recipeImage: editData.recipe?.recipeImage || '',
           prepTimeMinutes: editData.recipe?.prepTimeMinutes || 15,
           cookTimeMinutes: editData.recipe?.cookTimeMinutes || 30,
           difficulty: editData.recipe?.difficulty || 'easy',
@@ -272,8 +270,13 @@ const DishForm = ({
         ...formData,
         ingredients: selectedIngredients,
         recipe: {
-          ...formData.recipe,
-          steps: recipeSteps
+          nameRecipe: formData.recipe.nameRecipe,
+          description: formData.recipe.description,
+          prepTimeMinutes: formData.recipe.prepTimeMinutes,
+          cookTimeMinutes: formData.recipe.cookTimeMinutes,
+          difficulty: formData.recipe.difficulty,
+          steps: recipeSteps,
+          nutrition: formData.recipe.nutrition
         }
       };
 
@@ -288,7 +291,7 @@ const DishForm = ({
           const uploadResult = await uploadImage(file, { folder: 'recipe-steps' });
           const stepIdx = parseInt(stepIndex);
           if (submitData.recipe.steps[stepIdx]) {
-            submitData.recipe.steps[stepIdx].image = uploadResult.secure_url;
+            submitData.recipe.steps[stepIdx].recipeImage = uploadResult.secure_url;
           }
         }
       }
@@ -315,7 +318,6 @@ const DishForm = ({
           recipe: {
             nameRecipe: '',
             description: '',
-            recipeImage: '',
             prepTimeMinutes: 15,
             cookTimeMinutes: 30,
             difficulty: 'easy',

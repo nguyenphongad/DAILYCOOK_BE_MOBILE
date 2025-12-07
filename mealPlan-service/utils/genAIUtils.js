@@ -221,49 +221,49 @@ const analyzeDietaryNeedsWithAI = async ({ userProfile, ingredientCategories, me
         const { personalInfo, dietaryPreferences, nutritionGoals, isFamily, familyInfo } = userProfile;
         
         const prompt = `
-Bạn là chuyên gia dinh dưỡng AI. Phân tích thông tin người dùng và gợi ý danh mục món ăn phù hợp.
+        Bạn là chuyên gia dinh dưỡng AI. Phân tích thông tin người dùng và gợi ý danh mục món ăn phù hợp.
 
-**THÔNG TIN NGƯỜI DÙNG:**
-- Loại hồ sơ: ${isFamily ? 'Gia đình' : 'Cá nhân'}
-${!isFamily ? `
-- Chiều cao: ${personalInfo?.height || 'N/A'} cm
-- Cân nặng: ${personalInfo?.weight || 'N/A'} kg
-- Tuổi: ${personalInfo?.age || 'N/A'}
-- Giới tính: ${personalInfo?.gender || 'N/A'}
-` : `
-- Số người: ${(familyInfo?.children || 0) + (familyInfo?.teenagers || 0) + (familyInfo?.adults || 0) + (familyInfo?.elderly || 0)}
-`}
-- Chế độ ăn: ${dietaryPreferences?.DietType_id || 'N/A'}
-- Calories mục tiêu: ${nutritionGoals?.caloriesPerDay || 'N/A'} kcal
-- Protein: ${nutritionGoals?.proteinPercentage || 'N/A'}%
-- Carbs: ${nutritionGoals?.carbPercentage || 'N/A'}%
-- Fat: ${nutritionGoals?.fatPercentage || 'N/A'}%
-- Dị ứng: ${dietaryPreferences?.allergies?.join(', ') || 'Không'}
-- Không thích: ${dietaryPreferences?.dislikeIngredients?.join(', ') || 'Không'}
+        **THÔNG TIN NGƯỜI DÙNG:**
+        - Loại hồ sơ: ${isFamily ? 'Gia đình' : 'Cá nhân'}
+        ${!isFamily ? `
+        - Chiều cao: ${personalInfo?.height || 'N/A'} cm
+        - Cân nặng: ${personalInfo?.weight || 'N/A'} kg
+        - Tuổi: ${personalInfo?.age || 'N/A'}
+        - Giới tính: ${personalInfo?.gender || 'N/A'}
+        ` : `
+        - Số người: ${(familyInfo?.children || 0) + (familyInfo?.teenagers || 0) + (familyInfo?.adults || 0) + (familyInfo?.elderly || 0)}
+        `}
+        - Chế độ ăn: ${dietaryPreferences?.DietType_id || 'N/A'}
+        - Calories mục tiêu: ${nutritionGoals?.caloriesPerDay || 'N/A'} kcal
+        - Protein: ${nutritionGoals?.proteinPercentage || 'N/A'}%
+        - Carbs: ${nutritionGoals?.carbPercentage || 'N/A'}%
+        - Fat: ${nutritionGoals?.fatPercentage || 'N/A'}%
+        - Dị ứng: ${dietaryPreferences?.allergies?.join(', ') || 'Không'}
+        - Không thích: ${dietaryPreferences?.dislikeIngredients?.join(', ') || 'Không'}
 
-**DANH MỤC MÓN ĂN CÓ SẴN:**
-${JSON.stringify(mealCategories.map(cat => ({
-    _id: cat._id,
-    keyword: cat.keyword,
-    title: cat.title,
-    description: cat.description
-})), null, 2)}
+        **DANH MỤC MÓN ĂN CÓ SẴN:**
+        ${JSON.stringify(mealCategories.map(cat => ({
+            _id: cat._id,
+            keyword: cat.keyword,
+            title: cat.title,
+            description: cat.description
+        })), null, 2)}
 
-**YÊU CẦU:**
-1. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA SÁNG
-2. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA TRƯA
-3. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA TỐI
-4. Dựa trên chế độ ăn ${dietaryPreferences?.DietType_id}, mục tiêu calories ${nutritionGoals?.caloriesPerDay} kcal
-5. Tránh danh mục có nguyên liệu dị ứng hoặc không thích
+        **YÊU CẦU:**
+        1. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA SÁNG
+        2. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA TRƯA
+        3. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA TỐI
+        4. Dựa trên chế độ ăn ${dietaryPreferences?.DietType_id}, mục tiêu calories ${nutritionGoals?.caloriesPerDay} kcal
+        5. Tránh danh mục có nguyên liệu dị ứng hoặc không thích
 
-**OUTPUT JSON (không thêm text khác):**
-{
-    "breakfast": ["category_id_1", "category_id_2"],
-    "lunch": ["category_id_1", "category_id_2"],
-    "dinner": ["category_id_1", "category_id_2"],
-    "reasoning": "Giải thích ngắn gọn lý do chọn"
-}
-`;
+        **OUTPUT JSON (không thêm text khác):**
+        {
+            "breakfast": ["category_id_1", "category_id_2"],
+            "lunch": ["category_id_1", "category_id_2"],
+            "dinner": ["category_id_1", "category_id_2"],
+            "reasoning": "Giải thích ngắn gọn lý do chọn"
+        }
+        `;
 
         // Gọi Gemini API
         const text = await callGeminiAPI(prompt);

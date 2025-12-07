@@ -20,6 +20,7 @@ const {
     selectMealsWithAI,
     selectSimilarMealsWithAI
 } = require('../utils/genAIUtils');
+const mongoose = require('mongoose'); // Thêm import
 
 // Lấy tất cả món ăn từ Meal Service với token
 const fetchAllMeals = async (token) => {
@@ -879,14 +880,13 @@ const generateAIMealPlanController = async (req, res) => {
     }
 };
 
-// Toggle trạng thái món ăn (tick/untick "Đã ăn")
+// Toggle trạng thái món ăn (tick/untick "Đã ăn") - UPDATE HOẶC CREATE
 const toggleMealEatenStatus = async (req, res) => {
     try {
         const { date, servingTime, mealId, action } = req.body;
         const userId = req.user_id;
         const redis = req.app.locals.redis;
 
-        // Validate input
         if (!date || !servingTime || !mealId || !action) {
             return res.status(400).json({
                 type: "TOGGLE_MEAL_EATEN",
@@ -903,20 +903,25 @@ const toggleMealEatenStatus = async (req, res) => {
             });
         }
 
-        console.log(`🍽️  ${action === 'EAT' ? 'Đánh dấu đã ăn' : 'Bỏ đánh dấu'} món: ${mealId}`);
+        const normalizedDate = new Date(date).toISOString().split('T')[0];
 
-        // ============= BƯỚC 1: LẤY MEAL PLAN TỪ REDIS =============
-        let mealPlan = await getMealPlanFromRedis(redis, userId, date);
-        if (!mealPlan) {
+        // ============= LẤY MEAL PLAN TỪ DATABASE =============
+        let dbMealPlan = await MealPlan.findOne({
+            user_id: userId,
+            date: new Date(normalizedDate)
+        });
+
+        if (!dbMealPlan) {
             return res.status(404).json({
                 type: "TOGGLE_MEAL_EATEN",
                 status: false,
-                error: 'Không tìm thấy thực đơn trong cache'
+                error: 'Không tìm thấy thực đơn trong database. Vui lòng lưu thực đơn trước.'
             });
         }
 
-        // ============= BƯỚC 2: TÌM MÓN ĂN =============
-        const mealSection = mealPlan.mealPlan.find(mp => mp.servingTime === servingTime);
+        const mealPlanData = dbMealPlan.toObject();
+        const mealSection = mealPlanData.mealPlan.find(mp => mp.servingTime === servingTime);
+        
         if (!mealSection) {
             return res.status(404).json({
                 type: "TOGGLE_MEAL_EATEN",
@@ -926,6 +931,7 @@ const toggleMealEatenStatus = async (req, res) => {
         }
 
         const meal = mealSection.meals.find(m => m.meal_id.toString() === mealId);
+        
         if (!meal) {
             return res.status(404).json({
                 type: "TOGGLE_MEAL_EATEN",
@@ -934,51 +940,29 @@ const toggleMealEatenStatus = async (req, res) => {
             });
         }
 
-        // ============= BƯỚC 3: TẠO EVENT HISTORY =============
-        // Tìm hoặc tạo meal plan trong DB để lấy ID
-        let dbMealPlan = await MealPlan.findOne({
-            user_id: userId,
-            date: new Date(date)
-        });
+        // ============= UPDATE HOẶC CREATE HISTORY EVENT =============
+        const historyEvent = await MealPlanHistory.findOneAndUpdate(
+            {
+                user_id: userId,
+                meal_id: mealId
+            },
+            {
+                $set: {
+                    dailyMealPlan_id: dbMealPlan._id,
+                    servingTime: servingTime,
+                    lastAction: action,
+                    portionSize: meal.portionSize,
+                    timestamp: new Date()
+                }
+            },
+            {
+                upsert: true, // Tạo mới nếu chưa có
+                new: true, // Trả về document sau khi update
+                setDefaultsOnInsert: true
+            }
+        );
 
-        if (!dbMealPlan) {
-            // Nếu chưa có trong DB, tạo mới
-            const dataToSave = {
-                ...mealPlan,
-                mealPlan: mealPlan.mealPlan.map(section => ({
-                    ...section,
-                    meals: section.meals.map(m => ({
-                        meal_id: m.meal_id,
-                        isEaten: m.isEaten,
-                        portionSize: m.portionSize
-                    }))
-                }))
-            };
-            dbMealPlan = new MealPlan(dataToSave);
-            await dbMealPlan.save();
-        }
-
-        // Tạo history event
-        const historyEvent = new MealPlanHistory({
-            dailyMealPlan_id: dbMealPlan._id,
-            user_id: userId,
-            meal_id: mealId,
-            servingTime: servingTime,
-            action: action,
-            portionSize: meal.portionSize,
-            timestamp: new Date()
-        });
-
-        await historyEvent.save();
-        console.log(`✓ Đã tạo history event: ${action}`);
-
-        // ============= BƯỚC 4: CẬP NHẬT TRẠNG THÁI =============
-        meal.isEaten = action === 'EAT';
-
-        // Cập nhật Redis
-        await saveMealPlanToRedis(redis, userId, date, mealPlan);
-
-        // Cập nhật DB
+        // ============= CẬP NHẬT TRẠNG THÁI TRONG DB =============
         const mealInDb = dbMealPlan.mealPlan
             .find(mp => mp.servingTime === servingTime)
             ?.meals.find(m => m.meal_id.toString() === mealId);
@@ -988,7 +972,26 @@ const toggleMealEatenStatus = async (req, res) => {
             await dbMealPlan.save();
         }
 
-        console.log(`✅ Cập nhật trạng thái: isEaten = ${action === 'EAT'}`);
+        // ============= ĐỒNG BỘ VÀO REDIS (OPTIONAL) =============
+        try {
+            const token = req.headers.authorization?.replace('Bearer ', '');
+            const allMeals = await fetchAllMeals(token);
+            
+            const enrichedMealPlan = { ...mealPlanData };
+            for (const section of enrichedMealPlan.mealPlan) {
+                for (const mealItem of section.meals) {
+                    const mealData = allMeals.data?.meals?.find(m => m._id === mealItem.meal_id.toString());
+                    if (mealData) {
+                        const detailedMeals = await getMultipleMealsWithDetails([mealData], token);
+                        mealItem.mealDetail = detailedMeals[0] || null;
+                    }
+                }
+            }
+
+            await saveMealPlanToRedis(redis, userId, normalizedDate, enrichedMealPlan);
+        } catch (error) {
+            console.warn('⚠️  Không thể sync vào Redis:', error.message);
+        }
 
         res.json({
             type: "TOGGLE_MEAL_EATEN",
@@ -996,10 +999,10 @@ const toggleMealEatenStatus = async (req, res) => {
             success: true,
             message: action === 'EAT' ? '✅ Đã đánh dấu món ăn' : '↩️  Đã bỏ đánh dấu',
             data: {
-                mealPlan: mealPlan,
+                mealPlan: mealPlanData,
                 historyEvent: {
                     _id: historyEvent._id,
-                    action: historyEvent.action,
+                    lastAction: historyEvent.lastAction,
                     timestamp: historyEvent.timestamp
                 }
             }
@@ -1015,97 +1018,67 @@ const toggleMealEatenStatus = async (req, res) => {
     }
 };
 
-// Lấy lịch sử ăn uống của user (có lọc món đã ăn)
+// Lấy lịch sử ăn uống (CHỈ MÓN CÓ lastAction = "EAT")
 const getMealHistory = async (req, res) => {
     try {
         const userId = req.user_id;
         const { 
             date,
             servingTime,
-            onlyEaten = false,
             page = 1,
             limit = 50
         } = req.query;
 
-        console.log('📊 Lấy lịch sử ăn uống...');
+        // ============= BUILD FILTER =============
+        const baseFilter = { 
+            user_id: mongoose.Types.ObjectId.isValid(userId) 
+                ? new mongoose.Types.ObjectId(userId) 
+                : userId,
+            lastAction: "EAT" // CHỈ LẤY MÓN ĐÃ ĂN
+        };
 
-        // Build query filter
-        const filter = { user_id: userId };
-
-        // Lọc theo ngày cụ thể
         if (date) {
-            const startOfDay = new Date(date);
-            startOfDay.setHours(0, 0, 0, 0);
+            const [year, month, day] = date.split('-').map(Number);
+            const startOfDay = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+            const endOfDay = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
             
-            const endOfDay = new Date(date);
-            endOfDay.setHours(23, 59, 59, 999);
-            
-            filter.timestamp = {
+            baseFilter.timestamp = {
                 $gte: startOfDay,
                 $lte: endOfDay
             };
         }
 
-        // Lọc theo bữa ăn
         if (servingTime) {
-            const servingTimes = typeof servingTime === 'string' 
-                ? servingTime.split(',').map(s => s.trim())
-                : Array.isArray(servingTime) 
-                    ? servingTime 
-                    : [servingTime];
-            
-            if (servingTimes.length > 1) {
-                filter.servingTime = { $in: servingTimes };
-            } else if (servingTimes.length === 1) {
-                filter.servingTime = servingTimes[0];
-            }
+            baseFilter.servingTime = servingTime;
         }
 
-        // Lọc chỉ món đã ăn
-        if (onlyEaten === 'true') {
-            filter.action = 'EAT';
-        }
-
-        console.log('🔍 Filter:', filter);
-
-        // Pagination
+        // ============= QUERY DATABASE =============
+        const total = await MealPlanHistory.countDocuments(baseFilter);
         const skip = (parseInt(page) - 1) * parseInt(limit);
-
-        // Query history
-        const [historyEvents, total] = await Promise.all([
-            MealPlanHistory.find(filter)
-                .sort({ timestamp: -1 })
-                .skip(skip)
-                .limit(parseInt(limit))
-                .populate('dailyMealPlan_id', 'date forFamily generatedByAI')
-                .lean(),
-            MealPlanHistory.countDocuments(filter)
-        ]);
-
-        // Lấy chi tiết món ăn cho mỗi event qua API /meal/:meal_id
-        const token = req.headers.authorization?.replace('Bearer ', '');
         
+        const events = await MealPlanHistory.find(baseFilter)
+            .sort({ timestamp: -1 })
+            .skip(skip)
+            .limit(parseInt(limit))
+            .lean();
+
+        // ============= LẤY CHI TIẾT MÓN ĂN =============
+        const token = req.headers.authorization?.replace('Bearer ', '');
         const enrichedHistory = [];
-        for (const event of historyEvents) {
+
+        for (const event of events) {
             try {
-                // Gọi API lấy chi tiết món ăn (đã bao gồm ingredients details)
                 const mealDetailResponse = await getMealDetailById(event.meal_id.toString(), token);
                 
-                if (mealDetailResponse && mealDetailResponse.status && mealDetailResponse.data) {
+                if (mealDetailResponse?.status && mealDetailResponse.data) {
                     const mealData = mealDetailResponse.data;
                     
-                    // Tính dinh dưỡng thực tế dựa trên portion size
                     let actualNutrition = null;
                     if (mealData.ingredients && event.portionSize) {
-                        // Tính tổng nutrition từ ingredients
-                        let totalCalories = 0;
-                        let totalProtein = 0;
-                        let totalCarbs = 0;
-                        let totalFat = 0;
+                        let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0;
 
                         mealData.ingredients.forEach(ing => {
-                            if (ing.detail && ing.detail.nutrition) {
-                                // Tính nutrition dựa trên quantity (giả sử per 100g)
+                            if (ing.detail?.nutrition) {
                                 const ratio = ing.quantity / 100;
                                 totalCalories += (ing.detail.nutrition.calories || 0) * ratio;
                                 totalProtein += (ing.detail.nutrition.protein || 0) * ratio;
@@ -1114,7 +1087,6 @@ const getMealHistory = async (req, res) => {
                             }
                         });
 
-                        // Nhân với portion size
                         actualNutrition = {
                             portionAmount: event.portionSize.amount,
                             portionUnit: event.portionSize.unit,
@@ -1126,71 +1098,39 @@ const getMealHistory = async (req, res) => {
                     }
 
                     enrichedHistory.push({
-                        ...event,
+                        _id: event._id,
+                        meal_id: event.meal_id,
+                        servingTime: event.servingTime,
+                        timestamp: event.timestamp,
+                        portionSize: event.portionSize,
                         mealDetail: {
                             _id: mealData._id,
                             nameMeal: mealData.nameMeal,
-                            description: mealData.description,
                             mealImage: mealData.mealImage,
                             mealCategory: mealData.mealCategory,
-                            ingredients: mealData.ingredients, // Bao gồm cả detail của ingredients
-                            recipe: mealData.recipe,
-                            popularity: mealData.popularity,
-                            // Thông tin dinh dưỡng tổng hợp từ ingredients
-                            totalNutrition: actualNutrition ? {
-                                calories: actualNutrition.calories / event.portionSize.amount,
-                                protein: actualNutrition.protein / event.portionSize.amount,
-                                carbs: actualNutrition.carbs / event.portionSize.amount,
-                                fat: actualNutrition.fat / event.portionSize.amount
-                            } : null,
-                            actualNutrition: actualNutrition
+                            ingredients: mealData.ingredients,
+                            actualNutrition
                         }
-                    });
-                } else {
-                    // Nếu không lấy được detail, vẫn giữ event
-                    enrichedHistory.push({
-                        ...event,
-                        mealDetail: null
                     });
                 }
             } catch (error) {
-                console.error(`Error fetching meal detail for ${event.meal_id}:`, error.message);
-                enrichedHistory.push({
-                    ...event,
-                    mealDetail: null
-                });
+                console.error(`Error fetching meal ${event.meal_id}:`, error.message);
             }
         }
 
-        // Thống kê
-        const baseStatsFilter = {
-            user_id: userId,
-            action: 'EAT'
-        };
-        
-        if (date) {
-            baseStatsFilter.timestamp = filter.timestamp;
-        }
-
-        // Tính tổng dinh dưỡng đã tiêu thụ
-        let totalNutrition = {
-            calories: 0,
-            protein: 0,
-            carbs: 0,
-            fat: 0
-        };
+        // ============= THỐNG KÊ =============
+        let totalNutrition = { calories: 0, protein: 0, carbs: 0, fat: 0 };
 
         enrichedHistory.forEach(event => {
-            if (event.action === 'EAT' && event.mealDetail?.actualNutrition) {
-                const nutrition = event.mealDetail.actualNutrition;
-                totalNutrition.calories += nutrition.calories || 0;
-                totalNutrition.protein += nutrition.protein || 0;
-                totalNutrition.carbs += nutrition.carbs || 0;
-                totalNutrition.fat += nutrition.fat || 0;
+            if (event.mealDetail?.actualNutrition) {
+                const n = event.mealDetail.actualNutrition;
+                totalNutrition.calories += n.calories || 0;
+                totalNutrition.protein += n.protein || 0;
+                totalNutrition.carbs += n.carbs || 0;
+                totalNutrition.fat += n.fat || 0;
             }
         });
 
-        // Làm tròn tổng dinh dưỡng
         totalNutrition = {
             calories: Math.round(totalNutrition.calories),
             protein: Math.round(totalNutrition.protein * 10) / 10,
@@ -1198,40 +1138,16 @@ const getMealHistory = async (req, res) => {
             fat: Math.round(totalNutrition.fat * 10) / 10
         };
 
-        const stats = {
-            totalEvents: total,
-            totalEaten: await MealPlanHistory.countDocuments(baseStatsFilter),
-            byServingTime: {
-                breakfast: await MealPlanHistory.countDocuments({
-                    ...baseStatsFilter,
-                    servingTime: 'breakfast'
-                }),
-                lunch: await MealPlanHistory.countDocuments({
-                    ...baseStatsFilter,
-                    servingTime: 'lunch'
-                }),
-                dinner: await MealPlanHistory.countDocuments({
-                    ...baseStatsFilter,
-                    servingTime: 'dinner'
-                })
-            },
-            totalNutrition: totalNutrition
-        };
-
-        console.log('✅ Lấy lịch sử thành công');
-
         res.json({
             type: "GET_MEAL_HISTORY",
             status: true,
             success: true,
-            message: 'Lấy lịch sử ăn uống thành công',
+            message: 'Lấy lịch sử thành công',
             data: {
                 history: enrichedHistory,
-                stats: stats,
-                filter: {
-                    date: date || 'all',
-                    servingTime: servingTime || 'all',
-                    onlyEaten: onlyEaten === 'true'
+                stats: {
+                    totalEaten: total,
+                    totalNutrition
                 },
                 pagination: {
                     page: parseInt(page),
@@ -1242,12 +1158,11 @@ const getMealHistory = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('❌ Error getting meal history:', error);
+        console.error('❌ Error getMealHistory:', error);
         res.status(500).json({
             type: "GET_MEAL_HISTORY",
             status: false,
-            error: 'Lỗi lấy lịch sử ăn uống',
-            details: error.message
+            error: error.message
         });
     }
 };
@@ -1255,36 +1170,31 @@ const getMealHistory = async (req, res) => {
 // Lấy trạng thái cuối cùng của một món cụ thể
 const getLastMealStatus = async (req, res) => {
     try {
-        const { dailyMealPlan_id, meal_id } = req.query;
+        const { meal_id } = req.query;
         const userId = req.user_id;
 
-        if (!dailyMealPlan_id || !meal_id) {
+        if (!meal_id) {
             return res.status(400).json({
                 type: "GET_LAST_MEAL_STATUS",
                 status: false,
-                error: 'Thiếu dailyMealPlan_id hoặc meal_id'
+                error: 'Thiếu meal_id'
             });
         }
 
-        // Lấy event cuối cùng
+        // Tìm document duy nhất cho (user_id, meal_id)
         const lastEvent = await MealPlanHistory.findOne({
-            dailyMealPlan_id,
-            meal_id,
-            user_id: userId
-        })
-        .sort({ timestamp: -1 })
-        .limit(1)
-        .lean();
+            user_id: userId,
+            meal_id: meal_id
+        });
 
         if (!lastEvent) {
             return res.json({
                 type: "GET_LAST_MEAL_STATUS",
                 status: true,
-                success: true,
                 data: {
                     isEaten: false,
                     lastAction: null,
-                    message: 'Chưa có lịch sử cho món này'
+                    message: 'Chưa có lịch sử'
                 }
             });
         }
@@ -1292,30 +1202,20 @@ const getLastMealStatus = async (req, res) => {
         res.json({
             type: "GET_LAST_MEAL_STATUS",
             status: true,
-            success: true,
             data: {
-                isEaten: lastEvent.action === 'EAT',
-                lastAction: lastEvent.action,
-                timestamp: lastEvent.timestamp,
-                portionSize: lastEvent.portionSize
+                isEaten: lastEvent.lastAction === 'EAT',
+                lastAction: lastEvent.lastAction,
+                timestamp: lastEvent.timestamp
             }
         });
     } catch (error) {
-        console.error('Error getting last meal status:', error);
         res.status(500).json({
             type: "GET_LAST_MEAL_STATUS",
             status: false,
-            error: 'Lỗi lấy trạng thái món ăn',
-            details: error.message
+            error: error.message
         });
     }
 };
-
-const test = (req, res) => {
-    console.log('Test function in MealPlanController');
-    res.json({ message: 'Test function executed successfully' });
-}
-
 
 module.exports = {
     generateMealPlan,
@@ -1328,6 +1228,5 @@ module.exports = {
     getSimilarMeals,
     toggleMealEatenStatus,
     getMealHistory,
-    getLastMealStatus,
-    test
+    getLastMealStatus, // ✅ Thêm lại vào exports
 };

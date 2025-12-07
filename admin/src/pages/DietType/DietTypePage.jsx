@@ -16,7 +16,7 @@ const DietTypePage = () => {
     const dispatch = useDispatch();
     const dietTypeState = useSelector(state => state.dietType);
 
-    const { dietTypes = [], loading, pagination = { page: 1, limit: 9 } } = dietTypeState || {};
+    const { dietTypes = [], loading, pagination = { page: 1, limit: 30 } } = dietTypeState || {};
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isDietTypeDetailModalVisible, setIsDietTypeDetailModalVisible] = useState(false);
@@ -28,7 +28,7 @@ const DietTypePage = () => {
 
     // Tải dữ liệu khi component được mount
     useEffect(() => {
-        dispatch(fetchDietTypes({ page: 1, limit: 9 }));
+        dispatch(fetchDietTypes({ page: 1, limit: 30 }));
     }, [dispatch]);
 
     // Lọc danh sách diet types theo từ khóa tìm kiếm

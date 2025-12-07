@@ -1,5 +1,5 @@
 const express = require('express');
-const IngredientMiddleware = require('../middleware/ingredientsMiddleware');
+const IngredientMiddleware = require('../middleware/IngredientsMiddleware');
 
 const {
     addIngredientCategory,
@@ -15,7 +15,9 @@ const {
     deleteIngredient,
     findByIdIngredient,
     getListIngredient,
-    getTotalIngredients
+    getTotalIngredients,
+    getRandomIngredients, // Import API mới
+    getRandomIngredientsByCategory // Import API mới
 } = require('../controllers/IngredientController');
 const { getAllMeasurementUnits } = require('../controllers/MeasurementUnitsController');
 
@@ -62,6 +64,21 @@ router.get(
 );
 
 /* ==========================   Ingredients   ========================== */
+
+// ✅ API Random Ingredients (đặt TRƯỚC route '/')
+router.get(
+    '/random',
+    IngredientMiddleware,
+    getRandomIngredients
+);
+
+// ✅ API Random Ingredients theo Category
+router.get(
+    '/random/category/:category_id',
+    IngredientMiddleware,
+    getRandomIngredientsByCategory
+);
+
 router.post(
     '/add-ingredient',
     IngredientMiddleware,

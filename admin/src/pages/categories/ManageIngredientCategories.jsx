@@ -11,7 +11,7 @@ const ManageIngredientCategories = () => {
     const dispatch = useDispatch();
     const ingredientCategoryState = useSelector(state => state.ingredientCategory);
 
-    const { ingredientCategories = [], loading, pagination = { page: 1, limit: 9 } } = ingredientCategoryState || {};
+    const { ingredientCategories = [], loading, pagination = { page: 1, limit:30 } } = ingredientCategoryState || {};
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [form] = Form.useForm();
@@ -20,7 +20,7 @@ const ManageIngredientCategories = () => {
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
-        dispatch(fetchIngredientCategories({ page: 1, limit: 9 }));
+        dispatch(fetchIngredientCategories({ page: 1, limit: 30 }));
     }, [dispatch]);
 
     // Lọc danh sách diet types theo từ khóa tìm kiếm

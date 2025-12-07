@@ -4,8 +4,7 @@ const mealPlanHistorySchema = new mongoose.Schema({
     dailyMealPlan_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'MealPlan',
-        required: true,
-        index: true
+        required: true
     },
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -22,7 +21,7 @@ const mealPlanHistorySchema = new mongoose.Schema({
         enum: ["breakfast", "lunch", "dinner"],
         required: true
     },
-    action: {
+    lastAction: { // ĐỔI TÊN: action → lastAction
         type: String,
         enum: ["EAT", "UNEAT"],
         required: true
@@ -30,26 +29,26 @@ const mealPlanHistorySchema = new mongoose.Schema({
     portionSize: {
         amount: {
             type: Number,
-            required: true,
-            min: 0
+            required: true
         },
         unit: {
             type: String,
-            enum: ["gram", "kg", "ml", "liter", "portion", "piece"],
             required: true
         }
     },
     timestamp: {
         type: Date,
-        default: Date.now,
-        index: true
+        default: Date.now
     }
 }, {
     timestamps: true
 });
 
-// Compound index cho query hiệu quả
-mealPlanHistorySchema.index({ dailyMealPlan_id: 1, meal_id: 1, timestamp: -1 });
+// Unique index: Mỗi user chỉ có 1 history record cho mỗi meal_id
+mealPlanHistorySchema.index({ user_id: 1, meal_id: 1 }, { unique: true });
+
+// Index để query nhanh
 mealPlanHistorySchema.index({ user_id: 1, timestamp: -1 });
+mealPlanHistorySchema.index({ user_id: 1, lastAction: 1 });
 
 module.exports = mongoose.model('MealPlanHistory', mealPlanHistorySchema);

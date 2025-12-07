@@ -27,8 +27,6 @@ const redis = new Redis({
     token: process.env.UPSTASH_REDIS_REST_TOKEN
 });
 
-console.log('✓ Upstash Redis initialized');
-
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✓ MongoDB connected successfully'))
@@ -46,6 +44,20 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
         redis: 'Upstash Redis',
         cors: 'enabled'
+    });
+});
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        service: 'mealPlan-service',
+        message: 'Test API hoạt động bình thường',
+        timestamp: new Date().toISOString(),
+        endpoints: {
+            health: '/health',
+            mealPlans: '/api/mealplans/*'
+        }
     });
 });
 

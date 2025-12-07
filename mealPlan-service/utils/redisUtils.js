@@ -76,6 +76,18 @@ const checkRedisConnection = async (redis) => {
     }
 };
 
+// Lấy danh sách keys (for debugging)
+const listRedisKeys = async (redis, pattern = '*') => {
+    try {
+        // Upstash Redis: keys(pattern)
+        const keys = await redis.keys(pattern);
+        return keys;
+    } catch (error) {
+        console.error('Error listing Redis keys:', error);
+        return [];
+    }
+};
+
 module.exports = {
     // Core meal plan operations
     saveMealPlanToRedis,
@@ -84,6 +96,7 @@ module.exports = {
     
     // Utility functions
     checkRedisConnection,
+    listRedisKeys, // Export new function
     
     // Constants
     REDIS_KEYS,

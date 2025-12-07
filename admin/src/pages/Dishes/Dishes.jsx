@@ -21,7 +21,7 @@ const Dishes = () => {
   const ingredientsState = useSelector((state) => state.ingredients);
   const mealCategoriesState = useSelector((state) => state.mealCategories);
   
-  const { meals = [], loading, pagination = { page: 1, limit: 9, total: 0 } } = mealState || {};
+  const { meals = [], loading, pagination = { page: 1, limit: 30, total: 0 } } = mealState || {};
   const { ingredients = [] } = ingredientsState || {};
   
   // Lấy mealCategories một cách an toàn
@@ -47,9 +47,9 @@ const Dishes = () => {
 
   // --- Fetch dữ liệu ---
   useEffect(() => {
-    dispatch(fetchMeals({ page: currentPage, limit: 9 }));
-    dispatch(fetchIngredients({ page: 1, limit: 50 }));
-    dispatch(fetchMealCategories({ page: 1, limit: 100 })); // Thêm params
+    dispatch(fetchMeals({ page: currentPage, limit: 30}));
+    dispatch(fetchIngredients({ page: 1, limit: 500 }));
+    dispatch(fetchMealCategories({ page: 1, limit: 500 })); // Thêm params
   }, [dispatch, currentPage]);
 
   // Thêm useEffect mới để fetch meals theo category
@@ -59,11 +59,11 @@ const Dishes = () => {
       dispatch(fetchMealsByCategory({ 
         categoryId: selectedCategory, 
         page: currentPage, 
-        limit: 9 
+        limit: 30
       }));
     } else {
       // Nếu không có category, fetch tất cả meals
-      dispatch(fetchMeals({ page: currentPage, limit: 9 }));
+      dispatch(fetchMeals({ page: currentPage, limit: 30 }));
     }
   }, [dispatch, selectedCategory, currentPage]);
 
@@ -162,7 +162,7 @@ const Dishes = () => {
         // Thành công - đóng modal và refresh data
         closeMealFormModal();
         // Refresh danh sách món ăn
-        dispatch(fetchMeals({ page: currentPage, limit: 9 }));
+        dispatch(fetchMeals({ page: currentPage, limit: 30 }));
       }
       
     } catch (error) {
@@ -174,14 +174,14 @@ const Dishes = () => {
   const handleEditMeal = (updatedMeal) => {
     // Callback này sẽ được gọi sau khi cập nhật thành công từ DishDetailModal
     // Refresh danh sách để có dữ liệu mới nhất
-    dispatch(fetchMeals({ page: currentPage, limit: 9 }));
+    dispatch(fetchMeals({ page: currentPage, limit: 30 }));
   };
 
   // --- Xóa món ăn ---
   const handleDeleteMeal = (id) => {
     // Callback này sẽ được gọi sau khi xóa thành công từ DishDetailModal
     // Refresh danh sách để có dữ liệu mới nhất
-    dispatch(fetchMeals({ page: currentPage, limit: 9 }));
+    dispatch(fetchMeals({ page: currentPage, limit: 30 }));
   };
 
   // --- Đổi trang --- (cập nhật để xử lý cả trường hợp có category và không có)
@@ -201,12 +201,12 @@ const Dishes = () => {
         dispatch(fetchMealsByCategory({ 
           categoryId: categoryId, 
           page: 1, 
-          limit: 9 
+          limit: 30
         }));
       }, 100);
     } else {
       setTimeout(() => {
-        dispatch(fetchMeals({ page: 1, limit: 9 }));
+        dispatch(fetchMeals({ page: 1, limit: 30 }));
       }, 100);
     }
   };
