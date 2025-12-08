@@ -6,6 +6,7 @@ const initialState = {
     loading: false,
     error: null,
     success: false,
+    popularity: 0, // Thêm trường popularity vào initialState
 }
 
 const recipeSlice = createSlice({
@@ -36,6 +37,11 @@ const recipeSlice = createSlice({
             state.selectedRecipe = action.payload;
         },
 
+        // Thêm reducer để cập nhật độ phổ biến của công thức
+        setPopularity: (state, action) => {
+            state.popularity = action.payload;
+        },
+
         resetRecipeState: () => initialState
     }
 });
@@ -47,6 +53,7 @@ export const {
     setSuccess,
     clearRecipe,
     setSelectedRecipe,
+    setPopularity, // Xuất reducer setPopularity
     resetRecipeState
 } = recipeSlice.actions;
 

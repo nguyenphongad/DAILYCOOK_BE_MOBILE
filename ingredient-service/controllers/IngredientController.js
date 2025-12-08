@@ -298,10 +298,179 @@ const findByIdIngredient = async (req, res) => {
     }
 }
 
+// Lấy tổng số nguyên liệu - truy vấn tối ưu
+const getTotalIngredients = async (req, res) => {
+    try {
+        // Đếm tổng số nguyên liệu
+        const totalIngredients = await IngredientModel.countDocuments();
+        
+        // Lấy 5 nguyên liệu mới nhất
+        const recentIngredients = await IngredientModel.find()
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select('nameIngredient ingredientImage createdAt defaultUnit');
+
+        const result = {
+            totalIngredients: totalIngredients,
+            exactCount: totalIngredients,
+            recentIngredients: recentIngredients
+        };
+
+        res.status(200).json({
+            stype: "ingredient",
+            message: "Lấy tổng số nguyên liệu thành công!",
+            status: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error("Get total ingredients error:", error);
+        res.status(500).json({
+            stype: "ingredient",
+            message: "Lỗi server khi lấy tổng số nguyên liệu",
+            status: false,
+            error: error.message
+        });
+    }
+};
+
+// Lấy danh sách nguyên liệu RANDOM (cho trang đề xuất/khám phá)
+const getRandomIngredients = async (req, res) => {
+    try {
+        let { page = 1, limit = 10 } = req.query;
+        page = parseInt(page);
+        limit = parseInt(limit);
+        
+        // Đếm tổng số nguyên liệu
+        const total = await IngredientModel.countDocuments();
+        
+        // Sử dụng MongoDB aggregation để random
+        const ingredients = await IngredientModel.aggregate([
+            { $sample: { size: limit } }, // Random lấy 'limit' documents
+            {
+                $lookup: {
+                    from: 'ingredientcategories', // Tên collection category
+                    localField: 'ingredientCategory',
+                    foreignField: '_id',
+                    as: 'categoryDetail'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$categoryDetail',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    nameIngredient: 1,
+                    description: 1,
+                    ingredientImage: 1,
+                    ingredientCategory: 1,
+                    'categoryDetail.title': 1,
+                    'categoryDetail.keyword': 1,
+                    defaultAmount: 1,
+                    defaultUnit: 1,
+                    nutrition: 1,
+                    commonUses: 1,
+                    createdAt: 1,
+                    updatedAt: 1
+                }
+            }
+        ]);
+
+        return res.status(200).json({
+            stype: "ingredient",
+            message: "Lấy danh sách nguyên liệu random thành công!",
+            status: true,
+            data: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                ingredients,
+                note: "Mỗi lần gọi API sẽ trả về nguyên liệu khác nhau (random)"
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            stype: "ingredient",
+            message: "Lấy danh sách nguyên liệu random thất bại!",
+            status: false,
+            error: error.message
+        });
+    }
+};
+
+// Lấy danh sách nguyên liệu theo category với random
+const getRandomIngredientsByCategory = async (req, res) => {
+    try {
+        const { category_id } = req.params;
+        let { limit = 10 } = req.query;
+        limit = parseInt(limit);
+
+        // Kiểm tra category tồn tại
+        const categoryExists = await IngredientModel.countDocuments({ 
+            ingredientCategory: category_id 
+        });
+
+        if (categoryExists === 0) {
+            return res.status(404).json({
+                stype: "ingredient",
+                message: "Không tìm thấy nguyên liệu nào trong danh mục này",
+                status: false
+            });
+        }
+
+        // Random nguyên liệu trong category
+        const ingredients = await IngredientModel.aggregate([
+            { $match: { ingredientCategory: mongoose.Types.ObjectId(category_id) } },
+            { $sample: { size: limit } },
+            {
+                $lookup: {
+                    from: 'ingredientcategories',
+                    localField: 'ingredientCategory',
+                    foreignField: '_id',
+                    as: 'categoryDetail'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$categoryDetail',
+                    preserveNullAndEmptyArrays: true
+                }
+            }
+        ]);
+
+        return res.status(200).json({
+            stype: "ingredient",
+            message: "Lấy nguyên liệu random theo danh mục thành công!",
+            status: true,
+            data: {
+                category_id,
+                total: categoryExists,
+                limit,
+                ingredients
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            stype: "ingredient",
+            message: "Lấy nguyên liệu theo danh mục thất bại!",
+            status: false,
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     addIngredient,
     updateIngredient,
     deleteIngredient,
     getListIngredient,
-    findByIdIngredient
+    findByIdIngredient,
+    getTotalIngredients,
+    getRandomIngredients, // ✅ Export API mới
+    getRandomIngredientsByCategory // ✅ Export API mới
 };

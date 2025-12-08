@@ -33,8 +33,19 @@ const IngredientForm = ({
     const [submitting, setSubmitting] = useState(false); // trạng thái submit
     const [fileList, setFileList] = useState([]); // danh sách file upload
     const [imageUrl, setImageUrl] = useState(initialValues?.ingredientImage || ''); // URL ảnh hiện tại
+    const [pastedImage, setPastedImage] = useState(null); // ảnh được dán từ clipboard
 
     // ==================== HÀM XỬ LÝ ====================
+
+    // Reset toàn bộ state của form
+    const resetFormState = () => {
+        setCommonUses([]);
+        setNewUse('');
+        setFileList([]);
+        setImageUrl('');
+        setPastedImage(null);
+        form.resetFields();
+    };
 
     // Thêm công dụng mới
     const addCommonUse = () => {
@@ -49,12 +60,48 @@ const IngredientForm = ({
         setCommonUses(commonUses.filter((_, i) => i !== index));
     };
 
+    // Xử lý dán ảnh từ clipboard
+    const handlePaste = (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            if (item.type.startsWith('image/')) {
+                e.preventDefault();
+                const file = item.getAsFile();
+                if (file) {
+                    // Tạo preview
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        setImageUrl(event.target.result);
+                        setPastedImage(file);
+                        // Clear file list khi dán ảnh mới
+                        setFileList([]);
+                    };
+                    reader.readAsDataURL(file);
+                }
+                break;
+            }
+        }
+    };
+
+    // Clear ảnh đã dán
+    const clearPastedImage = () => {
+        setPastedImage(null);
+        setImageUrl(initialValues?.ingredientImage || '');
+    };
+
     // Xử lý submit form
     const handleSubmit = async (values) => {
         setSubmitting(true);
         try {
-            // Upload ảnh nếu có file mới
-            if (fileList.length > 0) {
+            // Upload ảnh nếu có file mới hoặc ảnh được dán
+            if (pastedImage) {
+                // Ưu tiên ảnh được dán
+                const uploadResult = await uploadImage(pastedImage, { folder: 'ingredient' });
+                values.ingredientImage = uploadResult.secure_url;
+            } else if (fileList.length > 0) {
                 const file = convertAntdUploadFileToFile(fileList[0]);
                 if (file) {
                     const uploadResult = await uploadImage(file, { folder: 'ingredient' });
@@ -79,6 +126,9 @@ const IngredientForm = ({
             };
 
             await onFinish(ingredientData); // gọi callback từ parent
+            
+            // Reset form sau khi thêm thành công
+            resetFormState();
         } catch (error) {
             message.error(`Đã xảy ra lỗi: ${error.message}`);
         } finally {
@@ -91,6 +141,10 @@ const IngredientForm = ({
     // Khi file thay đổi
     const handleChange = ({ fileList: newFileList }) => {
         setFileList(newFileList);
+        // Clear ảnh đã dán khi chọn file mới
+        if (newFileList.length > 0) {
+            setPastedImage(null);
+        }
     };
 
     // Trước khi upload (check type & size)
@@ -196,33 +250,94 @@ const IngredientForm = ({
 
                         {/* Upload ảnh */}
                         <Form.Item label="Ảnh đại diện">
-                            <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
-                                {/* Upload mới */}
-                                <Upload
-                                    name="ingredientImage"
-                                    listType="picture-card"
-                                    showUploadList={true}
-                                    fileList={fileList}
-                                    beforeUpload={beforeUpload}
-                                    onChange={handleChange}
-                                    maxCount={1}
-                                    accept="image/*"
-                                    style={{ width: 120, height: 120, borderRadius: 8 }}
-                                >
-                                    {fileList.length >= 1 ? null : uploadButton}
-                                </Upload>
-
-                                {/* Preview ảnh hiện tại */}
-                                {!fileList.length && imageUrl && (
-                                    <div style={{ textAlign: "center" }}>
-                                        <img
-                                            src={imageUrl}
-                                            alt="Current"
-                                            style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8 }}
-                                        />
-                                        <p style={{ marginTop: 8, fontSize: 13, color: "#888" }}>Ảnh hiện tại</p>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                                {/* Khu vực dán ảnh */}
+                                <div style={{ 
+                                    border: "2px dashed #d9d9d9", 
+                                    borderRadius: 8, 
+                                    padding: 16,
+                                    textAlign: "center",
+                                    backgroundColor: pastedImage ? "#f6ffed" : "#fafafa",
+                                    borderColor: pastedImage ? "#52c41a" : "#d9d9d9"
+                                }}>
+                                    <div style={{ marginBottom: 8, color: "#666", fontSize: 14 }}>
+                                        📋 Dán ảnh từ clipboard (Ctrl+V)
                                     </div>
-                                )}
+                                    <input
+                                        type="text"
+                                        placeholder="Click vào đây và nhấn Ctrl+V để dán ảnh"
+                                        style={{
+                                            width: "100%",
+                                            padding: "8px 12px",
+                                            border: "1px solid #d9d9d9",
+                                            borderRadius: 4,
+                                            outline: "none"
+                                        }}
+                                        onPaste={handlePaste}
+                                        readOnly
+                                    />
+                                    {pastedImage && (
+                                        <div style={{ marginTop: 8 }}>
+                                            <span style={{ color: "#52c41a", fontSize: 12 }}>
+                                                ✅ Đã dán ảnh thành công! 
+                                            </span>
+                                            <Button 
+                                                type="link" 
+                                                size="small" 
+                                                onClick={clearPastedImage}
+                                                style={{ padding: 0, marginLeft: 8 }}
+                                            >
+                                                Xóa
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div style={{ textAlign: "center", color: "#999", fontSize: 12 }}>
+                                    hoặc
+                                </div>
+
+                                {/* Upload từ thiết bị */}
+                                <div style={{ display: "flex", gap: 24, alignItems: "flex-start" }}>
+                                    <Upload
+                                        name="ingredientImage"
+                                        listType="picture-card"
+                                        showUploadList={true}
+                                        fileList={fileList}
+                                        beforeUpload={beforeUpload}
+                                        onChange={handleChange}
+                                        maxCount={1}
+                                        accept="image/*"
+                                        style={{ width: 120, height: 120, borderRadius: 8 }}
+                                        disabled={pastedImage !== null}
+                                    >
+                                        {(fileList.length >= 1 || pastedImage) ? null : uploadButton}
+                                    </Upload>
+
+                                    {/* Preview ảnh hiện tại */}
+                                    {!fileList.length && !pastedImage && imageUrl && (
+                                        <div style={{ textAlign: "center" }}>
+                                            <img
+                                                src={imageUrl}
+                                                alt="Current"
+                                                style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8 }}
+                                            />
+                                            <p style={{ marginTop: 8, fontSize: 13, color: "#888" }}>Ảnh hiện tại</p>
+                                        </div>
+                                    )}
+
+                                    {/* Preview ảnh đã dán */}
+                                    {pastedImage && imageUrl && (
+                                        <div style={{ textAlign: "center" }}>
+                                            <img
+                                                src={imageUrl}
+                                                alt="Pasted"
+                                                style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8 }}
+                                            />
+                                            <p style={{ marginTop: 8, fontSize: 13, color: "#52c41a" }}>Ảnh đã dán</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </Form.Item>
                     </Card>

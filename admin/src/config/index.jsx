@@ -2,6 +2,7 @@
 // Cấu hình mới sử dụng API Gateway
 export const GATEWAY_PORT = 5000;
 export const GATEWAY_URL = `http://localhost:${GATEWAY_PORT}`;
+// export const GATEWAY_URL = `http://gateway:${GATEWAY_PORT}`;
 
 // Đường dẫn cho các service qua gateway
 export const SERVICE_PATHS = {

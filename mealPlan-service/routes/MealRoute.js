@@ -3,6 +3,15 @@ const router = express.Router();
 const MealPlanController = require('../controller/MealPlanController');
 const { authenticateUser, validateApiKey } = require('../middleware/MealPlanMiddleware');
 
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'mealPlan-service',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Middleware cho tất cả routes
 router.use(validateApiKey);
 router.use(authenticateUser);
@@ -10,8 +19,14 @@ router.use(authenticateUser);
 // Tạo thực đơn (random meals với chi tiết đầy đủ)
 router.post('/generate', MealPlanController.generateMealPlan);
 
-// Lấy thực đơn
-router.get('/', MealPlanController.getMealPlan);
+// Tạo thực đơn bằng AI dựa trên user profile
+router.post('/generate-ai', MealPlanController.generateAIMealPlan);
+
+// Lấy thực đơn từ REDIS (cache) - nhanh nhưng có thể không có
+router.post('/get-from-cache', MealPlanController.getMealPlanFromCache);
+
+// Lấy thực đơn từ DATABASE - chính xác, có đầy đủ chi tiết
+router.post('/get-from-database', MealPlanController.getMealPlanFromDatabase);
 
 // Gợi ý món ăn tương tự
 router.get('/similar/:mealId', MealPlanController.getSimilarMeals);
@@ -26,5 +41,14 @@ router.delete('/remove-meal', MealPlanController.removeMeal);
 // Lưu thực đơn vào database
 router.post('/save', MealPlanController.saveMealPlan);
 
+// ============= MEAL HISTORY ROUTES =============
+// Toggle trạng thái "Đã ăn" (tick/untick)
+router.post('/toggle-eaten', MealPlanController.toggleMealEatenStatus);
+
+// Lấy lịch sử ăn uống (có lọc món đã ăn)
+router.get('/history', MealPlanController.getMealHistory);
+
+// Lấy trạng thái cuối cùng của một món
+router.get('/meal-status', MealPlanController.getLastMealStatus);
 
 module.exports = router;

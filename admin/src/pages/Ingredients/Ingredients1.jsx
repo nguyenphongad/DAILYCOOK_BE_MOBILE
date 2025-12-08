@@ -23,7 +23,7 @@ const Ingredients1 = () => {
     const ingredientCategoryState = useSelector((state) => state.ingredientCategory);
     const measurementUnitsState = useSelector((state) => state.measurementUnits);
 
-    const { ingredients = [], loading, pagination = { page: 1, limit: 9, total: 0 } } = ingredientState || {};
+    const { ingredients = [], loading, pagination = { page: 1, limit: 30, total: 0 } } = ingredientState || {};
     const { ingredientCategories = [] } = ingredientCategoryState || {};
     const { measurementUnits = [] } = measurementUnitsState || {};
 
@@ -34,19 +34,22 @@ const Ingredients1 = () => {
     const [form] = Form.useForm();
     const [searchKeyword, setSearchKeyword] = useState('');
     const [sortOrder, setSortOrder] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState(''); // Filter theo danh mục
     const [currentPage, setCurrentPage] = useState(1);
 
     // --- Fetch dữ liệu khi mount ---
     useEffect(() => {
-        dispatch(fetchIngredients({ page: 1, limit: 9 }));
-        dispatch(fetchIngredientCategories({ page: 1, limit: 50 }));
+        dispatch(fetchIngredients({ page: 1, limit: 30}));
+        dispatch(fetchIngredientCategories({ page: 1, limit: 100 }));
         dispatch(fetchMeasurementUnits());
     }, [dispatch]);
 
     // --- Filter + Sort ---
-    const filteredIngredients = (ingredients || []).filter((item) =>
-        (item.nameIngredient || '').toLowerCase().includes(searchKeyword.toLowerCase())
-    );
+    const filteredIngredients = (ingredients || []).filter((item) => {
+        const matchesSearch = (item.nameIngredient || '').toLowerCase().includes(searchKeyword.toLowerCase());
+        const matchesCategory = !selectedCategory || item.ingredientCategory === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
 
     const sortedIngredients = [...filteredIngredients].sort((a, b) => {
         if (sortOrder === 'name_asc') {
@@ -63,6 +66,11 @@ const Ingredients1 = () => {
         return found ? found.title || found.nameCategory : 'Chưa phân loại';
     };
 
+    const getMeasureUnitLabel = (unitKey) => {
+        const found = measurementUnits.find(unit => unit.key === unitKey);
+        return found ? found.label : unitKey;
+    };
+
     // --- Modal handlers ---
     const showModalAddIngredient = () => {
         setSelectedIngredient(null); // Reset khi thêm mới
@@ -74,6 +82,10 @@ const Ingredients1 = () => {
         form.resetFields();
         setSelectedIngredient(null);
         setIsModalVisible(false);
+        // Force re-render form component để reset state
+        setTimeout(() => {
+            setIsModalVisible(false);
+        }, 0);
     };
 
     const showIngredientDetail = (ingredient) => {
@@ -90,7 +102,10 @@ const Ingredients1 = () => {
     const handleSubmit = async (values) => {
         try {
             await dispatch(addIngredient(values)).unwrap();
-            handleCancel();
+            // Đóng modal sau khi thành công
+            setIsModalVisible(false);
+            form.resetFields();
+            setSelectedIngredient(null);
         } catch (error) {
             console.error(error);
             toast.error(error?.message || 'Thao tác thất bại, vui lòng thử lại!');
@@ -166,6 +181,18 @@ const Ingredients1 = () => {
                             </button>
                         </div>
                         <div className="filters">
+                            <select 
+                                value={selectedCategory} 
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                style={{ marginRight: 12 }}
+                            >
+                                <option value="">Tất cả danh mục</option>
+                                {ingredientCategories.map(category => (
+                                    <option key={category._id} value={category._id}>
+                                        {category.title}
+                                    </option>
+                                ))}
+                            </select>
                             <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
                                 <option value="">Sắp xếp theo</option>
                                 <option value="name_asc">Tên (A-Z)</option>
@@ -175,43 +202,60 @@ const Ingredients1 = () => {
                     </div>
 
                     {/* Danh sách nguyên liệu */}
-                    <div className="ingredients-grid-container">
+                    <div className="ingredients-list-container">
                         {loading ? (
                             <Loading visible={true} text="Đang tải danh sách nguyên liệu..." />
                         ) : sortedIngredients.length > 0 ? (
-                            <div className="ingredients-grid">
+                            <div className="ingredients-list">
+                                {/* Header */}
+                                <div className="ingredients-list-header">
+                                    <div className="header-image">Ảnh</div>
+                                    <div className="header-name">Tên nguyên liệu</div>
+                                    <div className="header-category">Danh mục</div>
+                                    <div className="header-amount">Số lượng mặc định</div>
+                                    <div className="header-description">Mô tả</div>
+                                    <div className="header-uses">Công dụng</div>
+                                </div>
+
+                                {/* Danh sách items */}
                                 {sortedIngredients.map((ingredient) => (
                                     <div
                                         key={ingredient._id}
-                                        className="ingredient-card"
+                                        className="ingredient-row"
                                         onClick={() => showIngredientDetail(ingredient)}
                                     >
-                                        <div className="ingredient-image">
+                                        <div className="row-image">
                                             <img src={ingredient.ingredientImage} alt={ingredient.nameIngredient} />
+                                        </div>
+                                        <div className="row-name">
+                                            <h3>{ingredient.nameIngredient}</h3>
+                                        </div>
+                                        <div className="row-category">
                                             <span className="category-badge">
                                                 {getCategoryTitle(ingredient.ingredientCategory)}
                                             </span>
                                         </div>
-                                        <div className="ingredient-content">
-                                            <h3>{ingredient.nameIngredient}</h3>
-                                            <p className="description">{ingredient.description}</p>
-                                            <div className="ingredient-info">
-                                                {Array.isArray(ingredient.commonUses) && ingredient.commonUses.length > 0 ? (
-                                                    <div className="ingredient-commonUses-container">
-                                                        {ingredient.commonUses.map((use, index) => (
-                                                            <span key={index} className="ingredient-commonUse">
-                                                                {use}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div className="ingredient-commonUses-container">
-                                                        <span className="ingredient-commonUse">
-                                                            Không có công dụng phổ biến
+                                        <div className="row-amount">
+                                            {ingredient.defaultAmount} {getMeasureUnitLabel(ingredient.defaultUnit)}
+                                        </div>
+                                        <div className="row-description">
+                                            <p>{ingredient.description}</p>
+                                        </div>
+                                        <div className="row-uses">
+                                            {Array.isArray(ingredient.commonUses) && ingredient.commonUses.length > 0 ? (
+                                                <div className="uses-container">
+                                                    {ingredient.commonUses.slice(0, 2).map((use, index) => (
+                                                        <span key={index} className="use-tag">
+                                                            {use}
                                                         </span>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                    ))}
+                                                    {ingredient.commonUses.length > 2 && (
+                                                        <span className="use-more">+{ingredient.commonUses.length - 2}</span>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="no-uses">Không có công dụng</span>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -251,10 +295,12 @@ const Ingredients1 = () => {
                     margin: '0 auto'
                 }}
                 footer={null}
+                destroyOnClose={true}
             >
                 <IngredientForm
+                    key={isModalVisible ? 'open' : 'closed'}
                     form={form}
-                    onFinish={handleSubmit} // chỉ thêm mới
+                    onFinish={handleSubmit}
                     onCancel={handleCancel}
                     allIngredientCategories={ingredientCategories || []}
                     allMeasureUnits={Array.isArray(measurementUnits) ? measurementUnits : []}

@@ -14,6 +14,9 @@ const {
     getListMeals,
     updateMeal,
     deleteMeal,
+    getTotalMeals,
+    getMealsByCategory,
+    findByIdMeal
 } = require('../controllers/MealController');
 
 const { 
@@ -21,10 +24,21 @@ const {
     addDietType, 
     deleteDietType, 
     getListDietTypes, 
-    findByIdDietType 
+    findByIdDietType,
+    findByKeywordDietType,
+    getTotalDietTypes
 } = require('../controllers/DietTypeController');
 
 const router = express.Router();
+
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'meal-service',
+    timestamp: new Date().toISOString()
+  });
+});
 
 /* ==========================   Meal Categories   ========================== */
 // Thêm mới một danh mục bữa ăn
@@ -63,6 +77,20 @@ router.get(
 );
 
 /* ==========================   Meals   ========================== */
+// Lấy tổng số món ăn (cần admin auth)
+router.get(
+    "/total",
+    MealMiddleware,
+    getTotalMeals
+);
+
+// Lấy món ăn theo danh mục với phân trang
+router.get(
+    '/category/:meal_category_id',
+    MealMiddleware,
+    getMealsByCategory
+);
+
 // Thêm mới một bữa ăn
 router.post(
     '/add-meal',
@@ -95,10 +123,17 @@ router.get(
 router.get(
     "/meal/:meal_id",
     MealMiddleware,
-    getListMeals
+    findByIdMeal
 );
 
 /* ==========================   Diet Type   ========================== */
+// Lấy tổng số chế độ ăn (cần admin auth)
+router.get(
+    "/diet-types/total",
+    MealMiddleware,
+    getTotalDietTypes
+);
+
 // Thêm mới một loại chế độ ăn uống
 router.post(
     '/add-diet-type',
@@ -127,7 +162,14 @@ router.get(
     getListDietTypes
 );
 
-// Lấy thông tin chi tiết một loại chế độ ăn uống
+// Tìm loại chế độ ăn uống theo keyword (đặt trước route :diet_type_id)
+router.get(
+    "/diet-type/keyword/:keyword",
+    MealMiddleware,
+    findByKeywordDietType
+);
+
+// Lấy thông tin chi tiết một loại chế độ ăn uống theo ID
 router.get(
     "/diet-type/:diet_type_id",
     MealMiddleware,

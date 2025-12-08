@@ -12,6 +12,8 @@ import {
 } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRecipeById } from '../../redux/thunks/recipeThunk';
+import { updateMeal, deleteMeal } from '../../redux/thunks/mealThunk';
+import { fetchMeasurementUnits } from '../../redux/thunks/measurementUnitsThunk';
 import DishForm from '../DishForm/DishForm';
 import NutritionChart from './NutritionChart';
 
@@ -29,8 +31,23 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
   
+  // Selector để lấy measurementUnits
+  const measurementUnitsState = useSelector((state) => state.measurementUnits);
+  const { measurementUnits = [] } = measurementUnitsState || {};
+
+  // Helper function để lấy tên đơn vị
+  const getMeasureUnitLabel = (unitKey) => {
+    const found = measurementUnits.find(unit => unit.key === unitKey);
+    return found ? found.label : unitKey;
+  };
+  
   // Lấy chi tiết công thức từ Redux store
   const { selectedRecipe, loading: recipeLoading } = useSelector(state => state.recipes);
+  
+  // Fetch measurementUnits khi component mount
+  useEffect(() => {
+    dispatch(fetchMeasurementUnits());
+  }, [dispatch]);
   
   // Fetch công thức khi meal thay đổi và có recipe_id
   useEffect(() => {
@@ -56,13 +73,13 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
           id: ing.ingredient_id,
           name: ingredientInfo?.nameIngredient || 'Nguyên liệu không xác định',
           quantity: ing.quantity || 0,
-          unit: ing.unit || 'g',
+          unit: ing.unit || 'g', // Giữ nguyên unit key, không convert ở đây
           image: ingredientInfo?.ingredientImage || ''
         };
       });
       setIngredientDetails(details);
     }
-  }, [meal, allIngredients]);
+  }, [meal, allIngredients]); // Bỏ measurementUnits khỏi dependency
 
   // Tính toán tổng dinh dưỡng từ tất cả nguyên liệu
   const calculateTotalNutrition = () => {
@@ -87,16 +104,17 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
     return totals;
   };
 
-  // Tính dinh dưỡng sau khi áp dụng cooking effect
+  // Tính dinh dưỡng sau khi áp dụng cooking effect từ recipe nutrition
   const calculateFinalNutrition = () => {
     const totalNutrition = calculateTotalNutrition();
-    const cookingEffect = meal?.recipe?.cookingEffect || { calo: 100, protein: 100, carb: 100, fat: 100 };
+    // Sử dụng nutrition từ selectedRecipe thay vì cookingEffect
+    const nutritionEffect = selectedRecipe?.data?.nutrition || { calories: 100, protein: 100, carbs: 100, fat: 100 };
     
     return {
-      calories: (totalNutrition.calories * (cookingEffect.calo / 100)).toFixed(1),
-      protein: (totalNutrition.protein * (cookingEffect.protein / 100)).toFixed(1),
-      carbs: (totalNutrition.carbs * (cookingEffect.carb / 100)).toFixed(1),
-      fat: (totalNutrition.fat * (cookingEffect.fat / 100)).toFixed(1)
+      calories: (totalNutrition.calories * (nutritionEffect.calories / 100)).toFixed(1),
+      protein: (totalNutrition.protein * (nutritionEffect.protein / 100)).toFixed(1),
+      carbs: (totalNutrition.carbs * (nutritionEffect.carbs / 100)).toFixed(1),
+      fat: (totalNutrition.fat * (nutritionEffect.fat / 100)).toFixed(1)
     };
   };
   
@@ -104,8 +122,91 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
 
   if (!meal) return null;
 
+  // Chuẩn bị dữ liệu đầy đủ cho form chỉnh sửa
+  const prepareEditData = () => {
+    if (!meal || !selectedRecipe?.data) return meal;
+
+    // Tạo dữ liệu hoàn chỉnh cho form
+    const fullMealData = {
+      ...meal,
+      // Thông tin cơ bản
+      nameMeal: meal.nameMeal,
+      description: meal.description || '',
+      mealCategory: meal.mealCategory,
+      mealImage: meal.mealImage || '',
+      popularity: meal.popularity || 1, // Thêm popularity
+      dietaryCompatibility: meal.dietaryCompatibility || [],
+      
+      // Thông tin nguyên liệu với chi tiết đầy đủ
+      ingredients: ingredientDetails.map(detail => ({
+        ingredient_id: detail.id,
+        quantity: detail.quantity,
+        unit: detail.unit,
+        // Thêm thông tin chi tiết để form hiển thị
+        ingredientInfo: {
+          _id: detail.id,
+          nameIngredient: detail.name,
+          ingredientImage: detail.image
+        }
+      })),
+      
+      // Thông tin công thức nấu ăn
+      recipe: {
+        ...meal.recipe,
+        // Thông tin từ selectedRecipe
+        nameRecipe: selectedRecipe.data.nameRecipe || meal.nameMeal,
+        description: selectedRecipe.data.description || '',
+        recipeImage: selectedRecipe.data.recipeImage || meal.mealImage || '',
+        prepTimeMinutes: selectedRecipe.data.prepTimeMinutes || 0,
+        cookTimeMinutes: selectedRecipe.data.cookTimeMinutes || 0,
+        difficulty: selectedRecipe.data.difficulty || 'easy',
+        
+        // Các bước thực hiện
+        steps: selectedRecipe.data.steps || [],
+        
+        // Thông tin dinh dưỡng từ recipe
+        nutrition: selectedRecipe.data.nutrition || {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0
+        }
+      }
+    };
+
+    console.log('Prepared edit data:', fullMealData);
+    return fullMealData;
+  };
+
   const handleEditClick = () => {
-    setIsEditing(true);
+    // Đảm bảo có dữ liệu recipe trước khi chuyển sang chế độ edit
+    if (!selectedRecipe?.data && meal?.recipe?.recipe_id) {
+      // Nếu chưa có recipe data, fetch trước
+      setFetchingRecipe(true);
+      dispatch(fetchRecipeById(meal.recipe.recipe_id))
+        .then(() => {
+          setFetchingRecipe(false);
+          // Sau khi fetch xong, chuẩn bị dữ liệu và chuyển sang edit mode
+          setTimeout(() => {
+            const editData = prepareEditData();
+            form.setFieldsValue(editData);
+            setIsEditing(true);
+          }, 100);
+        })
+        .catch(error => {
+          setFetchingRecipe(false);
+          console.error('Error fetching recipe for edit:', error);
+          // Vẫn cho phép edit nhưng không có recipe data
+          const editData = prepareEditData();
+          form.setFieldsValue(editData);
+          setIsEditing(true);
+        });
+    } else {
+      // Đã có recipe data, chuẩn bị và chuyển sang edit mode
+      const editData = prepareEditData();
+      form.setFieldsValue(editData);
+      setIsEditing(true);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -113,11 +214,37 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
     form.resetFields();
   };
 
-  const handleSaveEdit = (values) => {
-    if (onEdit) {
-      onEdit({ ...values, id: meal.id });
+  const handleSaveEdit = async (submitData) => {
+    try {
+      console.log('Saving edited values:', submitData);
+      
+      // CHỈ DISPATCH updateMeal ở đây - DishForm không dispatch nữa
+      const resultAction = await dispatch(updateMeal({
+        id: meal._id,
+        mealData: submitData
+      }));
+      
+      if (updateMeal.fulfilled.match(resultAction)) {
+        // Cập nhật thành công
+        setIsEditing(false);
+        
+        // QUAN TRỌNG: Fetch lại meal detail để cập nhật ảnh mới
+        await dispatch(fetchMealById(meal._id));
+        
+        // Gọi callback để refresh data nếu cần
+        if (onEdit) {
+          onEdit(resultAction.payload);
+        }
+        
+        // Đóng modal sau khi cập nhật thành công
+        onClose();
+      } else {
+        // Xử lý lỗi nếu cần
+        console.error('Update failed:', resultAction.error);
+      }
+    } catch (error) {
+      console.error('Error updating meal:', error);
     }
-    setIsEditing(false);
   };
 
   // Xóa món ăn (hiện modal confirm)
@@ -131,11 +258,25 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
       okType: 'danger',
       cancelText: 'Hủy',
       centered: true,
-      onOk: () => {
-        if (onDelete) {
-          onDelete(meal._id);
+      onOk: async () => {
+        try {
+          // Dispatch deleteMeal thunk thay vì gọi callback
+          const resultAction = await dispatch(deleteMeal(meal._id));
+          
+          if (deleteMeal.fulfilled.match(resultAction)) {
+            // Xóa thành công, đóng modal
+            onClose();
+            // Có thể gọi callback để refresh data nếu cần
+            if (onDelete) {
+              onDelete(meal._id);
+            }
+          } else {
+            // Xử lý lỗi nếu cần
+            console.error('Delete failed:', resultAction.error);
+          }
+        } catch (error) {
+          console.error('Error deleting meal:', error);
         }
-        onClose();
       }
     });
   };
@@ -149,6 +290,34 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
     setPreviewImage(image);
     setPreviewTitle(title || 'Hình ảnh');
     setImagePreviewVisible(true);
+  };
+
+  // Hàm render sao cho popularity
+  const renderPopularityStars = (popularity) => {
+    const stars = [];
+    const actualPopularity = popularity || 1; // Sử dụng giá trị thực từ dữ liệu
+    
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <span key={i} style={{ color: i <= actualPopularity ? '#FFD700' : '#E0E0E0', fontSize: '16px' }}>
+          ⭐
+        </span>
+      );
+    }
+    return stars;
+  };
+
+  // Hàm lấy text mô tả popularity
+  const getPopularityText = (popularity) => {
+    const actualPopularity = popularity || 1;
+    switch (actualPopularity) {
+      case 1: return 'Ít phổ biến';
+      case 2: return 'Khá phổ biến';
+      case 3: return 'Phổ biến';
+      case 4: return 'Rất phổ biến';
+      case 5: return 'Cực kỳ phổ biến';
+      default: return 'Chưa đánh giá';
+    }
   };
 
   // Nếu đang trong chế độ chỉnh sửa, hiển thị form thay vì thông tin chi tiết
@@ -166,14 +335,20 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
         }}
         footer={null}
         className="dish-detail-modal editing"
+        destroyOnClose={false} // Không destroy để giữ lại dữ liệu form
       >
         <DishForm
           form={form}
-          initialValues={meal}
+          initialValues={meal} // Truyền meal gốc
+          editData={prepareEditData()} // Truyền thêm editData đã chuẩn bị
           onFinish={handleSaveEdit}
           onCancel={handleCancelEdit}
           allIngredients={allIngredients || []}
+          mealCategories={mealCategories || []}
           isEdit={true}
+          // Truyền thêm các prop cần thiết cho việc edit
+          selectedRecipe={selectedRecipe}
+          ingredientDetails={ingredientDetails}
         />
       </Modal>
     );
@@ -262,6 +437,14 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
                     <Descriptions.Item label={<strong>Calories</strong>}>
                       <FireOutlined style={{ marginRight: 8 }} />~{finalNutrition.calories} kcal/khẩu phần
                     </Descriptions.Item>
+                    <Descriptions.Item label={<strong>Độ phổ biến</strong>}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: '16px', fontWeight: '500', color: '#333' }}>
+                          ({meal.popularity || 1}/5)
+                        </span>
+                        <Text type="secondary">- {getPopularityText(meal.popularity)}</Text>
+                      </div>
+                    </Descriptions.Item>
                   </Descriptions>
                 </Col>
               </Row>
@@ -270,7 +453,7 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
             {/* Thay thế Card Thông tin dinh dưỡng bằng component NutritionChart */}
             <NutritionChart 
               nutrition={finalNutrition} 
-              cookingEffect={meal.recipe?.cookingEffect}
+              nutritionEffect={selectedRecipe?.data?.nutrition}
             />
 
             <Card
@@ -294,7 +477,7 @@ const DishDetailModal = ({ isVisible, onClose, meal, onEdit, onDelete, allIngred
                       <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 10 }} />
                       <div style={{ flex: 1 }}>{item.name}</div>
                       <div>
-                        <Text strong>{item.quantity} {item.unit}</Text>
+                        <Text strong>{item.quantity} {getMeasureUnitLabel(item.unit)}</Text>
                       </div>
                     </div>
                   </List.Item>

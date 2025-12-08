@@ -1,912 +1,537 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Form, Input, Select, Button, Row, Col, Upload, InputNumber, Divider, List, Card, Typography, Avatar, message, Spin } from 'antd';
-import { PlusOutlined, CloseOutlined, UploadOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import {
+  Input,
+  Select,
+  Button,
+  Row,
+  Col,
+  Card,
+  Space,
+  Upload,
+  Image,
+  message
+} from 'antd';
+import {
+  PlusOutlined,
+  LoadingOutlined
+} from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { addMeal } from '../../redux/thunks/mealThunk';
-import { fetchIngredients } from '../../redux/thunks/ingredientThunk';
-import { fetchMealCategories } from '../../redux/thunks/mealCategoryThunk';
 import { uploadImage, convertAntdUploadFileToFile } from '../../utils/cloudinaryUpload';
-import { clearError, setSuccess } from '../../redux/slices/mealSlice';
+import IngredientSection from './IngredientSection';
+import RecipeSection from './RecipeSection';
 
 const { Option } = Select;
 const { TextArea } = Input;
-const { Text } = Typography;
 
-// Component hiển thị từng bước công thức
-const StepCard = React.memo(({ step, index, updateStep, removeStep }) => {
-  const handleTitleChange = (e) => updateStep(index, 'title', e.target.value);
-  const handleDescriptionChange = (e) => updateStep(index, 'description', e.target.value);
-  const handleImageChange = (info) => {
-    if (info.fileList.length > 0) {
-      updateStep(index, 'image', info.fileList[0]);
-    }
-  };
-  
-  return (
-    <Card
-      key={index}
-      size="small"
-      title={<span style={{ fontWeight: 600 }}>{`Bước ${step.stepNumber}`}</span>}
-      style={{ marginBottom: 16 }}
-      variant="bordered"
-      extra={
-        <Button 
-          type="text" 
-          danger 
-          icon={<DeleteOutlined />} 
-          onClick={() => removeStep(index)}
-        />
-      }
-    >
-      <Input
-        placeholder="Tiêu đề bước"
-        value={step.title}
-        style={{ marginBottom: 8 }}
-        onChange={handleTitleChange}
-      />
-      <TextArea
-        rows={3}
-        placeholder="Mô tả chi tiết các thao tác"
-        value={step.description}
-        style={{ marginBottom: 8 }}
-        onChange={handleDescriptionChange}
-      />
-      <Upload
-        listType="picture-card"
-        maxCount={1}
-        beforeUpload={() => false}
-        onChange={handleImageChange}
-        accept="image/*" // Add this to restrict to image files only
-        defaultFileList={step.image ? [
-          {
-            uid: `-${index}`,
-            name: `step${index}.png`,
-            status: 'done',
-            url: step.image,
-          }
-        ] : []}
-      >
-        <div>
-          <PlusOutlined />
-          <div style={{ marginTop: 8 }}>Ảnh bước thực hiện</div>
-        </div>
-      </Upload>
-    </Card>
-  );
-});
-
-const DishForm = ({ form = Form.useForm()[0], initialValues = null, isEdit = false, onCancel }) => {
+const DishForm = ({
+  form,
+  initialValues,
+  editData,
+  onFinish,
+  onCancel,
+  allIngredients = [],
+  mealCategories = [],
+  isEdit = false,
+  selectedRecipe,
+  ingredientDetails = []
+}) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  
-  // ----------- REDUX STATE -----------
-  const { loading, error, success } = useSelector(state => state.meals);
-  const { ingredients: allIngredients } = useSelector(state => state.ingredients);
-  const mealCategoriesState = useSelector(state => state.mealCategories);
-  const mealCategories = mealCategoriesState?.mealCategories || [];
-  
-  // ----------- LOCAL STATE -----------
-  // Quản lý thành phần
+  const { loading } = useSelector(state => state.meals);
+  const measurementUnitsState = useSelector((state) => state.measurementUnits);
+
+  const { measurementUnits = [] } = measurementUnitsState || {};
+
   const [selectedIngredients, setSelectedIngredients] = useState([]);
-  const [steps, setSteps] = useState([{ stepNumber: 1, title: '', description: '', image: '' }]);
-  const [ingredientTypeFilter, setIngredientTypeFilter] = useState('all');
-  const [searchText, setSearchText] = useState('');
-  
-  // Quản lý UI
-  const [submitting, setSubmitting] = useState(false);
-  
-  // Quản lý ảnh
-  const [fileList, setFileList] = useState([]);
-  const [imageUrl, setImageUrl] = useState("");
-  
-  // ----------- EFFECTS -----------
-  // Fetch dữ liệu nguyên liệu và danh mục khi component mount
-  useEffect(() => {
-    dispatch(fetchIngredients());
-    dispatch(fetchMealCategories({ page: 1, limit: 100 }));
-  }, [dispatch]);
-  
-  // Xử lý thành công/lỗi từ Redux
-  useEffect(() => {
-    if (success) {
-      message.success('Thêm món ăn thành công!');
-      dispatch(setSuccess(false));
-      
-      // Đóng modal nếu có hàm onCancel được truyền vào
-      if (typeof onCancel === 'function') {
-        onCancel();
-      } else {
-        navigate('/manage_meal');
+  const [recipeSteps, setRecipeSteps] = useState([]);
+  const [uploadingMainImage, setUploadingMainImage] = useState(false);
+  const [uploadingStepImages, setUploadingStepImages] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pastedMainImage, setPastedMainImage] = useState(null);
+  const [mainImageFileList, setMainImageFileList] = useState([]);
+  const [pastedStepImages, setPastedStepImages] = useState({});
+  const [stepImageFileLists, setStepImageFileLists] = useState({});
+
+  // Form data states
+  const [formData, setFormData] = useState({
+    nameMeal: '',
+    description: '',
+    mealCategory: '',
+    mealImage: '',
+    popularity: 1,
+    dietaryCompatibility: [],
+    recipe: {
+      nameRecipe: '',
+      description: '',
+      prepTimeMinutes: 15,
+      cookTimeMinutes: 30,
+      difficulty: 'easy',
+      steps: [],
+      nutrition: {
+        calories: 100,
+        protein: 100,
+        carbs: 100,
+        fat: 100
       }
     }
-    
-    if (error) {
-      message.error('Lỗi: ' + error);
-      dispatch(clearError());
-    }
-  }, [success, error, dispatch, navigate, onCancel]);
-  
-  // Khởi tạo form và ảnh dựa trên initialValues nếu có
+  });
+
+  // Khởi tạo dữ liệu khi component mount hoặc khi editData thay đổi
   useEffect(() => {
-    if (initialValues) {
-      // Set giá trị form từ initialValues
-      form.setFieldsValue({
-        nameMeal: initialValues.nameMeal || '',
-        mealCategory: initialValues.mealCategory || '',
-        difficulty: initialValues.difficulty || 'medium',
-        servings: initialValues.portionSize || 4,
-        prepTimeMinutes: initialValues.recipe?.prepTimeMinutes || 15,
-        cookTimeMinutes: initialValues.recipe?.cookTimeMinutes || 30,
-        description: initialValues.description || '',
-        // Chỉ lưu phần trăm dinh dưỡng giữ lại sau khi nấu
-        nutrition: {
-          calories: initialValues.recipe?.cookingEffect?.calo || 100,
-          protein: initialValues.recipe?.cookingEffect?.protein || 100,
-          carbs: initialValues.recipe?.cookingEffect?.carb || 100,
-          fat: initialValues.recipe?.cookingEffect?.fat || 100
-        }
-      });
-      
-      // Set ingredients nếu có
-      if (initialValues.ingredients && initialValues.ingredients.length > 0) {
-        setSelectedIngredients(initialValues.ingredients.map(ing => ({
-          id: ing.ingredient_id,
-          name: ing.name || '',
-          amount: ing.quantity || 0,
-          unit: ing.unit || 'g',
-          originalData: ing
-        })));
+    if (isEdit && editData) {
+      // Set up ingredients
+      if (editData.ingredients && editData.ingredients.length > 0) {
+        const ingredientsForForm = editData.ingredients.map(ing => ({
+          ingredient_id: ing.ingredient_id,
+          quantity: ing.quantity,
+          unit: ing.unit,
+          ingredientInfo: ing.ingredientInfo || allIngredients.find(item => item._id === ing.ingredient_id)
+        }));
+        setSelectedIngredients(ingredientsForForm);
       }
-      
-      // Set steps nếu có
-      if (initialValues.recipe && initialValues.recipe.steps && initialValues.recipe.steps.length > 0) {
-        setSteps(initialValues.recipe.steps.map(step => ({
-          stepNumber: step.stepNumber || 1,
+
+      // Set up recipe steps
+      if (editData.recipe && editData.recipe.steps) {
+        setRecipeSteps(editData.recipe.steps.map(step => ({
+          stepNumber: step.stepNumber,
           title: step.title || '',
           description: step.description || '',
-          image: step.image || ''
+          recipeImage: step.recipeImage || step.image || ''
         })));
-      } else {
-        setSteps([{ stepNumber: 1, title: '', description: '', image: '' }]);
       }
-      
-      // Thiết lập ảnh ban đầu nếu có
-      if (initialValues.mealImage) {
-        setImageUrl(initialValues.mealImage);
-        setFileList([
-          {
-            uid: '-1',
-            name: 'image.png',
-            status: 'done',
-            url: initialValues.mealImage,
-          }
-        ]);
-      }
-    }
-  }, [initialValues, form]);
-  
-  // ----------- TÍNH TOÁN -----------
-  // Tính toán tổng dinh dưỡng từ tất cả nguyên liệu đã chọn
-  const calculateTotalNutrition = () => {
-    if (!Array.isArray(selectedIngredients) || selectedIngredients.length === 0 || !Array.isArray(allIngredients)) {
-      return { calories: 0, protein: 0, carbs: 0, fat: 0 };
-    }
-    
-    const totals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
-    
-    selectedIngredients.forEach(ingredient => {
-      const ingredientDetail = allIngredients.find(i => i._id === ingredient.id);
-      if (!ingredientDetail || !ingredientDetail.nutrition) return;
-      
-      const ratio = ingredient.amount / (ingredientDetail.defaultAmount || 100);
-      
-      totals.calories += (ingredientDetail.nutrition.calories || 0) * ratio;
-      totals.protein += (ingredientDetail.nutrition.protein || 0) * ratio;
-      totals.carbs += (ingredientDetail.nutrition.carbs || 0) * ratio;
-      totals.fat += (ingredientDetail.nutrition.fat || 0) * ratio;
-    });
-    
-    return totals;
-  };
-  
-  // Hàm tính tỉ lệ giảm dinh dưỡng sau khi nấu
-  const calculateCookingEffect = (totalNutrition, effectPercentages) => {
-    return {
-      calo: Math.max(0, totalNutrition.calories * (effectPercentages.calories / 100)),
-      protein: Math.max(0, totalNutrition.protein * (effectPercentages.protein / 100)),
-      carb: Math.max(0, totalNutrition.carbs * (effectPercentages.carbs / 100)),
-      fat: Math.max(0, totalNutrition.fat * (effectPercentages.fat / 100))
-    };
-  };
-  
-  // ----------- HANDLERS -----------
-  // Xử lý khi nhấn nút "Hủy"
-  const handleCancel = () => {
-    if (typeof onCancel === 'function') {
-      onCancel();
-    } else {
-      navigate('/manage_meal');
-    }
-  };
-  
-  // Xử lý khi thay đổi ảnh
-  const handleImageChange = ({ fileList: newFileList }) => {
-    setFileList(newFileList);
-    
-    if (newFileList.length === 0) {
-      setImageUrl("");
-    } else if (newFileList[0].url) {
-      setImageUrl(newFileList[0].url);
-    }
-  };
-  
-  // Xử lý thêm món ăn
-  const handleAddMeal = async () => {
-    try {
-      // Lấy giá trị hiện tại của form trước khi validate
-      const currentValues = form.getFieldsValue();
-      
-      // Kiểm tra dữ liệu form trước khi xử lý
-      const formValues = await form.validateFields()
-        .catch(error => {
-          // Lấy tất cả các trường lỗi và hiển thị message
-          const fieldErrors = error.errorFields || [];
-          if (fieldErrors.length > 0) {
-            // Lấy thông báo lỗi đầu tiên để hiển thị
-            const firstError = fieldErrors[0];
-            const errorMsg = firstError.errors[0] || 'Vui lòng kiểm tra lại các trường bắt buộc';
-            message.error(errorMsg);
-          } else {
-            message.error('Vui lòng kiểm tra lại các trường bắt buộc');
-          }
-          return null;
-        });
-      
-      if (!formValues) return; // Dừng nếu form không hợp lệ
-      
-      // Sửa kiểm tra dựa trên giá trị hiện tại của form, không phải dựa trên formValues
-      if (!currentValues.nameMeal || currentValues.nameMeal.trim() === '') {
-        message.error('Vui lòng nhập tên món ăn');
-        return;
-      }
-      
-      if (!currentValues.mealCategory) {
-        message.error('Vui lòng chọn danh mục món ăn');
-        return;
-      }
-      
-      // Với InputNumber, kiểm tra theo kiểu khác để đảm bảo nhận ra cả 0
-      if (currentValues.prepTimeMinutes === undefined || currentValues.prepTimeMinutes === null) {
-        message.error('Vui lòng nhập thời gian chuẩn bị');
-        return;
-      }
-      
-      if (currentValues.cookTimeMinutes === undefined || currentValues.cookTimeMinutes === null) {
-        message.error('Vui lòng nhập thời gian nấu');
-        return;
-      }
-      
-      if (!currentValues.difficulty) {
-        message.error('Vui lòng chọn độ khó');
-        return;
-      }
-      
-      // Kiểm tra xem có ảnh món ăn không
-      if (fileList.length === 0 && !imageUrl) {
-        message.error('Vui lòng tải lên ảnh món ăn');
-        return;
-      }
-      
-      setSubmitting(true);
-      
-      // Kiểm tra xem các bước có đủ tiêu đề và mô tả không
-      const invalidSteps = steps.filter(step => !step.title || !step.description);
-      if (invalidSteps.length > 0) {
-        message.error('Vui lòng nhập đầy đủ tiêu đề và mô tả cho tất cả các bước.');
-        setSubmitting(false);
-        return;
-      }
-      
-      // Kiểm tra xem có nguyên liệu nào được chọn không
-      if (selectedIngredients.length === 0) {
-        message.error('Vui lòng chọn ít nhất một nguyên liệu.');
-        setSubmitting(false);
-        return;
-      }
-      
-      // Upload hình ảnh món ăn lên Cloudinary
-      let mealImageUrl = "";
-      
-      // Nếu có file ảnh mới, upload lên Cloudinary
-      if (fileList.length > 0) {
-        const imageFile = fileList[0];
-        
-        if (imageFile.originFileObj) {
-          try {
-            const file = convertAntdUploadFileToFile(imageFile.originFileObj);
-            
-            if (file) {
-              const uploadResult = await uploadImage(file, { folder: 'meals' });
-              mealImageUrl = uploadResult.secure_url;
-            }
-          } catch (uploadError) {
-            message.error('Không thể tải lên hình ảnh món ăn: ' + uploadError.message);
-            setSubmitting(false);
-            return;
-          }
-        } else if (imageFile.url) {
-          mealImageUrl = imageFile.url;
-        }
-      } else if (imageUrl) {
-        // Giữ nguyên URL ảnh cũ nếu không có ảnh mới
-        mealImageUrl = imageUrl;
-      }
-      
-      // Upload hình ảnh các bước
-      const processedSteps = await Promise.all(
-        steps.map(async (step, index) => {
-          let stepImageUrl = "";
-          
-          if (step.image && typeof step.image === 'object') {
-            if (step.image.originFileObj) {
-              try {
-                const file = convertAntdUploadFileToFile(step.image.originFileObj);
-                if (file) {
-                  const uploadResult = await uploadImage(file, { folder: 'steps' });
-                  stepImageUrl = uploadResult.secure_url;
-                }
-              } catch (error) {
-                // Bỏ qua lỗi upload ảnh bước
-              }
-            } else if (step.image.url) {
-              stepImageUrl = step.image.url;
-            }
-          } else if (typeof step.image === 'string') {
-            stepImageUrl = step.image;
-          }
-          
-          return {
-            stepNumber: step.stepNumber,
-            title: step.title,
-            description: step.description,
-            image: stepImageUrl
-          };
-        })
-      );
-      
-      // Chuẩn bị dữ liệu nguyên liệu
-      const ingredientsData = selectedIngredients.map(ingredient => ({
-        ingredient_id: ingredient.id,
-        quantity: ingredient.amount || 0,
-        unit: ingredient.unit || ""
-      }));
-      
-      // Lấy tỉ lệ giảm dinh dưỡng từ form - chỉ lấy giá trị phần trăm, không tính toán
-      const nutritionPercentages = {
-        calories: currentValues.nutrition?.calories || 100,
-        protein: currentValues.nutrition?.protein || 100, 
-        carbs: currentValues.nutrition?.carbs || 100,
-        fat: currentValues.nutrition?.fat || 100
-      };
-      
-      // Chuẩn bị dữ liệu món ăn
-      const mealData = {
-        nameMeal: currentValues.nameMeal,
-        description: currentValues.description || '',
-        mealCategory: currentValues.mealCategory || "main_course",
-        mealImage: mealImageUrl,
-        portionSize: currentValues.servings || 4, 
-        dietaryCompatibility: [],
-        ingredients: ingredientsData,
+
+      // Set form data
+      setFormData({
+        nameMeal: editData.nameMeal || '',
+        description: editData.description || '',
+        mealCategory: editData.mealCategory || '',
+        mealImage: editData.mealImage || '',
+        popularity: editData.popularity || 1,
+        dietaryCompatibility: editData.dietaryCompatibility || [],
         recipe: {
-          nameRecipe: currentValues.nameMeal,
-          description: currentValues.description || '',
-          recipeImage: mealImageUrl,
-          prepTimeMinutes: currentValues.prepTimeMinutes || 0,
-          cookTimeMinutes: currentValues.cookTimeMinutes || 0,
-          difficulty: currentValues.difficulty || 'medium',
-          steps: processedSteps,
-          // Truyền phần trăm dinh dưỡng giữ lại thay vì giá trị đã tính toán
-          nutrition: {
-            calories: nutritionPercentages.calories,
-            protein: nutritionPercentages.protein,
-            carbs: nutritionPercentages.carbs,
-            fat: nutritionPercentages.fat
+          nameRecipe: editData.recipe?.nameRecipe || editData.nameMeal || '',
+          description: editData.recipe?.description || '',
+          prepTimeMinutes: editData.recipe?.prepTimeMinutes || 15,
+          cookTimeMinutes: editData.recipe?.cookTimeMinutes || 30,
+          difficulty: editData.recipe?.difficulty || 'easy',
+          steps: editData.recipe?.steps || [],
+          nutrition: editData.recipe?.nutrition || {
+            calories: 100,
+            protein: 100,
+            carbs: 100,
+            fat: 100
           }
-        },
-        popularity: 0,
-        isActive: true
-      };
-      
-      // Gọi API thêm món ăn thông qua Redux thunk
-      const resultAction = await dispatch(addMeal(mealData));
-      
-      // Kiểm tra kết quả từ API
-      if (resultAction.meta && resultAction.meta.requestStatus === 'fulfilled') {
-        message.success('Thêm món ăn thành công!');
-        
-        // Đóng modal nếu có hàm onCancel được truyền vào
-        if (typeof onCancel === 'function') {
-          onCancel();
-        } else {
-          // Chuyển hướng sau khi thêm thành công nếu không có onCancel
-          navigate('/manage_meal');
         }
-      } else {
-        // Xử lý lỗi
-        const errorMsg = resultAction.error?.message || 'Đã xảy ra lỗi';
-        message.error('Không thể thêm món ăn: ' + errorMsg);
+      });
+    }
+  }, [isEdit, editData, allIngredients]);
+
+  // Hàm cập nhật form data
+  const updateFormData = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Hàm cập nhật nested form data (cho recipe)
+  const updateRecipeData = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      recipe: {
+        ...prev.recipe,
+        [field]: value
       }
-    } catch (error) {
-      message.error('Có lỗi xảy ra: ' + (error.message || 'Vui lòng kiểm tra lại các trường bắt buộc'));
-    } finally {
-      setSubmitting(false);
+    }));
+  };
+
+  // Helper function để lấy tên đơn vị
+  const getMeasureUnitLabel = (unitKey) => {
+    const found = measurementUnits.find(unit => unit.key === unitKey);
+    return found ? found.label : unitKey;
+  };
+
+  // Xử lý dán ảnh món ăn từ clipboard
+  const handleMainImagePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            updateFormData('mealImage', event.target.result);
+            setPastedMainImage(file);
+            setMainImageFileList([]);
+          };
+          reader.readAsDataURL(file);
+        }
+        break;
+      }
     }
   };
-  
-  // ----------- INGREDIENT HANDLERS -----------
-  const addIngredient = (ingredient) => {
-    const newIngredient = {
-      id: ingredient._id,
-      name: ingredient.nameIngredient,
-      amount: ingredient.defaultAmount || 1,
-      unit: ingredient.defaultUnit || 'g',
-      originalData: ingredient
-    };
-    setSelectedIngredients([...selectedIngredients, newIngredient]);
+
+  const clearPastedMainImage = () => {
+    setPastedMainImage(null);
+    updateFormData('mealImage', '');
   };
-  
-  const removeIngredient = (ingredientId) => {
-    setSelectedIngredients(selectedIngredients.filter(item => item.id !== ingredientId));
-  };
-  
-  const updateIngredientAmount = (id, amount) => {
-    setSelectedIngredients(selectedIngredients.map(item => 
-      item.id === id ? { ...item, amount } : item
-    ));
-  };
-  
-  // ----------- STEP HANDLERS -----------
-  const addStep = useCallback(() => {
-    setSteps(prevSteps => [
-      ...prevSteps, 
-      {
-        stepNumber: prevSteps.length + 1,
-        title: '',
-        description: '',
-        image: ''
+
+  const handleMainImageUpload = async (file) => {
+    try {
+      setUploadingMainImage(true);
+      const realFile = convertAntdUploadFileToFile(file);
+
+      if (!realFile) {
+        message.error('Không thể đọc file ảnh');
+        return false;
       }
-    ]);
-  }, []);
 
-  const updateStep = useCallback((index, field, value) => {
-    setSteps(prevSteps => {
-      const newSteps = [...prevSteps];
-      newSteps[index] = { ...newSteps[index], [field]: value };
-      return newSteps;
-    });
-  }, []);
+      const result = await uploadImage(realFile, { folder: 'meals' });
 
-  const removeStep = useCallback((index) => {
-    if (steps.length <= 1) return;
-    
-    setSteps(prevSteps => {
-      const newSteps = prevSteps
-        .filter((_, i) => i !== index)
-        .map((step, idx) => ({ ...step, stepNumber: idx + 1 }));
-      
-      return newSteps;
-    });
-  }, [steps.length]);
+      if (result && result.secure_url) {
+        updateFormData('mealImage', result.secure_url);
+        message.success('Upload ảnh thành công!');
+        setPastedMainImage(null);
+      }
 
-  // ----------- DERIVED DATA -----------
-  // Lọc ra các nguyên liệu chưa được chọn
-  const filteredIngredients = Array.isArray(allIngredients) ? 
-    allIngredients.filter(
-      ingredient => 
-        !selectedIngredients.some(item => item.id === ingredient._id) &&
-        (ingredientTypeFilter === 'all' || ingredient.type === ingredientTypeFilter) &&
-        (searchText === '' || ingredient.nameIngredient.toLowerCase().includes(searchText.toLowerCase()))
-    ) : [];
+      setUploadingMainImage(false);
+      return false;
+    } catch (error) {
+      console.error('Upload main image error:', error);
+      message.error('Upload ảnh thất bại: ' + error.message);
+      setUploadingMainImage(false);
+      return false;
+    }
+  };
 
-  // Lấy danh sách loại nguyên liệu độc nhất
-  const ingredientTypes = Array.isArray(allIngredients) ? 
-    ['all', ...new Set(allIngredients.map(ingredient => ingredient.type).filter(Boolean))] : 
-    ['all'];
-  
-  // Hiển thị loading nếu đang tải dữ liệu
-  if (!allIngredients || !mealCategories) {
-    return <Spin tip="Đang tải dữ liệu..." />;
-  }
-  
-  // ----------- RENDER -----------
+  const handleMainImageChange = ({ fileList: newFileList }) => {
+    setMainImageFileList(newFileList);
+    if (newFileList.length > 0) {
+      setPastedMainImage(null);
+    }
+  };
+
+  const uploadButton = (loading) => (
+    <div>
+      {loading ? <LoadingOutlined /> : <PlusOutlined />}
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </div>
+  );
+
+  // Validate form data
+  const validateFormData = () => {
+    const errors = [];
+
+    if (!formData.nameMeal?.trim()) {
+      errors.push('Tên món ăn không được để trống');
+    }
+
+    if (!formData.mealCategory) {
+      errors.push('Vui lòng chọn danh mục');
+    }
+
+    if (selectedIngredients.length === 0) {
+      errors.push('Vui lòng thêm ít nhất một nguyên liệu');
+    }
+
+    if (recipeSteps.length === 0) {
+      errors.push('Vui lòng thêm ít nhất một bước nấu ăn');
+    }
+
+    for (let i = 0; i < recipeSteps.length; i++) {
+      const step = recipeSteps[i];
+      if (!step.title?.trim() || !step.description?.trim()) {
+        errors.push(`Bước ${i + 1}: Vui lòng điền đầy đủ tiêu đề và mô tả`);
+      }
+    }
+
+    return errors;
+  };
+
+  // Xử lý submit
+  const handleSubmit = async () => {
+    if (isSubmitting || loading) {
+      return;
+    }
+
+    const validationErrors = validateFormData();
+    if (validationErrors.length > 0) {
+      message.error(validationErrors[0]);
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const submitData = {
+        ...formData,
+        ingredients: selectedIngredients,
+        recipe: {
+          nameRecipe: formData.recipe.nameRecipe,
+          description: formData.recipe.description,
+          prepTimeMinutes: formData.recipe.prepTimeMinutes,
+          cookTimeMinutes: formData.recipe.cookTimeMinutes,
+          difficulty: formData.recipe.difficulty,
+          steps: recipeSteps,
+          nutrition: formData.recipe.nutrition
+        }
+      };
+
+      if (pastedMainImage) {
+        const uploadResult = await uploadImage(pastedMainImage, { folder: 'meals' });
+        submitData.mealImage = uploadResult.secure_url;
+      }
+
+      for (const stepIndex in pastedStepImages) {
+        const file = pastedStepImages[stepIndex];
+        if (file) {
+          const uploadResult = await uploadImage(file, { folder: 'recipe-steps' });
+          const stepIdx = parseInt(stepIndex);
+          if (submitData.recipe.steps[stepIdx]) {
+            submitData.recipe.steps[stepIdx].recipeImage = uploadResult.secure_url;
+          }
+        }
+      }
+
+      if (submitData.mealCategory && mealCategories.length > 0) {
+        const selectedCategory = mealCategories.find(cat => cat._id === submitData.mealCategory);
+        if (selectedCategory) {
+          submitData.mealCategory = selectedCategory.keyword || selectedCategory.nameCategory || selectedCategory.title || submitData.mealCategory;
+        }
+      }
+
+      if (onFinish) {
+        onFinish(submitData);
+      }
+
+      if (!isEdit) {
+        setFormData({
+          nameMeal: '',
+          description: '',
+          mealCategory: '',
+          mealImage: '',
+          popularity: 1,
+          dietaryCompatibility: [],
+          recipe: {
+            nameRecipe: '',
+            description: '',
+            prepTimeMinutes: 15,
+            cookTimeMinutes: 30,
+            difficulty: 'easy',
+            steps: [],
+            nutrition: { calories: 100, protein: 100, carbs: 100, fat: 100 }
+          }
+        });
+        setSelectedIngredients([]);
+        setRecipeSteps([]);
+        setPastedMainImage(null);
+        setMainImageFileList([]);
+        setPastedStepImages({});
+        setStepImageFileLists({});
+      }
+
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <Spin spinning={loading || submitting}>
-      <Card title={isEdit ? "Chỉnh sửa món ăn" : "Thêm món ăn mới"}>
-        <Form
-          form={form}
-          layout="vertical"
-          className="dish-form"
-          requiredMark={true} // Hiển thị dấu * cho các trường bắt buộc
-        >
-          <Row gutter={24}>
-            {/* Phần bên trái (60%) */}
-            <Col span={14}>
-              <Card 
-                title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Thông tin cơ bản</span>} 
-                variant="bordered"
+    <div className="dish-form-container">
+      <Row gutter={24}>
+        {/* Cột trái - Thông tin cơ bản */}
+        <Col span={12}>
+          <Card title="Thông tin cơ bản" style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
+                Tên món ăn <span style={{ color: 'red' }}>*</span>
+              </label>
+              <Input
+                placeholder="Nhập tên món ăn"
+                value={formData.nameMeal}
+                onChange={(e) => updateFormData('nameMeal', e.target.value)}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Mô tả</label>
+              <TextArea
+                rows={3}
+                placeholder="Mô tả món ăn"
+                value={formData.description}
+                onChange={(e) => updateFormData('description', e.target.value)}
+              />
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
+                Danh mục <span style={{ color: 'red' }}>*</span>
+              </label>
+              <Select
+                placeholder="Chọn danh mục"
+                value={formData.mealCategory}
+                onChange={(value) => updateFormData('mealCategory', value)}
+                style={{ width: '100%' }}
               >
-                <Row gutter={16}>
-                  <Col span={16}>
-                    <Form.Item
-                      name="nameMeal"
-                      label="Tên món ăn"
-                      rules={[{ 
-                        required: true, 
-                        message: 'Vui lòng nhập tên món ăn',
-                        validateTrigger: [] // Không hiển thị lỗi trên UI
-                      }]}
-                    >
-                      <Input placeholder="Nhập tên món ăn" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={8}>
-                    <Form.Item
-                      name="difficulty"
-                      label="Độ khó"
-                      rules={[{ required: true, message: 'Vui lòng chọn độ khó' }]}
-                      initialValue="medium"
-                    >
-                      <Select placeholder="Chọn độ khó">
-                        <Option value="easy">Dễ</Option>
-                        <Option value="medium">Trung bình</Option>
-                        <Option value="hard">Khó</Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                </Row>
+                {mealCategories.map(category => (
+                  <Option key={category._id} value={category._id}>
+                    {category.title || category.nameCategory}
+                  </Option>
+                ))}
+              </Select>
+            </div>
 
-                <Form.Item
-                  name="mealCategory"
-                  label="Danh mục món ăn"
-                  rules={[{ 
-                    required: true, 
-                    message: 'Vui lòng chọn danh mục món ăn',
-                    validateTrigger: [] // Không hiển thị lỗi trên UI
-                  }]}
-                  initialValue="main_course"
-                >
-                  <Select placeholder="Chọn danh mục món ăn">
-                    {Array.isArray(mealCategories) && mealCategories.length > 0 ? (
-                      mealCategories.map(category => (
-                        <Option key={category._id} value={category.keyword || category._id}>
-                          {category.title}
-                        </Option>
-                      ))
-                    ) : (
-                      <Option value="main_course">Món chính</Option>
-                    )}
-                  </Select>
-                </Form.Item>
-
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      name="prepTimeMinutes"
-                      label="Thời gian chuẩn bị (phút)"
-                      initialValue={15}
-                      rules={[{ 
-                        required: true, 
-                        message: 'Vui lòng nhập thời gian chuẩn bị',
-                        validateTrigger: [], // Không hiển thị lỗi trên UI
-                        // Thêm validator tùy chỉnh để tránh lỗi validate sai với InputNumber
-                        validator: (_, value) => {
-                          if (value !== undefined && value !== null) {
-                            return Promise.resolve();
-                          }
-                          return Promise.reject('Vui lòng nhập thời gian chuẩn bị');
-                        }
-                      }]}
-                    >
-                      <InputNumber min={1} style={{ width: '100%' }} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      name="cookTimeMinutes"
-                      label="Thời gian nấu (phút)"
-                      initialValue={30}
-                      rules={[{ 
-                        required: true, 
-                        message: 'Vui lòng nhập thời gian nấu',
-                        validateTrigger: [], // Không hiển thị lỗi trên UI
-                        // Thêm validator tùy chỉnh để tránh lỗi validate sai với InputNumber
-                        validator: (_, value) => {
-                          if (value !== undefined && value !== null) {
-                            return Promise.resolve();
-                          }
-                          return Promise.reject('Vui lòng nhập thời gian nấu');
-                        }
-                      }]}
-                    >
-                      <InputNumber min={1} style={{ width: '100%' }} />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Form.Item
-                  name="description"
-                  label="Mô tả món ăn"
-                >
-                  <TextArea rows={3} placeholder="Mô tả ngắn gọn về món ăn" />
-                </Form.Item>
-
-                <Form.Item
-                  label="Hình ảnh món ăn"
-                  required={true} // Thêm required để hiển thị dấu *
-                  rules={[{ required: true, message: 'Vui lòng tải lên ảnh món ăn' }]}
-                >
-                  <Upload
-                    listType="picture-card"
-                    maxCount={1}
-                    fileList={fileList}
-                    onChange={handleImageChange}
-                    beforeUpload={() => false}
-                    accept="image/*" // Add this to restrict to image files only
-                  >
-                    {fileList.length >= 1 ? null : (
-                      <div>
-                        <PlusOutlined />
-                        <div style={{ marginTop: 8 }}>Tải lên ảnh</div>
-                      </div>
-                    )}
-                  </Upload>
-                </Form.Item>
-              </Card>
-
-              <Divider />
-
-              <Card 
-                title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Nguyên liệu <span style={{ color: '#ff4d4f' }}>*</span></span>} 
-                variant="bordered"
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
+                Độ phổ biến <span style={{ color: 'red' }}>*</span>
+              </label>
+              <Select
+                placeholder="Chọn độ phổ biến"
+                value={formData.popularity}
+                onChange={(value) => updateFormData('popularity', value)}
+                style={{ width: '100%' }}
               >
-                <div style={{ marginBottom: 16 }}>
-                  <Row gutter={16} style={{ marginBottom: 16 }}>
-                    <Col span={16}>
-                      <Input 
-                        placeholder="Tìm kiếm nguyên liệu..."
-                        prefix={<SearchOutlined />}
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                      />
-                    </Col>
-                    <Col span={8}>
-                      <Select 
-                        style={{ width: '100%' }}
-                        placeholder="Lọc loại nguyên liệu"
-                        value={ingredientTypeFilter}
-                        onChange={setIngredientTypeFilter}
-                      >
-                        {ingredientTypes.map(type => (
-                          <Option key={type} value={type}>
-                            {type === 'all' ? 'Tất cả loại' : type}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Col>
-                  </Row>
-                  
-                  <Text strong style={{ fontSize: '15px' }}>Chọn nguyên liệu:</Text>
-                  <List
-                    bordered
-                    dataSource={filteredIngredients}
-                    renderItem={ingredient => (
-                      <List.Item
-                        key={ingredient._id}
-                        style={{ cursor: 'pointer', padding: '8px 16px' }}
-                        onClick={() => addIngredient(ingredient)}
-                        actions={[
-                          <Button
-                            type="primary"
-                            size="small"
-                            icon={<PlusOutlined />}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              addIngredient(ingredient);
-                            }}
-                          >
-                            Thêm
-                          </Button>
-                        ]}
-                      >
-                        <List.Item.Meta
-                          avatar={
-                            <Avatar 
-                              size={40} 
-                              src={ingredient.ingredientImage} 
-                              shape="square"
-                              style={{ marginRight: 8 }}
-                            >
-                              {!ingredient.ingredientImage && ingredient.nameIngredient?.charAt(0)}
-                            </Avatar>
-                          }
-                          title={ingredient.nameIngredient}
-                        />
-                      </List.Item>
-                    )}
-                    style={{ maxHeight: '300px', overflow: 'auto' }}
-                    locale={{ emptyText: 'Không tìm thấy nguyên liệu phù hợp' }}
+                <Option value={1}>⭐ Ít phổ biến (1 sao)</Option>
+                <Option value={2}>⭐⭐ Khá phổ biến (2 sao)</Option>
+                <Option value={3}>⭐⭐⭐ Phổ biến (3 sao)</Option>
+                <Option value={4}>⭐⭐⭐⭐ Rất phổ biến (4 sao)</Option>
+                <Option value={5}>⭐⭐⭐⭐⭐ Cực kỳ phổ biến (5 sao)</Option>
+              </Select>
+            </div>
+
+            {/* Upload ảnh món ăn */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Hình ảnh món ăn</label>
+              
+              <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                <div style={{ 
+                  flex: 1,
+                  border: "2px dashed #d9d9d9", 
+                  borderRadius: 8, 
+                  padding: 12,
+                  textAlign: "center",
+                  backgroundColor: pastedMainImage ? "#f6ffed" : "#fafafa",
+                  borderColor: pastedMainImage ? "#52c41a" : "#d9d9d9"
+                }}>
+                  <div style={{ marginBottom: 8, color: "#666", fontSize: 12 }}>
+                    📋 Dán ảnh (Ctrl+V)
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Click và nhấn Ctrl+V"
+                    style={{
+                      width: "100%",
+                      padding: "6px 10px",
+                      border: "1px solid #d9d9d9",
+                      borderRadius: 4,
+                      outline: "none",
+                      fontSize: 12
+                    }}
+                    onPaste={handleMainImagePaste}
+                    readOnly
                   />
+                  {pastedMainImage && (
+                    <div style={{ marginTop: 6 }}>
+                      <span style={{ color: "#52c41a", fontSize: 11 }}>
+                        ✅ Đã dán! 
+                      </span>
+                      <Button 
+                        type="link" 
+                        size="small" 
+                        onClick={clearPastedMainImage}
+                        style={{ padding: 0, marginLeft: 4, fontSize: 11 }}
+                      >
+                        Xóa
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
-                <Divider orientation="left">
-                  <span style={{ fontWeight: 600 }}>Nguyên liệu đã chọn</span>
-                </Divider>
-                
-                <List
-                  size="small"
-                  bordered
-                  dataSource={selectedIngredients}
-                  renderItem={item => (
-                    <List.Item 
-                      actions={[
-                        <Button 
-                          type="text" 
-                          danger 
-                          icon={<CloseOutlined />} 
-                          onClick={() => removeIngredient(item.id)}
-                        />
-                      ]}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                        <Avatar 
-                          size={32} 
-                          src={item.originalData?.ingredientImage}
-                          shape="square"
-                          style={{ marginRight: 8 }}
-                        >
-                          {!item.originalData?.ingredientImage && item.name?.charAt(0)}
-                        </Avatar>
-                        <div style={{ flex: 1 }}>{item.name}</div>
-                        <div style={{ width: 120 }}>
-                          <InputNumber 
-                            min={1} 
-                            value={item.amount} 
-                            onChange={(value) => updateIngredientAmount(item.id, value)}
-                            style={{ width: 70 }}
-                          /> {item.unit}
-                        </div>
-                      </div>
-                    </List.Item>
-                  )}
-                  locale={{ emptyText: 'Chưa có nguyên liệu nào được chọn' }}
-                />
-              </Card>
-            </Col>
+                <div style={{ 
+                  fontSize: 14, 
+                  color: "#999", 
+                  fontWeight: 500,
+                  textAlign: "center",
+                  minWidth: 40
+                }}>
+                  hoặc
+                </div>
 
-            {/* Phần bên phải (40%) */}
-            <Col span={10}>
-              <Card 
-                title={<span style={{ fontWeight: 600, fontSize: '16px' }}>Công thức nấu ăn</span>} 
-                variant="bordered"
-              >
-                <Form.Item 
-                  label={<span style={{ fontWeight: 600 }}>Các bước thực hiện <span style={{ color: '#ff4d4f' }}>*</span></span>}
-                  required={true} // Thêm required để hiển thị dấu *
+                <Upload
+                  name="mealImage"
+                  listType="picture-card"
+                  className="meal-image-uploader"
+                  showUploadList={false}
+                  beforeUpload={handleMainImageUpload}
+                  onChange={handleMainImageChange}
+                  fileList={mainImageFileList}
+                  accept="image/*"
+                  disabled={pastedMainImage !== null}
                 >
-                  {steps.map((step, index) => (
-                    <StepCard 
-                      key={`step-${index}-${step.stepNumber}`}
-                      step={step}
-                      index={index}
-                      updateStep={updateStep}
-                      removeStep={removeStep}
+                  {formData.mealImage ? (
+                    <Image
+                      src={formData.mealImage}
+                      alt="meal"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      preview={true}
                     />
-                  ))}
-                  <Button 
-                    type="dashed" 
-                    onClick={addStep} 
-                    block 
-                    icon={<PlusOutlined />}
-                  >
-                    Thêm bước
-                  </Button>
-                </Form.Item>
+                  ) : (
+                    uploadButton(uploadingMainImage)
+                  )}
+                </Upload>
+              </div>
+            </div>
+          </Card>
 
-                <Divider>
-                  <span style={{ fontWeight: 600 }}>Phần trăm dinh dưỡng giữ lại sau khi nấu:</span>
-                </Divider>
-                
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item 
-                      name={['nutrition', 'calories']} 
-                      label="Calories (%)"
-                      initialValue={100}
-                      help="Phần trăm dinh dưỡng giữ lại sau khi nấu"
-                    >
-                      <InputNumber 
-                        min={0} 
-                        max={100}
-                        formatter={value => `${value}%`}
-                        parser={value => value.replace('%', '')}
-                        style={{ width: '100%' }} 
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item 
-                      name={['nutrition', 'protein']} 
-                      label="Protein (%)"
-                      initialValue={100}
-                      help="Phần trăm dinh dưỡng giữ lại sau khi nấu"
-                    >
-                      <InputNumber 
-                        min={0} 
-                        max={100}
-                        formatter={value => `${value}%`}
-                        parser={value => value.replace('%', '')}
-                        style={{ width: '100%' }} 
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item 
-                      name={['nutrition', 'carbs']} 
-                      label="Carbs (%)"
-                      initialValue={100}
-                      help="Phần trăm dinh dưỡng giữ lại sau khi nấu"
-                    >
-                      <InputNumber 
-                        min={0} 
-                        max={100}
-                        formatter={value => `${value}%`}
-                        parser={value => value.replace('%', '')}
-                        style={{ width: '100%' }} 
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item 
-                      name={['nutrition', 'fat']} 
-                      label="Fat (%)"
-                      initialValue={100}
-                      help="Phần trăm dinh dưỡng giữ lại sau khi nấu"
-                    >
-                      <InputNumber 
-                        min={0} 
-                        max={100}
-                        formatter={value => `${value}%`}
-                        parser={value => value.replace('%', '')}
-                        style={{ width: '100%' }} 
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </Card>
-            </Col>
-          </Row>
+          {/* Component nguyên liệu */}
+          <IngredientSection
+            selectedIngredients={selectedIngredients}
+            setSelectedIngredients={setSelectedIngredients}
+            allIngredients={allIngredients}
+            measurementUnits={measurementUnits}
+            getMeasureUnitLabel={getMeasureUnitLabel}
+          />
+        </Col>
 
-          <div style={{ textAlign: 'right', marginTop: 24 }}>
-            <Button style={{ marginRight: 8 }} onClick={handleCancel} disabled={submitting || loading}>
-              Hủy
-            </Button>
-            <Button 
-              type="primary"
-              loading={submitting || loading}
-              onClick={handleAddMeal}
-            >
-              {isEdit ? 'Lưu thay đổi' : 'Thêm món ăn'}
-            </Button>
-          </div>
-        </Form>
-      </Card>
-    </Spin>
+        {/* Cột phải - Component công thức nấu ăn */}
+        <Col span={12}>
+          <RecipeSection
+            formData={formData}
+            updateRecipeData={updateRecipeData}
+            recipeSteps={recipeSteps}
+            setRecipeSteps={setRecipeSteps}
+            pastedStepImages={pastedStepImages}
+            setPastedStepImages={setPastedStepImages}
+            stepImageFileLists={stepImageFileLists}
+            setStepImageFileLists={setStepImageFileLists}
+            uploadingStepImages={uploadingStepImages}
+            setUploadingStepImages={setUploadingStepImages}
+          />
+        </Col>
+      </Row>
+
+      {/* Footer buttons */}
+      <div style={{ textAlign: 'right', marginTop: 24 }}>
+        <Space>
+          <Button onClick={onCancel} disabled={loading || isSubmitting}>
+            Hủy
+          </Button>
+          <Button
+            type="primary"
+            onClick={handleSubmit}
+            loading={loading || isSubmitting}
+            disabled={loading || isSubmitting}
+          >
+            {isEdit ? 'Cập nhật' : 'Thêm món ăn'}
+          </Button>
+        </Space>
+      </div>
+    </div>
   );
 };
 
-// Wrap component with memo để tránh re-render không cần thiết
-export default React.memo(DishForm);
+export default DishForm;

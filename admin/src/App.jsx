@@ -11,7 +11,7 @@ import Dishes from './pages/Dishes/Dishes'
 import DietTypePage from './pages/DietType/DietTypePage'
 import PrivateRoute from './routes/PrivateRoute'
 import PublicRoute from './routes/PublicRoute'
-import Layout from './pages/layout'
+import Layout from './pages/Layout'
 import Recipes from './pages/Recipes/Recipes'
 import Loading from './components/Loading/Loading'
 import Ingredients1 from './pages/Ingredients/Ingredients1'
@@ -20,6 +20,7 @@ import SurveyUserData from './pages/Survey/SurveyUserData'
 
 import ManageIngredientCategories from "./pages/categories/ManageIngredientCategories"
 import ManageMealCategories from './pages/categories/ManageMealCategories'
+import ManageOnboardingSurvey from './pages/Survey/ManageOnboardingSurvey'
 
 
 function App() {
@@ -75,17 +76,21 @@ function App() {
           <Layout>
             <PrivateRoute element={<DietTypePage />} />
           </Layout>} />
-        
+
         {/* Survey Routes */}
         <Route path="/manage_surveys/questions" element={
           <Layout>
             <PrivateRoute element={<SurveyPage />} />
           </Layout>} />
+        <Route path="/manage_surveys/onboarding" element={
+          <Layout>
+            <PrivateRoute element={<ManageOnboardingSurvey />} />
+          </Layout>} />
         <Route path="/manage_surveys/user_data" element={
           <Layout>
             <PrivateRoute element={<SurveyUserData />} />
           </Layout>} />
-        
+
         {/* Thêm routes mới cho các submenu */}
         <Route path="/manage_category/ingredients" element={
           <Layout>

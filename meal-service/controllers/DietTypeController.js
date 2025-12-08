@@ -255,10 +255,90 @@ const findByIdDietType = async (req, res) => {
     }
 }
 
+// Tìm loại chế độ ăn uống theo keyword
+const findByKeywordDietType = async (req, res) => {
+    try {
+        const { keyword } = req.params;
+        
+        if (!keyword) {
+            return res.status(400).json({
+                stype: "diet type",
+                message: "Keyword không được để trống!",
+                status: false
+            });
+        }
+
+        // Tìm diet type theo keyword (case-insensitive)
+        const dietType = await DietTypeModel.findOne({ 
+            keyword: { $regex: new RegExp(`^${keyword}$`, 'i') }
+        });
+
+        if (!dietType) {
+            return res.status(404).json({
+                stype: "diet type",
+                message: `Không tìm thấy chế độ ăn với keyword: ${keyword}`,
+                status: false
+            });
+        }
+
+        return res.status(200).json({
+            stype: "diet type",
+            message: "Lấy thông tin loại chế độ ăn uống theo keyword thành công!",
+            status: true,
+            data: dietType
+        });
+    } catch (error) {
+        return res.status(500).json({
+            stype: "diet type",
+            message: "Lấy thông tin chế độ ăn uống theo keyword thất bại!",
+            status: false,
+            error: error.message
+        });
+    }
+}
+
+// Lấy tổng số chế độ ăn - truy vấn tối ưu
+const getTotalDietTypes = async (req, res) => {
+    try {
+        // Đếm tổng số chế độ ăn
+        const totalDietTypes = await DietTypeModel.countDocuments();
+        
+        // Lấy 5 chế độ ăn mới nhất
+        const recentDietTypes = await DietTypeModel.find()
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select('keyword title dietTypeImage createdAt');
+
+        const result = {
+            totalDietTypes: totalDietTypes,
+            exactCount: totalDietTypes,
+            recentDietTypes: recentDietTypes
+        };
+
+        res.status(200).json({
+            stype: "diet type",
+            message: "Lấy tổng số chế độ ăn thành công!",
+            status: true,
+            data: result
+        });
+
+    } catch (error) {
+        console.error("Get total diet types error:", error);
+        res.status(500).json({
+            stype: "diet type",
+            message: "Lỗi server khi lấy tổng số chế độ ăn",
+            status: false,
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     addDietType,
     updateDietType,
     deleteDietType,
     getListDietTypes,
-    findByIdDietType
+    findByIdDietType,
+    findByKeywordDietType,
+    getTotalDietTypes
 }

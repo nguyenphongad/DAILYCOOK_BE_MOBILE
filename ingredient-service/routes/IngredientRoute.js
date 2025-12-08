@@ -1,5 +1,5 @@
 const express = require('express');
-const IngredientMiddleware = require('../middleware/ingredientsMiddleware');
+const IngredientMiddleware = require('../middleware/IngredientsMiddleware');
 
 const {
     addIngredientCategory,
@@ -15,10 +15,22 @@ const {
     deleteIngredient,
     findByIdIngredient,
     getListIngredient,
+    getTotalIngredients,
+    getRandomIngredients, // Import API mới
+    getRandomIngredientsByCategory // Import API mới
 } = require('../controllers/IngredientController');
 const { getAllMeasurementUnits } = require('../controllers/MeasurementUnitsController');
 
 const router = express.Router();
+
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'ingredient-service',
+    timestamp: new Date().toISOString()
+  });
+});
 
 /* ==========================    Ingredient Categories   ========================== */
 router.post(
@@ -52,6 +64,21 @@ router.get(
 );
 
 /* ==========================   Ingredients   ========================== */
+
+// ✅ API Random Ingredients (đặt TRƯỚC route '/')
+router.get(
+    '/random',
+    IngredientMiddleware,
+    getRandomIngredients
+);
+
+// ✅ API Random Ingredients theo Category
+router.get(
+    '/random/category/:category_id',
+    IngredientMiddleware,
+    getRandomIngredientsByCategory
+);
+
 router.post(
     '/add-ingredient',
     IngredientMiddleware,
@@ -86,6 +113,12 @@ router.get(
     '/measurement-units',
     IngredientMiddleware,
     getAllMeasurementUnits
-)
+);
+
+router.get(
+    '/total',
+    IngredientMiddleware,
+    getTotalIngredients
+);
 
 module.exports = router;

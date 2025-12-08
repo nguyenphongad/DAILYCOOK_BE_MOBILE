@@ -1,6 +1,6 @@
 const express = require('express');
 const { adminAuthMiddleware } = require('../middleware/UserMiddleware');
-const { getAllUsers, toggleUserStatus, registerFromAuth, getUserByUserId } = require('../controllers/UserController');
+const { getAllUsers, toggleUserStatus, registerFromAuth, getUserByUserId, getTotalUsers } = require('../controllers/UserController');
 
 const router = express.Router();
 
@@ -18,6 +18,9 @@ router.post('/register-from-auth', registerFromAuth);
 
 // Lấy thông tin user theo user_id (không cần auth middleware vì có thể dùng internal)
 router.get('/profile/:user_id', getUserByUserId);
+
+// Lấy tổng số người dùng (cần admin auth)  
+router.get('/total', adminAuthMiddleware, getTotalUsers);
 
 // Các route dưới đây chỉ cho phép admin
 router.use(adminAuthMiddleware);

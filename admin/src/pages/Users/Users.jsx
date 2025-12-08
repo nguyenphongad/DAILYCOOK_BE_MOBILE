@@ -18,6 +18,7 @@ const Users = () => {
 
   const [searchEmail, setSearchEmail] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [processingUserId, setProcessingUserId] = useState(null) // Thêm state cho loading riêng lẻ
   const usersPerPage = 10
 
   // Fetch users từ API
@@ -35,17 +36,26 @@ const Users = () => {
     }
   }, [error, dispatch])
 
-  const handleLockUser = (userId, userName, isActive) => {
-    dispatch(toggleUserStatus({ userId, isActive: false, token }))
-      .unwrap()
-      .then(() => {
-        message.success(`Đã khoá người dùng "${userName}"`)
-        // Sau khi khoá, reload lại danh sách
-        dispatch(fetchUsers({ token, page: currentPage, limit: usersPerPage, search: searchEmail }))
-      })
-      .catch(() => {
-        // lỗi đã được xử lý ở slice
-      })
+  const handleToggleUserStatus = async (userId, userName, isActive) => {
+    const newStatus = !isActive;
+    const action = newStatus ? 'mở khóa' : 'khóa';
+    
+    try {
+      // Set loading cho user cụ thể
+      setProcessingUserId(userId);
+      
+      await dispatch(toggleUserStatus({ userId, isActive: newStatus, token })).unwrap();
+      
+      message.success(`Đã ${action} người dùng "${userName}"`);
+      
+      // Không cần reload lại danh sách vì đã update trong Redux slice
+      
+    } catch (error) {
+      message.error(`Lỗi ${action} người dùng: ${error.message || error}`);
+    } finally {
+      // Tắt loading cho user cụ thể
+      setProcessingUserId(null);
+    }
   }
 
   const goToPage = (pageNumber) => setCurrentPage(pageNumber)
@@ -121,21 +131,23 @@ const Users = () => {
                           <td className="btn-actions-del">
                             {!isAdmin && (
                               <Popconfirm
-                                title="Xác nhận khóa người dùng"
-                                description={`Bạn có chắc chắn muốn khóa người dùng "${user.fullName}"?`}
-                                onConfirm={() => handleLockUser(user._id, user.fullName, isActive)}
-                                okText="Khóa"
+                                title={`Xác nhận ${isActive ? 'khóa' : 'mở khóa'} người dùng`}
+                                description={`Bạn có chắc chắn muốn ${isActive ? 'khóa' : 'mở khóa'} người dùng "${user.fullName}"?`}
+                                onConfirm={() => handleToggleUserStatus(user._id, user.fullName, isActive)}
+                                okText={isActive ? 'Khóa' : 'Mở khóa'}
                                 cancelText="Hủy"
-                                okType="danger"
-                                disabled={!isActive}
+                                okType={isActive ? 'danger' : 'primary'}
                                 placement="topLeft"
                               >
                                 <button 
-                                  className="lock-btn"
-                                  disabled={!isActive}
+                                  className={isActive ? "lock-btn" : "unlock-btn"}
+                                  disabled={processingUserId === user._id}
                                 >
                                   <FiLock className="lock-icon" />
-                                  Khóa
+                                  {processingUserId === user._id 
+                                    ? 'Đang xử lý...' 
+                                    : (isActive ? 'Khóa' : 'Mở khóa')
+                                  }
                                 </button>
                               </Popconfirm>
                             )}

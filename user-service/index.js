@@ -1,12 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+const dotenv = require('dotenv');
 
 const userRoutes = require('./routes/UserRoute');
 
 const app = express();
 const PORT = process.env.PORT || 5007;
+
+dotenv.config();
 
 // Middleware
 app.use(cors());
@@ -20,9 +22,21 @@ mongoose.connect(process.env.MONGODB_URI, {
 })
 .then(() => {
   console.log('Connected to MongoDB');
+  app.listen(PORT, () => {
+    console.log(`User service running on port ${PORT}`);
+  });
 })
 .catch((error) => {
   console.error('MongoDB connection error:', error);
+});
+
+// Thêm health endpoint ở root level
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'user-service',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Routes
@@ -44,10 +58,6 @@ app.use((req, res) => {
     success: false,
     message: 'Route not found'
   });
-});
-
-app.listen(PORT, () => {
-  console.log(`User service running on port ${PORT}`);
 });
 
 module.exports = app;

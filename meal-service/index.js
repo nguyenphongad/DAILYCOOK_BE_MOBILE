@@ -1,7 +1,15 @@
+require('dotenv').config();
+
+// Log để kiểm tra env variables
+console.log("=== ENVIRONMENT VARIABLES CHECK ===");
+console.log("PORT:", process.env.PORT);
+console.log("RECIPE_SERVICE_URL:", process.env.RECIPE_SERVICE_URL);
+console.log("INGREDIENT_SERVICE_URL:", process.env.INGREDIENT_SERVICE_URL);
+console.log("===================================");
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 const cors = require('cors');
 
 // routes
@@ -26,7 +34,14 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-dotenv.config();
+// Thêm health endpoint ở root level
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        service: 'meal-service',
+        timestamp: new Date().toISOString()
+    });
+});
 
 mongoose
     .connect(process.env.MONGODB_URI)
@@ -36,15 +51,6 @@ mongoose
         })
     })
     .catch((error) => console.log(error));
-
-// Thêm health endpoint ở root level
-app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'OK',
-        service: 'meal-service',
-        timestamp: new Date().toISOString()
-    });
-});
 
 // Thêm error handling middleware
 app.use((err, req, res, next) => {

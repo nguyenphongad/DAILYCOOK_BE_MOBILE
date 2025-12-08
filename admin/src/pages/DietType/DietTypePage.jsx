@@ -16,7 +16,7 @@ const DietTypePage = () => {
     const dispatch = useDispatch();
     const dietTypeState = useSelector(state => state.dietType);
 
-    const { dietTypes = [], loading, pagination = { page: 1, limit: 9 } } = dietTypeState || {};
+    const { dietTypes = [], loading, pagination = { page: 1, limit: 30 } } = dietTypeState || {};
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isDietTypeDetailModalVisible, setIsDietTypeDetailModalVisible] = useState(false);
@@ -28,7 +28,7 @@ const DietTypePage = () => {
 
     // Tải dữ liệu khi component được mount
     useEffect(() => {
-        dispatch(fetchDietTypes({ page: 1, limit: 9 }));
+        dispatch(fetchDietTypes({ page: 1, limit: 30 }));
     }, [dispatch]);
 
     // Lọc danh sách diet types theo từ khóa tìm kiếm
@@ -114,38 +114,38 @@ const DietTypePage = () => {
     };
 
     return (
-        <div className="ingredients-container">
+        <div className="diet-type-page">
             {/* Loading overlay */}
             <Loading visible={loading} text="Đang tải dữ liệu..." />
 
-            <div className="content-area">
-                <div className="content">
+            <div className="diet-type-content-area">
+                <div className="diet-type-content">
                     {/* Header */}
-                    <div className="page-header">
+                    <div className="diet-type-header">
                         <h1>Quản lý chế độ ăn</h1>
-                        <div className="action-buttons">
-                            <button className="import-button">
+                        <div className="diet-type-action-buttons">
+                            <button className="diet-type-import-button">
                                 <ImportOutlined /> Import File
                             </button>
-                            <button className="add-button" onClick={showModalAddDietType}>
+                            <button className="diet-type-add-button" onClick={showModalAddDietType}>
                                 + Thêm chế độ ăn
                             </button>
                         </div>
                     </div>
 
                     {/* Bộ lọc tìm kiếm */}
-                    <div className="container-filter">
-                        <div className="search-bar">
+                    <div className="diet-type-filter-container">
+                        <div className="diet-type-search-bar">
                             <input 
                                 placeholder="Tìm kiếm chế độ ăn..."
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
-                                prefix={<SearchOutlined />}
-                                // onPressEnter={handleSearch}
                             />
-                            <button onClick={handleSearch}>Tìm</button>
+                            <button onClick={handleSearch}>
+                                <SearchOutlined /> Tìm
+                            </button>
                         </div>
-                        <div className="filters">
+                        <div className="diet-type-filters">
                             <select
                                 value={sortOrder}
                                 onChange={(e) => setSortOrder(e.target.value)}
@@ -158,37 +158,37 @@ const DietTypePage = () => {
                     </div>
 
                     {/* Danh sách chế độ ăn */}
-                    <div className="ingredients-grid-container">
+                    <div className="diet-type-grid-container">
                         {loading ? (
-                            <div className="loading-container">
+                            <div className="diet-type-loading">
                                 <Spin size="large" />
                             </div>
                         ) : sortedDietTypes.length > 0 ? (
-                            <div className="ingredients-grid">
+                            <div className="diet-type-grid">
                                 {sortedDietTypes.map(item => (
                                     <div
                                         key={item._id}
-                                        className="ingredient-card"
+                                        className="diet-type-card"
                                         onClick={() => showDietTypeDetail(item)}
                                     >
-                                        <div className="ingredient-image">
+                                        <div className="diet-type-image">
                                             <img
                                                 src={item.dietTypeImage || 'https://media.istockphoto.com/id/1433432507/vi/anh/%C4%83n-u%E1%BB%91ng-l%C3%A0nh-m%E1%BA%A1nh-%C4%91%C4%A9a-v%E1%BB%9Bi-th%E1%BB%B1c-ph%E1%BA%A9m-thu%E1%BA%A7n-chay-ho%E1%BA%B7c-chay-trong-tay-ph%E1%BB%A5-n%E1%BB%AF-ch%E1%BA%BF-%C4%91%E1%BB%99-%C4%83n-u%E1%BB%91ng-d%E1%BB%B1a.jpg?s=612x612&w=0&k=20&c=Z0BVb_z-mLjup_3f4Kvto5q0A0z8CqBjsHS7DSMaQ1k='}
                                                 alt={item.title}
                                             />
-                                            <span className="category-badge">
+                                            <span className="diet-type-badge">
                                                 {item.keyword}
                                             </span>
                                         </div>
-                                        <div className="ingredient-content">
+                                        <div className="diet-type-content-card">
                                             <h3>{item.title}</h3>
-                                            <p className="description">{item.description || 'Không có mô tả'}</p>
+                                            <p className="diet-type-description">{item.description || 'Không có mô tả'}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="empty-state">
+                            <div className="diet-type-empty-state">
                                 <Empty description="Không có chế độ ăn nào" />
                             </div>
                         )}
@@ -196,7 +196,7 @@ const DietTypePage = () => {
 
                     {/* Phân trang */}
                     {pagination.total > 0 && (
-                        <div className="pagination-container">
+                        <div className="diet-type-pagination">
                             <Pagination
                                 current={pagination.page}
                                 total={pagination.total}

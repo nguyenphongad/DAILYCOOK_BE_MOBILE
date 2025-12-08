@@ -10,6 +10,7 @@ const ENDPOINT = {
     DELETE_DIET_TYPE: 'meals/delete-diet-type',
     GET_LIST_DIET_TYPE: 'meals/diet-types',
     GET_DIET_TYPE: 'meals/diet-type',
+    GET_TOTAL_DIET_TYPES: 'meals/diet-types/total',
 
     // MEAL CATEGORY
     ADD_MEAL_CATEGORY: 'meals/add-meal-category',
@@ -24,6 +25,8 @@ const ENDPOINT = {
     DELETE_MEAL: 'meals/delete-meal',
     GET_LIST_MEAL: 'meals',
     GET_MEAL: 'meals/meal',
+    GET_TOTAL_MEALS: 'meals/total',
+    GET_MEALS_BY_CATEGORY: 'meals/category', // Endpoint base - sẽ thêm /:meal_category_id trong thunk
 
     // INGREDIENT CATEGORY
     ADD_INGREDIENT_CATEGORY: 'ingredients/add-ingredient-category',
@@ -38,6 +41,7 @@ const ENDPOINT = {
     DELETE_INGREDIENT: 'ingredients/delete-ingredient',
     GET_LIST_INGREDIENT: 'ingredients',
     GET_INGREDIENT: 'ingredients/ingredient',
+    GET_TOTAL_INGREDIENTS: 'ingredients/total',
 
     // MEASUREMENT UNITS
     GET_LIST_MEASUREMENT_UNITS: 'ingredients/measurement-units',
@@ -50,6 +54,11 @@ const ENDPOINT = {
     CREATE_SURVEY: 'surveys/admin/surveys',
     UPDATE_SURVEY: 'surveys/admin/surveys', // + /:id
     DELETE_SURVEY: 'surveys/admin/surveys', // + /:id
+
+    // USER MANAGEMENT
+    GET_USERS: 'users',
+    UPDATE_USER_STATUS: 'users', // + /:accountId/status
+    GET_TOTAL_USERS: 'users/total'
 }
 
 export default ENDPOINT;

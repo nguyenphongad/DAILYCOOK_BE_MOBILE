@@ -367,3 +367,239 @@
     }
   }
 }
+
+// Thêm styles cho ManageMealCategories
+.mealCategories-container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+
+  .content-area {
+    flex: 1;
+    background: #f5f5f5;
+    padding: 20px;
+
+    .content {
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    h1 {
+      font-size: 24px;
+      color: #333;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      
+      .import-button {
+        background: #1890ff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        &:hover {
+          background: #40a9ff;
+        }
+      }
+      
+      .add-button {
+        background: #52c41a;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-weight: 500;
+        
+        &:hover {
+          background: #73d13d;
+        }
+      }
+    }
+  }
+
+  .container-filter {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+
+    .search-bar {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+
+      input {
+        flex: 1;
+        max-width: 300px;
+        padding: 8px 12px;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        font-size: 14px;
+
+        &:focus {
+          outline: none;
+          border-color: #1890ff;
+          box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+      }
+
+      button {
+        padding: 8px 16px;
+        background: #1890ff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        &:hover {
+          background: #40a9ff;
+        }
+      }
+    }
+
+    .filters {
+      select {
+        padding: 8px 12px;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        background: white;
+        min-width: 150px;
+
+        &:focus {
+          outline: none;
+          border-color: #1890ff;
+        }
+      }
+    }
+  }
+
+  .mealCategories-grid-container {
+    .mealCategories-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+
+      .mealCategory-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+
+        &:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .mealCategory-keyword {
+          padding: 12px;
+          background: #f8f9fa;
+          border-bottom: 1px solid #eee;
+
+          .category-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #4CAF50;
+            color: white;
+            font-weight: 500;
+          }
+        }
+
+        .mealCategory-content {
+          padding: 16px;
+
+          h3 {
+            margin: 0 0 8px;
+            font-size: 18px;
+            color: #333;
+            font-weight: 600;
+          }
+
+          .description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+            margin: 0;
+          }
+        }
+      }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+  }
+
+  .pagination-container {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+    color: #666;
+  }
+}
+
+// Responsive design cho MealCategories
+@media (max-width: 768px) {
+  .mealCategories-container {
+    .container-filter {
+      flex-direction: column;
+      
+      .search-bar {
+        input {
+          max-width: none;
+        }
+      }
+    }
+
+    .mealCategories-grid-container .mealCategories-grid {
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+    }
+
+    .page-header {
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+      
+      .action-buttons {
+        width: 100%;
+        
+        .import-button,
+        .add-button {
+          flex: 1;
+          justify-content: center;
+        }
+      }
+    }
+  }
+}

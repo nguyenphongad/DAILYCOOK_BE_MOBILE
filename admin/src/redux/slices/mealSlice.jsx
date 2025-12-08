@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
     meals: [],
     selectedMeal: null,
+    selectedCategory: null, // Thêm field này
     loading: false,
     error: null,
     success: false,
@@ -50,8 +51,30 @@ const mealSlice = createSlice({
             state.loading = false;
         },
 
+        // Thêm reducer mới cho meals by category
+        setMealsByCategory: (state, action) => {
+            if (action.payload && action.payload.data) {
+                const { total, page, limit, totalPages, meals, category } = action.payload.data;
+
+                state.meals = meals || [];
+                state.selectedCategory = category || null;
+                state.pagination = {
+                    total: total || 0,
+                    page: page || 1,
+                    limit: limit || 10,
+                    totalPages: totalPages || 1
+                }
+            } else {
+                state.meals = [];
+                state.selectedCategory = null;
+            }
+            state.loading = false;
+        },
+
         setSelectedMeal: (state, action) => {
+            // Cập nhật selectedMeal với data mới, bao gồm cả ảnh
             state.selectedMeal = action.payload;
+            state.loading = false;
         },
 
         addMealToList: (state, action) => {
@@ -66,8 +89,9 @@ const mealSlice = createSlice({
             if (index !== -1) {
                 state.meals[index] = action.payload;
             }
+            // QUAN TRỌNG: Cập nhật selectedMeal nếu đang xem chi tiết meal đó
             if (state.selectedMeal && state.selectedMeal._id === action.payload._id) {
-                state.selectedMeal = action.payload;
+                state.selectedMeal = { ...state.selectedMeal, ...action.payload };
             }
             state.loading = false;
             state.success = true;
@@ -93,6 +117,7 @@ export const {
     clearError,
     setSuccess,
     setMeals,
+    setMealsByCategory, // Export reducer mới
     setSelectedMeal,
     addMealToList,
     updateMealInList,

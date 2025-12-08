@@ -1,23 +1,240 @@
 .diet-type-page {
-  padding: 24px;
+  display: flex;
   
-  .diet-type-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    
-    h1 {
-      margin: 0;
-      font-size: 24px;
+  .diet-type-content-area {
+    flex: 1;
+    background: #f5f5f5;
+    padding: 20px;
+
+    .diet-type-content {
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+      .diet-type-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+
+        h1 {
+          font-size: 24px;
+          color: #333;
+          margin: 0;
+        }
+
+        .diet-type-action-buttons {
+          display: flex;
+          gap: 12px;
+
+          .diet-type-import-button,
+          .diet-type-add-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          .diet-type-import-button {
+            background: #f0f0f0;
+            color: #666;
+
+            &:hover {
+              background: #e0e0e0;
+            }
+          }
+
+          .diet-type-add-button {
+            background: #1890ff;
+            color: white;
+
+            &:hover {
+              background: #40a9ff;
+            }
+          }
+        }
+      }
+
+      .diet-type-filter-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        gap: 16px;
+
+        .diet-type-search-bar {
+          display: flex;
+          flex: 1;
+          max-width: 400px;
+
+          input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px 0 0 6px;
+            outline: none;
+
+            &:focus {
+              border-color: #1890ff;
+            }
+          }
+
+          button {
+            padding: 8px 16px;
+            border: 1px solid #1890ff;
+            border-left: none;
+            background: #1890ff;
+            color: white;
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            &:hover {
+              background: #40a9ff;
+            }
+          }
+        }
+
+        .diet-type-filters {
+          select {
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            outline: none;
+            min-width: 150px;
+
+            &:focus {
+              border-color: #1890ff;
+            }
+          }
+        }
+      }
+
+      .diet-type-grid-container {
+        margin-top: 20px;
+      }
+
+      .diet-type-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+
+        .diet-type-card {
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          overflow: hidden;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+          cursor: pointer;
+          background: white;
+
+          &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+          }
+
+          .diet-type-image {
+            position: relative;
+            height: 200px;
+
+            img {
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+            }
+
+            .diet-type-badge {
+              position: absolute;
+              top: 12px;
+              right: 12px;
+              padding: 4px 8px;
+              border-radius: 4px;
+              font-size: 12px;
+              background: #52c41a;
+              color: white;
+              font-weight: 500;
+            }
+          }
+
+          .diet-type-content-card {
+            padding: 16px;
+
+            h3 {
+              margin: 0 0 8px;
+              font-size: 18px;
+              color: #333;
+              font-weight: 600;
+            }
+
+            .diet-type-description {
+              color: #666;
+              font-size: 14px;
+              margin: 0;
+              line-height: 1.4;
+              display: -webkit-box;
+              -webkit-line-clamp: 3;
+              -webkit-box-orient: vertical;
+              overflow: hidden;
+            }
+          }
+        }
+      }
+
+      .diet-type-loading {
+        text-align: center;
+        padding: 60px 20px;
+        
+        .ant-spin {
+          font-size: 24px;
+        }
+      }
+
+      .diet-type-empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+      }
+
+      .diet-type-pagination {
+        margin-top: 24px;
+        text-align: center;
+      }
     }
   }
-  
-  .action-buttons {
-    display: flex;
-    gap: 8px;
+
+  // Responsive
+  @media (max-width: 1200px) {
+    .diet-type-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
-  
+
+  @media (max-width: 768px) {
+    .diet-type-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .diet-type-content-area {
+      padding: 10px;
+    }
+
+    .diet-type-filter-container {
+      flex-direction: column;
+      align-items: stretch;
+
+      .diet-type-search-bar {
+        max-width: none;
+      }
+    }
+  }
+
+  // Form và detail styles
   .image-preview-container {
     position: relative;
     width: 100%;

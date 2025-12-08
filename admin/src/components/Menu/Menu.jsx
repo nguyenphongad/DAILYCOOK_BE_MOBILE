@@ -46,9 +46,15 @@ const Menu = () => {
       label: 'Quản lý khảo sát',
       icon: <MdOutlineAssignment />,
       submenu: [
+
         {
           path: '/manage_surveys/questions',
-          label: 'Câu hỏi khảo sát',
+          label: 'Câu hỏi khảo sát mềm',
+          icon: <MdQuestionAnswer />
+        },
+        {
+          path: '/manage_surveys/onboarding',
+          label: 'Dữ liệu khảo sát cứng',
           icon: <MdQuestionAnswer />
         },
         {

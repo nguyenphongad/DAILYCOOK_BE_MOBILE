@@ -9,7 +9,7 @@ import DishDetailModal from '../../components/DishDetailModal/DishDetailModal';
 import DishForm from '../../components/DishForm/DishForm';
 import Loading from '../../components/Loading/Loading';
 
-import { fetchMeals } from '../../redux/thunks/mealThunk';
+import { fetchMeals, fetchMealsByCategory, addMeal, updateMeal, deleteMeal } from '../../redux/thunks/mealThunk';
 import { fetchMealCategories } from '../../redux/thunks/mealCategoryThunk';
 import { fetchIngredients } from '../../redux/thunks/ingredientThunk';
 
@@ -21,7 +21,7 @@ const Dishes = () => {
   const ingredientsState = useSelector((state) => state.ingredients);
   const mealCategoriesState = useSelector((state) => state.mealCategories);
   
-  const { meals = [], loading, pagination = { page: 1, limit: 9, total: 0 } } = mealState || {};
+  const { meals = [], loading, pagination = { page: 1, limit: 30, total: 0 } } = mealState || {};
   const { ingredients = [] } = ingredientsState || {};
   
   // Lấy mealCategories một cách an toàn
@@ -41,33 +41,71 @@ const Dishes = () => {
   // --- Filter + Pagination ---
   const [searchKeyword, setSearchKeyword] = useState('');
   const [sortOrder, setSortOrder] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedPopularity, setSelectedPopularity] = useState(''); // Thêm filter theo popularity
   const [currentPage, setCurrentPage] = useState(1);
 
   // --- Fetch dữ liệu ---
   useEffect(() => {
-    dispatch(fetchMeals({ page: currentPage, limit: 9 }));
-    dispatch(fetchIngredients({ page: 1, limit: 50 }));
-    dispatch(fetchMealCategories({ page: 1, limit: 100 })); // Thêm params
+    dispatch(fetchMeals({ page: currentPage, limit: 30}));
+    dispatch(fetchIngredients({ page: 1, limit: 500 }));
+    dispatch(fetchMealCategories({ page: 1, limit: 500 })); // Thêm params
   }, [dispatch, currentPage]);
 
-  // --- Tìm kiếm + Sắp xếp ---
-  const filteredMeals = meals.filter((meal) =>
-    (meal.nameMeal || '').toLowerCase().includes(searchKeyword.toLowerCase())
-  );
+  // Thêm useEffect mới để fetch meals theo category
+  useEffect(() => {
+    if (selectedCategory) {
+      // Nếu có category được chọn, fetch meals theo category
+      dispatch(fetchMealsByCategory({ 
+        categoryId: selectedCategory, 
+        page: currentPage, 
+        limit: 30
+      }));
+    } else {
+      // Nếu không có category, fetch tất cả meals
+      dispatch(fetchMeals({ page: currentPage, limit: 30 }));
+    }
+  }, [dispatch, selectedCategory, currentPage]);
+
+  // --- Tìm kiếm + Sắp xếp --- (cập nhật để không lọc category nữa vì đã fetch theo category)
+  const filteredMeals = meals.filter((meal) => {
+    const matchesSearch = (meal.nameMeal || '').toLowerCase().includes(searchKeyword.toLowerCase());
+    const matchesPopularity = !selectedPopularity || meal.popularity === parseInt(selectedPopularity);
+    return matchesSearch && matchesPopularity; // Bỏ matchesCategory vì đã fetch theo category
+  });
+
+  // Debug: Log dữ liệu meals
+  console.log('Current meals from Redux:', meals);
+  console.log('Meals length:', meals?.length);
+  console.log('Full meal state:', mealState); // Thêm log này
+  console.log('Filtered meals:', filteredMeals);
+  console.log('Selected category:', selectedCategory);
 
   const sortedMeals = [...filteredMeals].sort((a, b) => {
     if (sortOrder === 'name_asc') return a.nameMeal.localeCompare(b.nameMeal);
     if (sortOrder === 'name_desc') return b.nameMeal.localeCompare(a.nameMeal);
+    if (sortOrder === 'popularity_desc') return (b.popularity || 0) - (a.popularity || 0);
+    if (sortOrder === 'popularity_asc') return (a.popularity || 0) - (b.popularity || 0);
     return 0;
   });
 
   // --- Helper functions ---
-  const getCategoryTitle = (categoryId) => {
-    if (!Array.isArray(mealCategories)) {
-      return 'Chưa phân loại';
+  const getCategoryTitle = (mealCategory) => {
+    // Kiểm tra nếu mealCategory là object (đã populated)
+    if (typeof mealCategory === 'object' && mealCategory !== null) {
+      return mealCategory.title || mealCategory.nameCategory || 'Chưa phân loại';
     }
-    const found = mealCategories.find(cat => cat._id === categoryId);
-    return found ? found.title || found.nameCategory : 'Chưa phân loại';
+    
+    // Nếu mealCategory là string ID, tìm trong mealCategories
+    if (typeof mealCategory === 'string') {
+      if (!Array.isArray(mealCategories)) {
+        return 'Chưa phân loại';
+      }
+      const found = mealCategories.find(cat => cat._id === mealCategory);
+      return found ? found.title || found.nameCategory : 'Chưa phân loại';
+    }
+    
+    return 'Chưa phân loại';
   };
 
   // --- Mở modal thêm món ăn ---
@@ -105,23 +143,72 @@ const Dishes = () => {
   // --- Submit form thêm/sửa món ăn ---
   const handleSubmit = async (values) => {
     console.log('Meal form values:', values);
-    // TODO: Gọi dispatch(addMeal) hoặc updateMeal tại đây
+    
+    try {
+      let resultAction;
+      
+      if (selectedMeal?._id) {
+        // Cập nhật món ăn - CHỈ DISPATCH updateMeal ở đây
+        resultAction = await dispatch(updateMeal({
+          id: selectedMeal._id,
+          mealData: values
+        }));
+      } else {
+        // Thêm món ăn mới - CHỈ DISPATCH addMeal ở đây
+        resultAction = await dispatch(addMeal(values));
+      }
+      
+      if (addMeal.fulfilled.match(resultAction) || updateMeal.fulfilled.match(resultAction)) {
+        // Thành công - đóng modal và refresh data
+        closeMealFormModal();
+        // Refresh danh sách món ăn
+        dispatch(fetchMeals({ page: currentPage, limit: 30 }));
+      }
+      
+    } catch (error) {
+      console.error('Error submitting meal form:', error);
+    }
   };
 
   // --- Chỉnh sửa trong modal chi tiết ---
   const handleEditMeal = (updatedMeal) => {
-    setSelectedMeal((prev) => ({ ...prev, ...updatedMeal }));
-    toast.success('Cập nhật món ăn thành công!');
+    // Callback này sẽ được gọi sau khi cập nhật thành công từ DishDetailModal
+    // Refresh danh sách để có dữ liệu mới nhất
+    dispatch(fetchMeals({ page: currentPage, limit: 30 }));
   };
 
   // --- Xóa món ăn ---
   const handleDeleteMeal = (id) => {
-    toast.info(`Xóa món có ID: ${id}`);
+    // Callback này sẽ được gọi sau khi xóa thành công từ DishDetailModal
+    // Refresh danh sách để có dữ liệu mới nhất
+    dispatch(fetchMeals({ page: currentPage, limit: 30 }));
   };
 
-  // --- Đổi trang ---
+  // --- Đổi trang --- (cập nhật để xử lý cả trường hợp có category và không có)
   const handlePageChange = (page) => {
     setCurrentPage(page);
+  };
+
+  // Thêm handler để reset trang khi thay đổi category
+  const handleCategoryChange = (categoryId) => {
+    console.log('Category changed to:', categoryId); // Debug log
+    setSelectedCategory(categoryId);
+    setCurrentPage(1); // Reset về trang 1 khi thay đổi category
+    
+    // Force refresh nếu cần
+    if (categoryId) {
+      setTimeout(() => {
+        dispatch(fetchMealsByCategory({ 
+          categoryId: categoryId, 
+          page: 1, 
+          limit: 30
+        }));
+      }, 100);
+    } else {
+      setTimeout(() => {
+        dispatch(fetchMeals({ page: 1, limit: 30 }));
+      }, 100);
+    }
   };
 
   // --- JSX ---
@@ -157,10 +244,36 @@ const Dishes = () => {
               </button>
             </div>
             <div className="filters">
+              <select 
+                value={selectedCategory} 
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                style={{ marginRight: 12 }}
+              >
+                <option value="">Tất cả danh mục</option>
+                {Array.isArray(mealCategories) && mealCategories.map(category => (
+                  <option key={category._id} value={category._id}>
+                    {category.title || category.nameCategory}
+                  </option>
+                ))}
+              </select>
+              <select 
+                value={selectedPopularity} 
+                onChange={(e) => setSelectedPopularity(e.target.value)}
+                style={{ marginRight: 12 }}
+              >
+                <option value="">Tất cả độ phổ biến</option>
+                <option value="5">⭐⭐⭐⭐⭐ Cực kỳ phổ biến</option>
+                <option value="4">⭐⭐⭐⭐ Rất phổ biến</option>
+                <option value="3">⭐⭐⭐ Phổ biến</option>
+                <option value="2">⭐⭐ Khá phổ biến</option>
+                <option value="1">⭐ Ít phổ biến</option>
+              </select>
               <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
                 <option value="">Sắp xếp theo</option>
                 <option value="name_asc">Tên (A-Z)</option>
                 <option value="name_desc">Tên (Z-A)</option>
+                <option value="popularity_desc">Độ phổ biến (Cao → Thấp)</option>
+                <option value="popularity_asc">Độ phổ biến (Thấp → Cao)</option>
               </select>
             </div>
           </div>
@@ -174,8 +287,9 @@ const Dishes = () => {
                     <tr>
                       <th style={{ width: '50px' }}>STT</th>
                       <th style={{ width: '80px' }}>Ảnh</th>
-                      <th style={{ width: '40%' }}>Tên món</th>
-                      <th style={{ width: '25%' }}>Danh mục</th>
+                      <th style={{ width: '30%' }}>Tên món</th>
+                      <th style={{ width: '20%' }}>Danh mục</th>
+                      <th style={{ width: '15%' }}>Độ phổ biến</th>
                       <th style={{ width: '100px' }}>Số thành phần</th>
                     </tr>
                   </thead>
@@ -203,8 +317,15 @@ const Dishes = () => {
                           </td>
                           <td>
                             <span className="category-badge">
-                              {meal.mealCategory ? getCategoryTitle(meal.mealCategory) : 'Chưa phân loại'}
+                              {getCategoryTitle(meal.mealCategory)}
                             </span>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <span style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                                ({meal.popularity || 1}/5⭐)
+                              </span>
+                            </div>
                           </td>
                           <td className="text-left">
                             {meal.ingredients?.length || 0}
@@ -256,8 +377,9 @@ const Dishes = () => {
         <DishForm
           form={form}
           onFinish={handleSubmit}
-          onCancel={closeMealFormModal} // Truyền hàm đóng modal vào component
+          onCancel={closeMealFormModal}
           allIngredients={ingredients}
+          mealCategories={mealCategories} // Thêm prop này
           isEdit={!!selectedMeal}
           initialValues={selectedMeal}
         />

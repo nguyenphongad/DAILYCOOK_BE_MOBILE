@@ -13,9 +13,9 @@ import {
 
 const ManageMealCategories = () => {
     const dispatch = useDispatch();
-    const mealCategoryState = useSelector(state => state.mealCategories); // THAY ĐỔI NÀY - từ mealCategory thành mealCategories cho khớp với tên trong store
+    const mealCategoryState = useSelector(state => state.mealCategories);
 
-    const { mealCategories = [], loading, pagination = { page: 1, limit: 9 } } = mealCategoryState || {};
+    const { mealCategories = [], loading, pagination = { page: 1, limit: 30 } } = mealCategoryState || {};
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
@@ -25,17 +25,17 @@ const ManageMealCategories = () => {
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
-        dispatch(fetchMealCategories({ page: 1, limit: 9 }));
+        dispatch(fetchMealCategories({ page: 1, limit: 30 }));
     }, [dispatch]);
 
-    // Lọc danh sách diet types theo từ khóa tìm kiếm
-    const filtereMealCategories = (mealCategories || []).filter(item =>
+    // Lọc danh sách meal categories theo từ khóa tìm kiếm
+    const filteredMealCategories = (mealCategories || []).filter(item =>
         (item.title || '').toLowerCase().includes(searchKeyword.toLowerCase()) ||
         (item.keyword || '').toLowerCase().includes(searchKeyword.toLowerCase())
     );
 
-    // Sắp xếp danh sách diet types
-    const sortMealCategories = [...filtereMealCategories].sort((a, b) => {
+    // Sắp xếp danh sách meal categories
+    const sortedMealCategories = [...filteredMealCategories].sort((a, b) => {
         if (sortOrder === 'name_asc') {
             return (a.title || '').localeCompare(b.title || '');
         } else if (sortOrder === 'name_desc') {
@@ -45,7 +45,7 @@ const ManageMealCategories = () => {
     });
 
     const showModalAddMealCategory = () => {
-        setSelectedCategory(null); // thêm mới thì không có category
+        setSelectedCategory(null);
         form.resetFields();
         setIsModalVisible(true);
     };
@@ -63,7 +63,6 @@ const ManageMealCategories = () => {
                 mealCategoryData: values
             }))
         } else {
-            // Add
             dispatch(addMealCategory(values));
         }
         handleCancel();
@@ -89,23 +88,23 @@ const ManageMealCategories = () => {
     // Xử lý phân trang
     const handlePageChange = (page) => {
         setCurrentPage(page);
-        dispatch(fetchIngredientCategories({ page, limit: pagination.limit }));
+        dispatch(fetchMealCategories({ page, limit: pagination.limit }));
     };
 
     return (
-        <div className="ingredientCategories-container">
+        <div className="mealCategories-container">
             <Loading visible={loading} text="Đang tải dữ liệu..." />
 
             <div className="content-area">
                 <div className="content">
                     <div className="page-header">
-                        <h1>Quản lý danh mục nguyên liệu</h1>
+                        <h1>Quản lý danh mục món ăn</h1>
                         <div className="action-buttons">
                             <button className="import-button">
                                 <ImportOutlined /> Import File
                             </button>
                             <button className="add-button" onClick={showModalAddMealCategory}>
-                                + Thêm danh mục nguyên liệu
+                                + Thêm danh mục món ăn
                             </button>
                         </div>
                     </div>
@@ -134,22 +133,22 @@ const ManageMealCategories = () => {
                         </div>
                     </div>
 
-                    {/* Danh sách */}
-                    <div className="ingredientCategories-grid-container">
+                    {/* Danh sách danh mục món ăn */}
+                    <div className="mealCategories-grid-container">
                         {loading ? (
                             <Loading visible={true} text="Đang tải danh mục món ăn..." />
-                        ) : sortMealCategories.length > 0 ? (
-                            <div className="ingredientCategories-grid">
-                                {sortMealCategories.map(mealCategory => (
+                        ) : sortedMealCategories.length > 0 ? (
+                            <div className="mealCategories-grid">
+                                {sortedMealCategories.map(mealCategory => (
                                     <div
                                         key={mealCategory._id}
-                                        className="ingredientCategory-card"
-                                        onClick={() => handleCardClick(mealCategory)} // << click card để edit
+                                        className="mealCategory-card"
+                                        onClick={() => handleCardClick(mealCategory)}
                                     >
-                                        <div className="ingredientCategory-keyword">
+                                        <div className="mealCategory-keyword">
                                             <span className="category-badge">{mealCategory.keyword}</span>
                                         </div>
-                                        <div className="ingredientCategory-content">
+                                        <div className="mealCategory-content">
                                             <h3>{mealCategory.title}</h3>
                                             <p className="description">{mealCategory.description}</p>
                                         </div>
@@ -162,6 +161,7 @@ const ManageMealCategories = () => {
                             </div>
                         )}
                     </div>
+
                     {/* Phân trang */}
                     {pagination.total > 0 && (
                         <div className="pagination-container">
@@ -171,7 +171,7 @@ const ManageMealCategories = () => {
                                 pageSize={pagination.limit}
                                 onChange={handlePageChange}
                                 showSizeChanger={false}
-                                showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} mục`}
+                                showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} danh mục món ăn`}
                             />
                         </div>
                     )}
@@ -182,7 +182,7 @@ const ManageMealCategories = () => {
             <Modal
                 title={
                     <span style={{ fontWeight: 700, fontSize: '18px' }}>
-                        {selectedCategory ? "Chỉnh sửa danh mục nguyên liệu" : "Thêm danh mục nguyên liệu mới"}
+                        {selectedCategory ? "Chỉnh sửa danh mục món ăn" : "Thêm danh mục món ăn mới"}
                     </span>
                 }
                 open={isModalVisible}
