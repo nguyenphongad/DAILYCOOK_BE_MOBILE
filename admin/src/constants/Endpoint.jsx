@@ -54,6 +54,8 @@ const ENDPOINT = {
     CREATE_SURVEY: 'surveys/admin/surveys',
     UPDATE_SURVEY: 'surveys/admin/surveys', // + /:id
     DELETE_SURVEY: 'surveys/admin/surveys', // + /:id
+    GET_USER_RESPONSES: 'surveys/surveys/responses',
+    UPDATE_USER_RESPONSE: 'surveys/surveys/responses', // + /:responseId
 
     // USER MANAGEMENT
     GET_USERS: 'users',

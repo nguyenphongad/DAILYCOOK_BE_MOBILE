@@ -249,7 +249,7 @@ const getListIngredient = async (req, res) => {
             .sort({ createdAt: -1 });
         return res.status(200).json({
             stype: "ingredient",
-            message: "Lấy danh sách món ăn thành công!",
+            message: "Lấy danh sách thực phẩm thành công!",
             status: true,
             data: {
                 total,

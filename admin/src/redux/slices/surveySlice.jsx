@@ -3,11 +3,14 @@ import {
     getAllSurveysAdmin,
     createSurvey,
     updateSurvey,
-    deleteSurvey 
+    deleteSurvey,
+    getUserResponses,
+    updateUserResponse
 } from '../thunks/surveyThunk';
 
 const initialState = {
     surveys: [],
+    userResponses: null,
     loading: false,
     error: null,
     currentSurvey: null,
@@ -89,6 +92,35 @@ const surveySlice = createSlice({
             .addCase(deleteSurvey.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message;
+            })
+
+            // Get User Responses
+            .addCase(getUserResponses.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getUserResponses.fulfilled, (state, action) => {
+                state.loading = false;
+                state.userResponses = action.payload.data;
+                state.error = null;
+            })
+            .addCase(getUserResponses.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || "Lỗi không xác định";
+            })
+
+            // Update User Response
+            .addCase(updateUserResponse.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(updateUserResponse.fulfilled, (state, action) => {
+                state.loading = false;
+                state.userResponses = action.payload.data;
+                state.error = null;
+            })
+            .addCase(updateUserResponse.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || "Lỗi khi cập nhật câu trả lời";
             });
     }
 });

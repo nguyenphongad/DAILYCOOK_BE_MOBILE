@@ -655,7 +655,7 @@ const getSimilarMeals = async (req, res) => {
                 similarMeals: enrichedSimilarMeals,
                 total: enrichedSimilarMeals.length
             },
-            message: '🤖 AI đã chọn 2 món tương tự phù hợp nhất!',
+            message: '🤖 AI đã chọn 5 món tương tự phù hợp nhất!',
             note: 'Mỗi lần gọi API, AI có thể gợi ý món khác nhau dựa trên phân tích dinh dưỡng và độ tương đồng.'
         });
 
@@ -687,9 +687,6 @@ const generateAIMealPlanController = async (req, res) => {
         console.log('🗑️  Xóa meal plan cũ trong Redis (nếu có)...');
         await deleteMealPlanFromRedis(redis, userId, date);
         
-        // Không check cache nữa, mỗi lần gọi API sẽ generate mới
-        // Loại bỏ phần check cached
-
         console.log('=== BƯỚC 1: Lấy thông tin user profile ===');
         const userProfileResponse = await getUserFullProfile(token);
         if (!userProfileResponse.status) {
@@ -743,12 +740,25 @@ const generateAIMealPlanController = async (req, res) => {
         }
 
         console.log('=== BƯỚC 4: AI phân tích và chọn danh mục phù hợp ===');
-        const categoryRecommendations = await analyzeDietaryNeedsWithAI({
-            userProfile,
-            ingredientCategories,
-            mealCategories
-        });
-        console.log('✓ AI gợi ý danh mục:', categoryRecommendations);
+        let categoryRecommendations;
+        try {
+            categoryRecommendations = await analyzeDietaryNeedsWithAI({
+                userProfile,
+                ingredientCategories,
+                mealCategories
+            });
+            console.log('✓ AI gợi ý danh mục:', categoryRecommendations);
+        } catch (aiError) {
+            console.warn('⚠️  AI lỗi, sử dụng tất cả danh mục làm fallback');
+            // FIX: Nếu AI lỗi, dùng TẤT CẢ danh mục thay vì chỉ 3 danh mục cố định
+            const allCategoryIds = mealCategories.map(cat => cat._id);
+            categoryRecommendations = {
+                breakfast: allCategoryIds,
+                lunch: allCategoryIds,
+                dinner: allCategoryIds,
+                reasoning: 'Sử dụng tất cả danh mục do lỗi AI'
+            };
+        }
 
         console.log('=== BƯỚC 5: Lấy món ăn từ các danh mục được chọn ===');
         const mealsByServingTime = {};
@@ -757,21 +767,35 @@ const generateAIMealPlanController = async (req, res) => {
             ? (userProfile.familyInfo?.children || 0) + (userProfile.familyInfo?.teenagers || 0) + (userProfile.familyInfo?.adults || 0) + (userProfile.familyInfo?.elderly || 0) || 2
             : 1;
 
+        // FIX: Nếu không có món từ danh mục đã chọn, lấy TẤT CẢ món ăn
+        const allMeals = await fetchAllMeals(token);
+        if (!allMeals?.data?.meals || allMeals.data.meals.length === 0) {
+            return res.status(404).json({ 
+                error: 'Không tìm thấy món ăn nào trong hệ thống' 
+            });
+        }
+
         for (const servingTime of ['breakfast', 'lunch', 'dinner']) {
             const categoryIds = categoryRecommendations[servingTime] || [];
-            const allMealsForTime = [];
+            let allMealsForTime = [];
 
+            // Thử lấy món theo danh mục
             for (const categoryId of categoryIds) {
-                const mealsResponse = await getMealsByCategoryWithLimit(categoryId, token, 200);
-                const meals = mealsResponse.data?.meals || [];
-                allMealsForTime.push(...meals);
+                try {
+                    const mealsResponse = await getMealsByCategoryWithLimit(categoryId, token, 200);
+                    const meals = mealsResponse.data?.meals || [];
+                    allMealsForTime.push(...meals);
+                } catch (error) {
+                    console.warn(`⚠️  Không thể lấy món từ category ${categoryId}:`, error.message);
+                }
             }
 
-            console.log(`✓ ${servingTime}: Lấy được ${allMealsForTime.length} món`);
+            console.log(`✓ ${servingTime}: Lấy được ${allMealsForTime.length} món từ danh mục`);
 
+            // FIX: Nếu không có món từ danh mục, dùng TẤT CẢ món làm fallback
             if (allMealsForTime.length === 0) {
-                console.warn(`⚠ Không có món cho ${servingTime}, chuyển sang fallback`);
-                continue;
+                console.warn(`⚠️  Không có món từ danh mục cho ${servingTime}, dùng tất cả món làm fallback`);
+                allMealsForTime = allMeals.data.meals;
             }
 
             // Lọc món ăn (loại bỏ dị ứng & không thích)
@@ -793,13 +817,32 @@ const generateAIMealPlanController = async (req, res) => {
 
             console.log(`✓ ${servingTime}: Còn ${filteredMeals.length} món sau khi lọc`);
 
-            // AI chọn món cụ thể (mỗi lần gọi AI sẽ chọn món khác nhau nhờ random trong AI)
-            const selectedMeals = await selectMealsWithAI({
-                servingTime,
-                meals: filteredMeals,
-                userProfile,
-                targetCalories
-            });
+            // FIX: Nếu không còn món sau khi lọc, báo lỗi
+            if (filteredMeals.length === 0) {
+                return res.status(400).json({
+                    error: `Không tìm thấy món ăn phù hợp cho ${servingTime} sau khi lọc dị ứng/không thích. Vui lòng điều chỉnh dietary preferences.`
+                });
+            }
+
+            // AI chọn món cụ thể (hoặc random nếu AI lỗi)
+            let selectedMeals;
+            try {
+                selectedMeals = await selectMealsWithAI({
+                    servingTime,
+                    meals: filteredMeals,
+                    userProfile,
+                    targetCalories
+                });
+            } catch (aiError) {
+                console.warn(`⚠️  AI lỗi khi chọn món cho ${servingTime}, chọn random`);
+                // Random chọn 2-3 món
+                const numMeals = Math.min(3, filteredMeals.length);
+                const shuffled = [...filteredMeals].sort(() => Math.random() - 0.5);
+                selectedMeals = shuffled.slice(0, numMeals).map(meal => ({
+                    meal_id: meal._id,
+                    reason: 'Được chọn ngẫu nhiên do AI không khả dụng'
+                }));
+            }
 
             mealsByServingTime[servingTime] = selectedMeals.map(m => ({
                 meal_id: m.meal_id,
@@ -816,14 +859,9 @@ const generateAIMealPlanController = async (req, res) => {
             const mealsToGet = [];
             
             for (const mealItem of selectedMeals) {
-                // Tìm meal details từ tất cả meals đã fetch
-                for (const categoryId of categoryRecommendations[servingTime] || []) {
-                    const mealsResponse = await getMealsByCategoryWithLimit(categoryId, token, 200);
-                    const foundMeal = mealsResponse.data?.meals?.find(m => m._id === mealItem.meal_id);
-                    if (foundMeal) {
-                        mealsToGet.push(foundMeal);
-                        break;
-                    }
+                const foundMeal = allMeals.data.meals.find(m => m._id === mealItem.meal_id);
+                if (foundMeal) {
+                    mealsToGet.push(foundMeal);
                 }
             }
 
@@ -855,7 +893,7 @@ const generateAIMealPlanController = async (req, res) => {
                 },
                 generatedAt: new Date(),
                 categoryRecommendations: categoryRecommendations,
-                regenerationCount: 1 // Track số lần generate
+                regenerationCount: 1
             }
         };
 
@@ -867,8 +905,8 @@ const generateAIMealPlanController = async (req, res) => {
             success: true, 
             data: newMealPlan, 
             fromCache: false,
-            regenerated: true, // Flag cho biết đã generate mới
-            message: '🎲 Thực đơn mới được tạo bởi AI với các món ăn khác nhau!'
+            regenerated: true,
+            message: 'Thực đơn mới được tạo bởi AI với các món ăn khác nhau!'
         });
     } catch (error) {
         console.error('=== LỖI: Tạo thực đơn AI thất bại ===');

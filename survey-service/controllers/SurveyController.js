@@ -18,7 +18,7 @@ const surveyController = {
             res.status(200).json({
                 type: "CHECK_ONBOARDING_STATUS",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Lấy trạng thái onboarding thành công",
                 data: {
                     _id: userProfile._id,
                     user_id: userProfile.user_id,
@@ -92,7 +92,7 @@ const surveyController = {
             res.status(200).json({
                 type: "GET_ONBOARDING_QUESTIONS",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Lấy danh sách câu hỏi onboarding thành công",
                 data: questions
             });
         } catch (error) {
@@ -231,7 +231,7 @@ const surveyController = {
             res.status(200).json({
                 type: "GET_ALL_USER_PROFILES",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Lấy danh sách user profiles thành công",
                 data: userProfiles,
                 pagination: {
                     page: parseInt(page),
@@ -266,7 +266,7 @@ const surveyController = {
             res.status(200).json({
                 type: "GET_USER_PROFILE_DETAIL",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Lấy chi tiết user profile thành công",
                 data: userProfile
             });
         } catch (error) {
@@ -287,7 +287,7 @@ const surveyController = {
             res.status(201).json({
                 type: "CREATE_SURVEY",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Tạo câu hỏi khảo sát thành công",
                 data: savedSurvey
             });
         } catch (error) {
@@ -310,7 +310,7 @@ const surveyController = {
             res.status(200).json({
                 type: "UPDATE_SURVEY",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Cập nhật câu hỏi khảo sát thành công",
                 data: updatedSurvey
             });
         } catch (error) {
@@ -329,7 +329,7 @@ const surveyController = {
             res.status(200).json({
                 type: "DELETE_SURVEY",
                 status: true,
-                message: "Truy vấn thành công"
+                message: "Xóa câu hỏi khảo sát thành công"
             });
         } catch (error) {
             res.status(500).json({
@@ -347,7 +347,7 @@ const surveyController = {
             res.status(200).json({
                 type: "GET_ALL_SURVEYS_ADMIN",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Lấy danh sách tất cả câu hỏi khảo sát thành công",
                 data: surveys
             });
         } catch (error) {
@@ -367,7 +367,7 @@ const surveyController = {
             res.status(200).json({
                 type: "GET_ALL_SURVEYS",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Lấy danh sách câu hỏi khảo sát đang hoạt động thành công",
                 data: surveys
             });
         } catch (error) {
@@ -404,7 +404,7 @@ const surveyController = {
             res.status(200).json({
                 type: "SUBMIT_SURVEY_RESPONSE",
                 status: true,
-                message: "Lưu câu trả lời mềm thành công",
+                message: "Lưu câu trả lời khảo sát thành công",
                 data: userResponse
             });
         } catch (error) {
@@ -419,13 +419,13 @@ const surveyController = {
 
     getUserResponse: async (req, res) => {
         try {
-            const userId = req.user._id; // Sửa lại để consistent
+            const userId = req.user._id;
             const userResponse = await UserResponse.findOne({ userId });
             
             res.status(200).json({
                 type: "GET_USER_RESPONSE",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Lấy câu trả lời khảo sát của người dùng thành công",
                 data: userResponse
             });
         } catch (error) {
@@ -433,6 +433,51 @@ const surveyController = {
                 type: "GET_USER_RESPONSE",
                 status: false,
                 message: "Lỗi khi lấy câu trả lời của người dùng",
+                error: error.message
+            });
+        }
+    },
+
+    updateUserResponse: async (req, res) => {
+        try {
+            const userId = req.user._id;
+            const { responseId } = req.params;
+            const { responses } = req.body;
+
+            // Tìm response của user
+            const userResponse = await UserResponse.findOne({ 
+                _id: responseId,
+                userId: userId 
+            });
+
+            if (!userResponse) {
+                return res.status(404).json({
+                    type: "UPDATE_USER_RESPONSE",
+                    status: false,
+                    message: "Không tìm thấy câu trả lời hoặc bạn không có quyền sửa câu trả lời này"
+                });
+            }
+
+            // Cập nhật responses
+            userResponse.responses = {
+                ...userResponse.responses,
+                ...responses
+            };
+            userResponse.updatedAt = Date.now();
+
+            await userResponse.save();
+
+            res.status(200).json({
+                type: "UPDATE_USER_RESPONSE",
+                status: true,
+                message: "Cập nhật câu trả lời khảo sát thành công",
+                data: userResponse
+            });
+        } catch (error) {
+            res.status(500).json({
+                type: "UPDATE_USER_RESPONSE",
+                status: false,
+                message: "Lỗi khi cập nhật câu trả lời",
                 error: error.message
             });
         }
@@ -466,7 +511,7 @@ const surveyController = {
             res.status(200).json({
                 type: "GET_DIETARY_PREFERENCES",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Lấy thông tin chế độ ăn thành công",
                 data: {
                     user_id: userProfile.user_id,
                     dietaryPreferences: userProfile.dietaryPreferences
@@ -862,7 +907,7 @@ const surveyController = {
             res.status(200).json({
                 type: "GET_NUTRITION_GOALS",
                 status: true,
-                message: "Truy vấn thành công",
+                message: "Lấy mục tiêu dinh dưỡng thành công",
                 data: {
                     user_id: userId,
                     nutritionGoals: userProfile.nutritionGoals,

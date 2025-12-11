@@ -1,36 +1,58 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, message, Input, Card, Tabs, Statistic } from 'antd';
-import { MdDownload, MdSearch, MdOutlineRemoveRedEye } from 'react-icons/md';
+import { Table, Button, Space, message, Input, Card, Tabs, Statistic, Modal, Form } from 'antd';
+import { MdDownload, MdSearch, MdOutlineRemoveRedEye, MdEdit } from 'react-icons/md';
 import Loading from '../../components/Loading/Loading';
 import '../../styles/pages/SurveyUserData.scss';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserResponses, updateUserResponse } from '../../redux/thunks/surveyThunk';
 
 const { TabPane } = Tabs;
+const { TextArea } = Input;
 
 const SurveyUserData = () => {
-  const [userData, setUserData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { userResponses, loading } = useSelector((state) => state.survey);
   const [searchText, setSearchText] = useState('');
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [currentResponse, setCurrentResponse] = useState(null);
+  const [form] = Form.useForm();
 
   useEffect(() => {
-    fetchUserData();
-  }, []);
+    dispatch(getUserResponses());
+  }, [dispatch]);
 
-  const fetchUserData = async () => {
-    setLoading(true);
-    // Giả lập fetch dữ liệu từ API
-    setTimeout(() => {
-      const mockData = Array.from({ length: 20 }, (_, i) => ({
-        id: `response_${i + 1}`,
-        userId: `user_${Math.floor(Math.random() * 1000)}`,
-        userName: `Người dùng ${i + 1}`,
-        surveyTitle: `Khảo sát ${Math.floor(i / 3) + 1}`,
-        completedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-        deviceType: Math.random() > 0.5 ? 'Mobile' : 'Web',
-        timeSpent: Math.floor(Math.random() * 10) + 1, // minutes
-      }));
-      setUserData(mockData);
-      setLoading(false);
-    }, 1000);
+  const userData = userResponses ? Object.entries(userResponses.responses || {}).map(([key, value], index) => ({
+    id: key,
+    surveyId: key,
+    answer: value,
+    responseId: userResponses._id
+  })) : [];
+
+  const showEditModal = (record) => {
+    setCurrentResponse(record);
+    form.setFieldsValue({
+      answer: record.answer
+    });
+    setIsModalVisible(true);
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const values = await form.validateFields();
+      await dispatch(updateUserResponse({
+        responseId: currentResponse.responseId,
+        responseData: {
+          responses: {
+            [currentResponse.surveyId]: values.answer
+          }
+        }
+      })).unwrap();
+      message.success('Cập nhật câu trả lời thành công');
+      setIsModalVisible(false);
+      dispatch(getUserResponses());
+    } catch (error) {
+      message.error(error.message || 'Cập nhật thất bại');
+    }
   };
 
   // Tính toán thống kê
@@ -45,57 +67,32 @@ const SurveyUserData = () => {
 
   const columns = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 120,
+      title: 'ID Câu hỏi',
+      dataIndex: 'surveyId',
+      key: 'surveyId',
+      width: 150,
     },
     {
-      title: 'Tên người dùng',
-      dataIndex: 'userName',
-      key: 'userName',
-      sorter: (a, b) => a.userName.localeCompare(b.userName),
-    },
-    {
-      title: 'Tiêu đề khảo sát',
-      dataIndex: 'surveyTitle',
-      key: 'surveyTitle',
-      sorter: (a, b) => a.surveyTitle.localeCompare(b.surveyTitle),
-      filters: Array.from(new Set(userData.map(item => item.surveyTitle))).map(title => ({ text: title, value: title })),
-      onFilter: (value, record) => record.surveyTitle === value,
-    },
-    {
-      title: 'Thời gian hoàn thành',
-      dataIndex: 'completedAt',
-      key: 'completedAt',
-      sorter: (a, b) => new Date(a.completedAt) - new Date(b.completedAt),
-      render: date => new Date(date).toLocaleDateString('vi-VN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-    },
-    {
-      title: 'Thiết bị',
-      dataIndex: 'deviceType',
-      key: 'deviceType',
-      filters: [
-        { text: 'Mobile', value: 'Mobile' },
-        { text: 'Web', value: 'Web' },
-      ],
-      onFilter: (value, record) => record.deviceType === value,
+      title: 'Câu trả lời',
+      dataIndex: 'answer',
+      key: 'answer',
+      ellipsis: true,
     },
     {
       title: 'Thao tác',
       key: 'action',
       render: (_, record) => (
-        <Button
-          type="primary"
-          icon={<MdOutlineRemoveRedEye />}
-          onClick={() => message.info(`Xem chi tiết phản hồi: ${record.id}`)}
-        />
+        <Space>
+          <Button
+            type="primary"
+            icon={<MdOutlineRemoveRedEye />}
+            onClick={() => message.info(`Câu trả lời: ${record.answer}`)}
+          />
+          <Button
+            icon={<MdEdit />}
+            onClick={() => showEditModal(record)}
+          />
+        </Space>
       ),
     },
   ];
@@ -167,6 +164,25 @@ const SurveyUserData = () => {
           />
         </TabPane>
       </Tabs>
+
+      <Modal
+        title="Chỉnh sửa câu trả lời"
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        onOk={handleUpdate}
+        okText="Cập nhật"
+        cancelText="Hủy"
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="answer"
+            label="Câu trả lời"
+            rules={[{ required: true, message: 'Vui lòng nhập câu trả lời' }]}
+          >
+            <TextArea rows={4} placeholder="Nhập câu trả lời của bạn" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
