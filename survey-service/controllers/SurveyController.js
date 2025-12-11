@@ -325,7 +325,33 @@ const surveyController = {
 
     deleteSurvey: async (req, res) => {
         try {
-            await Survey.findByIdAndDelete(req.params.id);
+            const surveyId = req.params.id;
+
+            // Kiểm tra survey có tồn tại không
+            const survey = await Survey.findById(surveyId);
+            if (!survey) {
+                return res.status(404).json({
+                    type: "DELETE_SURVEY",
+                    status: false,
+                    message: "Không tìm thấy câu hỏi khảo sát"
+                });
+            }
+
+            // Kiểm tra xem survey đã có câu trả lời chưa
+            const hasResponses = await UserResponse.findOne({
+                [`responses.${surveyId}`]: { $exists: true }
+            });
+
+            if (hasResponses) {
+                return res.status(400).json({
+                    type: "DELETE_SURVEY",
+                    status: false,
+                    message: "Không thể xóa câu hỏi khảo sát đã có người trả lời. Vui lòng chuyển trạng thái isActive thành false thay vì xóa.",
+                    suggestion: "Sử dụng API PUT /admin/surveys/:id để set isActive = false"
+                });
+            }
+
+            await Survey.findByIdAndDelete(surveyId);
             res.status(200).json({
                 type: "DELETE_SURVEY",
                 status: true,
@@ -361,135 +387,284 @@ const surveyController = {
     },
 
     // USER CONTROLLERS (Câu hỏi mềm)  
-    getAllSurveys: async (req, res) => {
-        try {
-            const surveys = await Survey.find({ isActive: true }).sort('order'); // Chỉ lấy các câu hỏi active
-            res.status(200).json({
-                type: "GET_ALL_SURVEYS",
-                status: true,
-                message: "Lấy danh sách câu hỏi khảo sát đang hoạt động thành công",
-                data: surveys
-            });
-        } catch (error) {
-            res.status(500).json({
-                type: "GET_ALL_SURVEYS",
-                status: false,
-                message: "Lỗi khi lấy danh sách khảo sát",
-                error: error.message
-            });
-        }
-    },
+getAllSurveys: async (req, res) => {
+    try {
+        const surveys = await Survey.find({ isActive: true }).sort('order');
+        res.status(200).json({
+            type: "GET_ALL_SURVEYS",
+            status: true,
+            message: "Lấy danh sách câu hỏi khảo sát đang hoạt động thành công",
+            data: surveys
+        });
+    } catch (error) {
+        res.status(500).json({
+            type: "GET_ALL_SURVEYS",
+            status: false,
+            message: "Lỗi khi lấy danh sách khảo sát",
+            error: error.message
+        });
+    }
+},
 
-    submitUserResponse: async (req, res) => {
-        try {
-            const userId = req.user._id; // Sửa lại để consistent
-            let userResponse = await UserResponse.findOne({ userId });
+submitUserResponse: async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { responses } = req.body; // responses = [{ surveyId, answer }]
 
-            if (userResponse) {
-                // Cập nhật response nếu đã tồn tại
-                userResponse.responses = {
-                    ...userResponse.responses,
-                    ...req.body.responses
-                };
-                await userResponse.save();
-            } else {
-                // Tạo mới nếu chưa có
-                userResponse = new UserResponse({
-                    userId,
-                    responses: req.body.responses
-                });
-                await userResponse.save();
-            }
-
-            res.status(200).json({
-                type: "SUBMIT_SURVEY_RESPONSE",
-                status: true,
-                message: "Lưu câu trả lời khảo sát thành công",
-                data: userResponse
-            });
-        } catch (error) {
-            res.status(500).json({
+        // Validate input
+        if (!responses || !Array.isArray(responses) || responses.length === 0) {
+            return res.status(400).json({
                 type: "SUBMIT_SURVEY_RESPONSE",
                 status: false,
-                message: "Lỗi khi lưu câu trả lời",
-                error: error.message
+                message: "Dữ liệu không hợp lệ. Cần gửi mảng responses với cấu trúc: [{ surveyId, answer }]",
+                example: {
+                    responses: [
+                        { surveyId: "507f1f77bcf86cd799439011", answer: "Câu trả lời của bạn" },
+                        { surveyId: "507f1f77bcf86cd799439012", answer: ["option1", "option2"] }
+                    ]
+                }
             });
         }
-    },
 
-    getUserResponse: async (req, res) => {
-        try {
-            const userId = req.user._id;
-            const userResponse = await UserResponse.findOne({ userId });
-            
-            res.status(200).json({
-                type: "GET_USER_RESPONSE",
-                status: true,
-                message: "Lấy câu trả lời khảo sát của người dùng thành công",
-                data: userResponse
-            });
-        } catch (error) {
-            res.status(500).json({
-                type: "GET_USER_RESPONSE",
+        // Kiểm tra tất cả surveyId có tồn tại và đang active không
+        const surveyIds = responses.map(r => r.surveyId);
+        const surveys = await Survey.find({ 
+            _id: { $in: surveyIds },
+            isActive: true 
+        });
+        
+        if (surveys.length !== surveyIds.length) {
+            const foundIds = surveys.map(s => s._id.toString());
+            const notFoundIds = surveyIds.filter(id => !foundIds.includes(id));
+            return res.status(404).json({
+                type: "SUBMIT_SURVEY_RESPONSE",
                 status: false,
-                message: "Lỗi khi lấy câu trả lời của người dùng",
-                error: error.message
+                message: "Một số câu hỏi khảo sát không tồn tại hoặc không còn hoạt động",
+                invalidSurveyIds: notFoundIds
             });
         }
-    },
 
-    updateUserResponse: async (req, res) => {
-        try {
-            const userId = req.user._id;
-            const { responseId } = req.params;
-            const { responses } = req.body;
+        // Tìm hoặc tạo UserResponse
+        let userResponse = await UserResponse.findOne({ userId });
 
-            // Tìm response của user
-            const userResponse = await UserResponse.findOne({ 
-                _id: responseId,
-                userId: userId 
+        if (!userResponse) {
+            userResponse = new UserResponse({
+                userId,
+                responses: {}
             });
+        }
 
-            if (!userResponse) {
-                return res.status(404).json({
-                    type: "UPDATE_USER_RESPONSE",
-                    status: false,
-                    message: "Không tìm thấy câu trả lời hoặc bạn không có quyền sửa câu trả lời này"
-                });
-            }
-
-            // Cập nhật responses
-            userResponse.responses = {
-                ...userResponse.responses,
-                ...responses
+        // Lưu câu trả lời theo cấu trúc object { surveyId: { answer, answeredAt } }
+        responses.forEach(({ surveyId, answer }) => {
+            userResponse.responses[surveyId] = {
+                answer,
+                answeredAt: new Date()
             };
-            userResponse.updatedAt = Date.now();
+        });
 
-            await userResponse.save();
+        // Đánh dấu responses đã thay đổi để Mongoose update
+        userResponse.markModified('responses');
+        await userResponse.save();
 
-            res.status(200).json({
-                type: "UPDATE_USER_RESPONSE",
+        // Populate thông tin survey để trả về
+        const responseData = {
+            _id: userResponse._id,
+            userId: userResponse.userId,
+            responses: [],
+            totalAnswered: Object.keys(userResponse.responses).length
+        };
+
+        for (const [surveyId, data] of Object.entries(userResponse.responses)) {
+            const survey = await Survey.findById(surveyId);
+            if (survey) {
+                responseData.responses.push({
+                    surveyId,
+                    surveyTitle: survey.title,
+                    questionType: survey.questionType,
+                    answer: data.answer,
+                    answeredAt: data.answeredAt
+                });
+            }
+        }
+
+        res.status(200).json({
+            type: "SUBMIT_SURVEY_RESPONSE",
+            status: true,
+            message: "Lưu câu trả lời khảo sát thành công",
+            data: responseData
+        });
+    } catch (error) {
+        console.error('Error in submitUserResponse:', error);
+        res.status(500).json({
+            type: "SUBMIT_SURVEY_RESPONSE",
+            status: false,
+            message: "Lỗi khi lưu câu trả lời",
+            error: error.message
+        });
+    }
+},
+
+getUserResponse: async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const userResponse = await UserResponse.findOne({ userId });
+        
+        if (!userResponse || Object.keys(userResponse.responses).length === 0) {
+            return res.status(200).json({
+                type: "GET_USER_RESPONSE",
                 status: true,
-                message: "Cập nhật câu trả lời khảo sát thành công",
-                data: userResponse
-            });
-        } catch (error) {
-            res.status(500).json({
-                type: "UPDATE_USER_RESPONSE",
-                status: false,
-                message: "Lỗi khi cập nhật câu trả lời",
-                error: error.message
+                message: "Người dùng chưa có câu trả lời nào",
+                data: {
+                    userId,
+                    responses: [],
+                    totalAnswered: 0
+                }
             });
         }
-    },
 
-    // DIETARY PREFERENCES CONTROLLERS
+        // Populate thông tin survey
+        const responseData = {
+            _id: userResponse._id,
+            userId: userResponse.userId,
+            responses: [],
+            totalAnswered: Object.keys(userResponse.responses).length,
+            createdAt: userResponse.createdAt,
+            updatedAt: userResponse.updatedAt
+        };
+
+        for (const [surveyId, data] of Object.entries(userResponse.responses)) {
+            const survey = await Survey.findById(surveyId);
+            if (survey) {
+                responseData.responses.push({
+                    surveyId,
+                    surveyTitle: survey.title,
+                    surveyDescription: survey.description,
+                    questionType: survey.questionType,
+                    category: survey.category,
+                    answer: data.answer,
+                    answeredAt: data.answeredAt
+                });
+            }
+        }
+        
+        res.status(200).json({
+            type: "GET_USER_RESPONSE",
+            status: true,
+            message: "Lấy câu trả lời khảo sát của người dùng thành công",
+            data: responseData
+        });
+    } catch (error) {
+        res.status(500).json({
+            type: "GET_USER_RESPONSE",
+            status: false,
+            message: "Lỗi khi lấy câu trả lời của người dùng",
+            error: error.message
+        });
+    }
+},
+
+updateUserResponse: async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { responseId } = req.params;
+        const { responses } = req.body; // responses = [{ surveyId, answer }]
+
+        // Validate input
+        if (!responses || !Array.isArray(responses) || responses.length === 0) {
+            return res.status(400).json({
+                type: "UPDATE_USER_RESPONSE",
+                status: false,
+                message: "Dữ liệu không hợp lệ. Cần gửi mảng responses với cấu trúc: [{ surveyId, answer }]"
+            });
+        }
+
+        // Tìm response của user
+        const userResponse = await UserResponse.findOne({ 
+            _id: responseId,
+            userId: userId 
+        });
+
+        if (!userResponse) {
+            return res.status(404).json({
+                type: "UPDATE_USER_RESPONSE",
+                status: false,
+                message: "Không tìm thấy câu trả lời hoặc bạn không có quyền sửa câu trả lời này"
+            });
+        }
+
+        // Kiểm tra surveyId có tồn tại và đang active không
+        const surveyIds = responses.map(r => r.surveyId);
+        const surveys = await Survey.find({ 
+            _id: { $in: surveyIds },
+            isActive: true 
+        });
+        
+        if (surveys.length !== surveyIds.length) {
+            const foundIds = surveys.map(s => s._id.toString());
+            const notFoundIds = surveyIds.filter(id => !foundIds.includes(id));
+            return res.status(404).json({
+                type: "UPDATE_USER_RESPONSE",
+                status: false,
+                message: "Một số câu hỏi khảo sát không tồn tại hoặc không còn hoạt động",
+                invalidSurveyIds: notFoundIds
+            });
+        }
+
+        // Cập nhật responses
+        responses.forEach(({ surveyId, answer }) => {
+            userResponse.responses[surveyId] = {
+                answer,
+                answeredAt: new Date()
+            };
+        });
+
+        userResponse.markModified('responses');
+        await userResponse.save();
+
+        // Populate thông tin survey để trả về
+        const responseData = {
+            _id: userResponse._id,
+            userId: userResponse.userId,
+            responses: [],
+            totalAnswered: Object.keys(userResponse.responses).length
+        };
+
+        for (const [surveyId, data] of Object.entries(userResponse.responses)) {
+            const survey = await Survey.findById(surveyId);
+            if (survey) {
+                responseData.responses.push({
+                    surveyId,
+                    surveyTitle: survey.title,
+                    questionType: survey.questionType,
+                    answer: data.answer,
+                    answeredAt: data.answeredAt
+                });
+            }
+        }
+
+        res.status(200).json({
+            type: "UPDATE_USER_RESPONSE",
+            status: true,
+            message: "Cập nhật câu trả lời khảo sát thành công",
+            data: responseData
+        });
+    } catch (error) {
+        res.status(500).json({
+            type: "UPDATE_USER_RESPONSE",
+            status: false,
+            message: "Lỗi khi cập nhật câu trả lời",
+            error: error.message
+        });
+    }
+},
+
+    // DIETARY PREFERENCES
     getDietaryPreferences: async (req, res) => {
         try {
             const userId = req.params.id;
             const currentUserId = req.user._id;
 
-            // Kiểm tra quyền: chỉ user đó mới được xem chế độ ăn của chính mình
+            // Kiểm tra quyền
             if (userId !== currentUserId.toString()) {
                 return res.status(403).json({
                     type: "GET_DIETARY_PREFERENCES",
@@ -511,7 +686,7 @@ const surveyController = {
             res.status(200).json({
                 type: "GET_DIETARY_PREFERENCES",
                 status: true,
-                message: "Lấy thông tin chế độ ăn thành công",
+                message: "Lấy thông tin sở thích ăn uống thành công",
                 data: {
                     user_id: userProfile.user_id,
                     dietaryPreferences: userProfile.dietaryPreferences
@@ -521,7 +696,7 @@ const surveyController = {
             res.status(500).json({
                 type: "GET_DIETARY_PREFERENCES",
                 status: false,
-                message: "Lỗi khi lấy thông tin chế độ ăn",
+                message: "Lỗi khi lấy thông tin sở thích ăn uống",
                 error: error.message
             });
         }
@@ -531,9 +706,9 @@ const surveyController = {
         try {
             const userId = req.params.id;
             const currentUserId = req.user._id;
-            const { DietType_id } = req.body;
+            const { DietType_id, allergies, dislikeIngredients } = req.body;
 
-            // Kiểm tra quyền: chỉ user đó mới được cập nhật chế độ ăn của chính mình
+            // Kiểm tra quyền
             if (userId !== currentUserId.toString()) {
                 return res.status(403).json({
                     type: "UPDATE_DIETARY_PREFERENCES",
@@ -551,18 +726,23 @@ const surveyController = {
                 });
             }
 
-            // Cập nhật DietType_id
-            userProfile.dietaryPreferences = {
-                ...userProfile.dietaryPreferences,
-                DietType_id: DietType_id
-            };
+            // Cập nhật dietary preferences
+            if (DietType_id !== undefined) {
+                userProfile.dietaryPreferences.DietType_id = DietType_id;
+            }
+            if (allergies !== undefined) {
+                userProfile.dietaryPreferences.allergies = allergies;
+            }
+            if (dislikeIngredients !== undefined) {
+                userProfile.dietaryPreferences.dislikeIngredients = dislikeIngredients;
+            }
 
             await userProfile.save();
 
             res.status(200).json({
                 type: "UPDATE_DIETARY_PREFERENCES",
                 status: true,
-                message: "Cập nhật chế độ ăn thành công",
+                message: "Cập nhật thông tin sở thích ăn uống thành công",
                 data: {
                     user_id: userProfile.user_id,
                     dietaryPreferences: userProfile.dietaryPreferences
@@ -572,18 +752,17 @@ const surveyController = {
             res.status(500).json({
                 type: "UPDATE_DIETARY_PREFERENCES",
                 status: false,
-                message: "Lỗi khi cập nhật chế độ ăn",
+                message: "Lỗi khi cập nhật thông tin sở thích ăn uống",
                 error: error.message
             });
         }
     },
 
-    // NUTRITION GOALS CALCULATOR
+    // NUTRITION GOALS CONTROLLERS
     calculateNutritionGoals: async (req, res) => {
         try {
             const userId = req.user._id;
             
-            // Lấy user profile
             const userProfile = await UserProfile.findOne({ user_id: userId });
             if (!userProfile) {
                 return res.status(404).json({
@@ -595,7 +774,6 @@ const surveyController = {
 
             const { personalInfo, familyInfo, dietaryPreferences, isFamily } = userProfile;
 
-            // Kiểm tra chế độ ăn
             if (!dietaryPreferences?.DietType_id) {
                 return res.status(400).json({
                     type: "CALCULATE_NUTRITION_GOALS",
@@ -607,9 +785,7 @@ const surveyController = {
             let bmr, targetCalories;
             let calculationMethod;
 
-            // ========== XỬ LÝ THEO LOẠI PROFILE ==========
             if (!isFamily) {
-                // ===== CÁ NHÂN =====
                 if (!personalInfo?.height || !personalInfo?.weight || !personalInfo?.age || !personalInfo?.gender) {
                     return res.status(400).json({
                         type: "CALCULATE_NUTRITION_GOALS",
@@ -618,7 +794,6 @@ const surveyController = {
                     });
                 }
 
-                // Tính BMR theo công thức Mifflin-St Jeor
                 const { height, weight, age, gender } = personalInfo;
                 
                 if (gender === 'male') {
@@ -629,12 +804,10 @@ const surveyController = {
                     bmr = (10 * weight) + (6.25 * height) - (5 * age) - 78;
                 }
 
-                // Sử dụng BMR trực tiếp, không nhân với activity level
                 targetCalories = Math.round(bmr);
                 calculationMethod = "BMR (Mifflin-St Jeor)";
 
             } else {
-                // ===== GIA ĐÌNH =====
                 if (!familyInfo?.children && !familyInfo?.teenagers && !familyInfo?.adults && !familyInfo?.elderly) {
                     return res.status(400).json({
                         type: "CALCULATE_NUTRITION_GOALS",
@@ -643,32 +816,24 @@ const surveyController = {
                     });
                 }
 
-                // Định mức calo cho từng nhóm tuổi
                 const CALORIE_QUOTA = {
-                    children: 1600,    // Trẻ em
-                    teenagers: 2500,   // Thanh thiếu niên
-                    adults: 2100,      // Người lớn
-                    elderly: 1700      // Người cao tuổi
+                    children: 1600,
+                    teenagers: 2500,
+                    adults: 2100,
+                    elderly: 1700
                 };
 
-                // Tính tổng calo gia đình
-                const totalFamilyCalories = 
+                targetCalories = 
                     (familyInfo.children || 0) * CALORIE_QUOTA.children +
                     (familyInfo.teenagers || 0) * CALORIE_QUOTA.teenagers +
                     (familyInfo.adults || 0) * CALORIE_QUOTA.adults +
                     (familyInfo.elderly || 0) * CALORIE_QUOTA.elderly;
 
-                targetCalories = totalFamilyCalories;
-                bmr = null; // Không áp dụng BMR cho gia đình
+                bmr = null;
                 calculationMethod = "Tổng định mức calo gia đình";
             }
 
-            // ========== GỌI API LẤY DIET TYPE ==========
             const axios = require('axios');
-
-
-            console.log("dietaryPreferences.DietType_id :", dietaryPreferences.DietType_id);
-
             const dietTypeUrl = process.env.PORT_MEAL_DIETTYPE_DETAIL_ID.replace(':keyword', dietaryPreferences.DietType_id);
             const token = req.headers.authorization;
             
@@ -680,7 +845,6 @@ const surveyController = {
                         ...(token && { 'Authorization': token })
                     }
                 });
-
                 dietTypeData = response.data.data;
             } catch (error) {
                 console.error('Error fetching diet type:', error.message);
@@ -691,7 +855,6 @@ const surveyController = {
                 });
             }
 
-            // Lấy nutrition từ diet type
             const { nutrition } = dietTypeData;
             if (!nutrition || !nutrition.calories) {
                 return res.status(400).json({
@@ -701,8 +864,6 @@ const surveyController = {
                 });
             }
 
-            // ========== TÍNH TỶ LỆ % TỪ GRAMS ==========
-            // Protein & Carbs: 1g = 4 kcal, Fat: 1g = 9 kcal
             const proteinCalories = nutrition.protein * 4;
             const carbCalories = nutrition.carbs * 4;
             const fatCalories = nutrition.fat * 9;
@@ -712,18 +873,14 @@ const surveyController = {
             const carbPercentage = Math.round((carbCalories / dietTypeCalories) * 100);
             const fatPercentage = Math.round((fatCalories / dietTypeCalories) * 100);
 
-            // ========== TÍNH GRAMS THỰC TẾ CHO TARGET CALORIES ==========
             const actualCarbGrams = Math.round((targetCalories * carbPercentage / 100) / 4);
             const actualProteinGrams = Math.round((targetCalories * proteinPercentage / 100) / 4);
             const actualFatGrams = Math.round((targetCalories * fatPercentage / 100) / 9);
 
-            // Tính lượng nước cần uống
             let waterIntakeGoal;
             if (!isFamily) {
-                // Cá nhân: 35ml/kg cân nặng
                 waterIntakeGoal = Math.round((personalInfo.weight * 35) / 1000 * 10) / 10;
             } else {
-                // Gia đình: Ước tính dựa trên số người (2.5L/người trung bình)
                 const totalMembers = 
                     (familyInfo.children || 0) + 
                     (familyInfo.teenagers || 0) + 
@@ -732,7 +889,6 @@ const surveyController = {
                 waterIntakeGoal = Math.round(totalMembers * 2.5 * 10) / 10;
             }
 
-            // ========== CẬP NHẬT NUTRITION GOALS ==========
             userProfile.nutritionGoals = {
                 caloriesPerDay: targetCalories,
                 proteinPercentage: proteinPercentage,
@@ -743,7 +899,6 @@ const surveyController = {
 
             await userProfile.save();
 
-            // ========== TẠO RESPONSE DATA ==========
             const responseData = {
                 user_id: userId,
                 profileType: isFamily ? 'family' : 'personal',
@@ -779,14 +934,9 @@ const surveyController = {
                         calories: Math.round(targetCalories * fatPercentage / 100),
                         grams: actualFatGrams
                     }
-                },
-                dietTypeInfo: {
-                    description: dietTypeData.description,
-                    researchSource: dietTypeData.researchSource
                 }
             };
 
-            // Thêm thông tin chi tiết theo loại profile
             if (!isFamily) {
                 responseData.personalInfo = {
                     height: personalInfo.height,
@@ -795,7 +945,6 @@ const surveyController = {
                     gender: personalInfo.gender
                 };
                 responseData.calculations.bmr = Math.round(bmr);
-                // Xóa activityLevel khỏi response
             } else {
                 responseData.familyInfo = {
                     children: familyInfo.children || 0,
@@ -807,12 +956,6 @@ const surveyController = {
                         (familyInfo.teenagers || 0) + 
                         (familyInfo.adults || 0) + 
                         (familyInfo.elderly || 0)
-                };
-                responseData.calculations.breakdown = {
-                    children: `${familyInfo.children || 0} × 1,600 = ${(familyInfo.children || 0) * 1600} kcal`,
-                    teenagers: `${familyInfo.teenagers || 0} × 2,500 = ${(familyInfo.teenagers || 0) * 2500} kcal`,
-                    adults: `${familyInfo.adults || 0} × 2,100 = ${(familyInfo.adults || 0) * 2100} kcal`,
-                    elderly: `${familyInfo.elderly || 0} × 1,700 = ${(familyInfo.elderly || 0) * 1700} kcal`
                 };
             }
 
@@ -835,67 +978,11 @@ const surveyController = {
         }
     },
 
-    // Cập nhật manual nutrition goals (nếu user muốn tự điều chỉnh)
-    updateNutritionGoals: async (req, res) => {
-        try {
-            const userId = req.user._id;
-            const { caloriesPerDay, proteinPercentage, carbPercentage, fatPercentage, waterIntakeGoal } = req.body;
-
-            // Validate tổng % phải = 100
-            if (proteinPercentage && carbPercentage && fatPercentage) {
-                const totalPercentage = proteinPercentage + carbPercentage + fatPercentage;
-                if (totalPercentage !== 100) {
-                    return res.status(400).json({
-                        type: "UPDATE_NUTRITION_GOALS",
-                        status: false,
-                        message: `Tổng phần trăm macro phải bằng 100. Hiện tại: ${totalPercentage}%`
-                    });
-                }
-            }
-
-            const userProfile = await UserProfile.findOne({ user_id: userId });
-            if (!userProfile) {
-                return res.status(404).json({
-                    type: "UPDATE_NUTRITION_GOALS",
-                    status: false,
-                    message: "Không tìm thấy thông tin người dùng"
-                });
-            }
-
-            // Cập nhật từng field nếu có
-            if (caloriesPerDay) userProfile.nutritionGoals.caloriesPerDay = caloriesPerDay;
-            if (proteinPercentage) userProfile.nutritionGoals.proteinPercentage = proteinPercentage;
-            if (carbPercentage) userProfile.nutritionGoals.carbPercentage = carbPercentage;
-            if (fatPercentage) userProfile.nutritionGoals.fatPercentage = fatPercentage;
-            if (waterIntakeGoal) userProfile.nutritionGoals.waterIntakeGoal = waterIntakeGoal;
-
-            await userProfile.save();
-
-            res.status(200).json({
-                type: "UPDATE_NUTRITION_GOALS",
-                status: true,
-                message: "Cập nhật mục tiêu dinh dưỡng thành công",
-                data: {
-                    user_id: userId,
-                    nutritionGoals: userProfile.nutritionGoals
-                }
-            });
-        } catch (error) {
-            res.status(500).json({
-                type: "UPDATE_NUTRITION_GOALS",
-                status: false,
-                message: "Lỗi khi cập nhật mục tiêu dinh dưỡng",
-                error: error.message
-            });
-        }
-    },
-
-    // Lấy nutrition goals hiện tại
     getNutritionGoals: async (req, res) => {
         try {
             const userId = req.user._id;
-
             const userProfile = await UserProfile.findOne({ user_id: userId });
+
             if (!userProfile) {
                 return res.status(404).json({
                     type: "GET_NUTRITION_GOALS",
@@ -924,12 +1011,62 @@ const surveyController = {
         }
     },
 
-    // Lấy toàn bộ thông tin profile của user (bao gồm cả soft questions)
+    updateNutritionGoals: async (req, res) => {
+        try {
+            const userId = req.user._id;
+            const { caloriesPerDay, proteinPercentage, carbPercentage, fatPercentage, waterIntakeGoal } = req.body;
+
+            if (proteinPercentage && carbPercentage && fatPercentage) {
+                const totalPercentage = proteinPercentage + carbPercentage + fatPercentage;
+                if (totalPercentage !== 100) {
+                    return res.status(400).json({
+                        type: "UPDATE_NUTRITION_GOALS",
+                        status: false,
+                        message: `Tổng phần trăm macro phải bằng 100. Hiện tại: ${totalPercentage}%`
+                    });
+                }
+            }
+
+            const userProfile = await UserProfile.findOne({ user_id: userId });
+            if (!userProfile) {
+                return res.status(404).json({
+                    type: "UPDATE_NUTRITION_GOALS",
+                    status: false,
+                    message: "Không tìm thấy thông tin người dùng"
+                });
+            }
+
+            if (caloriesPerDay) userProfile.nutritionGoals.caloriesPerDay = caloriesPerDay;
+            if (proteinPercentage) userProfile.nutritionGoals.proteinPercentage = proteinPercentage;
+            if (carbPercentage) userProfile.nutritionGoals.carbPercentage = carbPercentage;
+            if (fatPercentage) userProfile.nutritionGoals.fatPercentage = fatPercentage;
+            if (waterIntakeGoal) userProfile.nutritionGoals.waterIntakeGoal = waterIntakeGoal;
+
+            await userProfile.save();
+
+            res.status(200).json({
+                type: "UPDATE_NUTRITION_GOALS",
+                status: true,
+                message: "Cập nhật mục tiêu dinh dưỡng thành công",
+                data: {
+                    user_id: userId,
+                    nutritionGoals: userProfile.nutritionGoals
+                }
+            });
+        } catch (error) {
+            res.status(500).json({
+                type: "UPDATE_NUTRITION_GOALS",
+                status: false,
+                message: "Lỗi khi cập nhật mục tiêu dinh dưỡng",
+                error: error.message
+            });
+        }
+    },
+
+    // USER FULL PROFILE
     getUserFullProfile: async (req, res) => {
         try {
             const userId = req.user._id;
-
-            // Lấy user profile (hard questions - onboarding) - KHÔNG POPULATE
             const userProfile = await UserProfile.findOne({ user_id: userId });
 
             if (!userProfile) {
@@ -940,38 +1077,24 @@ const surveyController = {
                 });
             }
 
-            // Lấy user responses (soft questions - survey)
             const userResponse = await UserResponse.findOne({ userId });
 
-            // Tổng hợp toàn bộ thông tin
             const fullProfile = {
                 _id: userProfile._id,
                 user_id: userProfile.user_id,
                 isOnboardingCompleted: userProfile.isOnboardingCompleted,
                 isFamily: userProfile.isFamily,
-                
-                // Thông tin cá nhân
                 personalInfo: userProfile.personalInfo,
-                
-                // Thông tin gia đình
                 familyInfo: userProfile.familyInfo,
-                
-                // Sở thích ăn uống
                 dietaryPreferences: userProfile.dietaryPreferences,
-                
-                // Mục tiêu dinh dưỡng
                 nutritionGoals: userProfile.nutritionGoals,
-                
-                // Nhắc nhở uống nước
                 waterReminders: userProfile.waterReminders,
-                
-                // Câu hỏi mềm (survey responses)
-                surveyResponses: userResponse ? userResponse.responses : null,
-                
-                // Soft questions từ userProfile
+                surveyResponses: userResponse ? Array.from(userResponse.responses.entries()).map(([surveyId, data]) => ({
+                    surveyId,
+                    answer: data.answer,
+                    answeredAt: data.answeredAt
+                })) : [],
                 softQuestions: userProfile.softQuestions,
-                
-                // Metadata
                 createdAt: userProfile.createdAt,
                 updatedAt: userProfile.updatedAt
             };
@@ -991,7 +1114,7 @@ const surveyController = {
                 error: error.message
             });
         }
-    },
+    }
 };
 
 module.exports = surveyController;
