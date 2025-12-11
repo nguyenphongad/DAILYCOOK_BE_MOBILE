@@ -38,6 +38,7 @@ router.delete('/admin/surveys/:id', verifyApiKey, verifyToken, verifyAdmin, surv
 router.get('/surveys', verifyApiKey, verifyToken, surveyController.getAllSurveys); // User xem khảo sát đang hoạt động
 router.get('/surveys/responses', verifyApiKey, verifyToken, surveyController.getUserResponse); // User xem câu trả lời của mình
 router.post('/surveys/responses', verifyApiKey, verifyToken, surveyController.submitUserResponse); // User gửi câu trả lời khảo sát
+router.put('/surveys/responses/:responseId', verifyApiKey, verifyToken, surveyController.updateUserResponse); // User sửa câu trả lời khảo sát
 
 // =================================
 // DIETARY PREFERENCES ROUTES

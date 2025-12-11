@@ -69,3 +69,37 @@ export const deleteSurvey = createAsyncThunk(
         }
     }
 );
+
+export const getUserResponses = createAsyncThunk(
+    'survey/getUserResponses',
+    async (_, { getState, rejectWithValue }) => {
+        try {
+            const { auth } = getState();
+            const response = await get(ENDPOINT.GET_USER_RESPONSES, auth.token);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || {
+                type: "GET_USER_RESPONSES",
+                status: false,
+                message: "Lỗi khi lấy danh sách câu trả lời"
+            });
+        }
+    }
+);
+
+export const updateUserResponse = createAsyncThunk(
+    'survey/updateUserResponse',
+    async ({ responseId, responseData }, { getState, rejectWithValue }) => {
+        try {
+            const { auth } = getState();
+            const response = await put(`${ENDPOINT.UPDATE_USER_RESPONSE}/${responseId}`, responseData, auth.token);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || {
+                type: "UPDATE_USER_RESPONSE",
+                status: false,
+                message: "Lỗi khi cập nhật câu trả lời"
+            });
+        }
+    }
+);

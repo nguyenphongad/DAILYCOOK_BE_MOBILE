@@ -368,7 +368,7 @@ const selectSimilarMealsWithAI = async ({ currentMeal, allMeals, userProfile }) 
         const { dietaryPreferences, nutritionGoals } = userProfile || {};
         
         const prompt = `
-Bạn là chuyên gia dinh dưỡng. Chọn 2 món ăn TƯƠNG TỰ với món hiện tại.
+Bạn là chuyên gia dinh dưỡng. Chọn 5 món ăn TƯƠNG TỰ với món hiện tại.
 
 **MÓN ĂN HIỆN TẠI:**
 - Tên: ${currentMeal.nameMeal || currentMeal.name}
@@ -391,11 +391,14 @@ ${JSON.stringify(allMeals.slice(0, 100).map(meal => ({
     popularity: meal.popularity
 })), null, 2)}
 
-**OUTPUT JSON (chỉ trả về 2 món):**
+**OUTPUT JSON (chỉ trả về 5 món):**
 {
     "similarMeals": [
         {"meal_id": "id_thực_tế_1", "reason": "Lý do ngắn gọn"},
-        {"meal_id": "id_thực_tế_2", "reason": "Lý do ngắn gọn"}
+        {"meal_id": "id_thực_tế_2", "reason": "Lý do ngắn gọn"},
+        {"meal_id": "id_thực_tế_3", "reason": "Lý do ngắn gọn"},
+        {"meal_id": "id_thực_tế_4", "reason": "Lý do ngắn gọn"},
+        {"meal_id": "id_thực_tế_5", "reason": "Lý do ngắn gọn"}
     ]
 }
 `;

@@ -56,6 +56,7 @@ const getAllUsers = async (req, res) => {
 
     res.status(200).json({
       success: true,
+      message: "Lấy danh sách người dùng thành công",
       data: usersWithAccountInfo,
       totalPages: Math.ceil(totalUsers / limit),
       currentPage: page,
