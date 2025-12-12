@@ -1089,7 +1089,7 @@ updateUserResponse: async (req, res) => {
                 dietaryPreferences: userProfile.dietaryPreferences,
                 nutritionGoals: userProfile.nutritionGoals,
                 waterReminders: userProfile.waterReminders,
-                surveyResponses: userResponse ? Array.from(userResponse.responses.entries()).map(([surveyId, data]) => ({
+                surveyResponses: userResponse ? Object.entries(userResponse.responses).map(([surveyId, data]) => ({
                     surveyId,
                     answer: data.answer,
                     answeredAt: data.answeredAt
