@@ -250,15 +250,17 @@ const analyzeDietaryNeedsWithAI = async ({ userProfile, ingredientCategories, me
         })), null, 2)}
 
         **YÊU CẦU:**
-        1. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA SÁNG
-        2. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA TRƯA
-        3. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA TỐI
-        4. Dựa trên chế độ ăn ${dietaryPreferences?.DietType_id}, mục tiêu calories ${nutritionGoals?.caloriesPerDay} kcal
-        5. Tránh danh mục có nguyên liệu dị ứng hoặc không thích
+        1. Chỉ chọn 1 danh mục món ăn phù hợp nhất cho BỮA SÁNG (tức buổi sáng chỉ một món)
+        2. Chọn 1-4 danh mục món ăn phù hợp nhất cho BỮA TRƯA
+        3. Chọn 1-4 danh mục món ăn phù hợp nhất cho BỮA TỐI
+        4. Các món ăn cùng một bữa không nằm cùng danh mục, giả sử không thể có 2 canh trong một bữa 
+        5. Nhớ rằng mỗi bữa ăn sáng hoặc trưa hay tối không có món nào trùng nhau
+        6. Dựa trên chế độ ăn ${dietaryPreferences?.DietType_id}, mục tiêu calories ${nutritionGoals?.caloriesPerDay} kcal
+        7. Tránh danh mục có nguyên liệu dị ứng hoặc không thích
 
         **OUTPUT JSON (không thêm text khác):**
         {
-            "breakfast": ["category_id_1", "category_id_2"],
+            "breakfast": ["category_id_1"],
             "lunch": ["category_id_1", "category_id_2"],
             "dinner": ["category_id_1", "category_id_2"],
             "reasoning": "Giải thích ngắn gọn lý do chọn"
@@ -312,37 +314,53 @@ const analyzeDietaryNeedsWithAI = async ({ userProfile, ingredientCategories, me
     }
 };
 
-// AI chọn món ăn cụ thể từ danh sách món
-const selectMealsWithAI = async ({ servingTime, meals, userProfile, targetCalories }) => {
-    try {
-        const { dietaryPreferences, nutritionGoals } = userProfile;
-        
-        const prompt = `
-Bạn là chuyên gia dinh dưỡng. Chọn 2-3 món ăn phù hợp cho BỮA ${servingTime.toUpperCase()}.
+        // AI chọn món ăn cụ thể từ danh sách món
+        const selectMealsWithAI = async ({ servingTime, meals, userProfile, targetCalories }) => {
+            try {
+                const { dietaryPreferences, nutritionGoals } = userProfile;
+                
+                // Xác định số lượng món ăn dựa trên bữa
+                const numMeals = servingTime.toLowerCase() === 'breakfast' ? 1 : 2;
+                const mealRange = servingTime.toLowerCase() === 'breakfast' ? '1 món' : '2-3 món';
+                
+                // Yêu cầu đặc biệt cho bữa trưa/tối
+                const mealRequirements = servingTime.toLowerCase() === 'breakfast' 
+                    ? 'Chọn 1 món đủ dinh dưỡng, có thể là món chính hoặc món ăn sáng nhẹ'
+                    : `
+**YÊU CẦU BỔ SUNG CHO BỮA ${servingTime.toUpperCase()}:**
+- Trong 2-3 món, BẮT BUỘC phải có ít nhất 1 MÓN CHÍNH (món có thịt/cá/tôm)
+- Món chính nên là: món kho (thịt kho, cá kho), món chiên (gà chiên, cá chiên), món xào có thịt
+- Các món còn lại có thể là: canh, rau xào, món phụ
+- TUYỆT ĐỐI KHÔNG chọn toàn món canh hoặc toàn món rau
+- Ưu tiên cân bằng: 1 món chính + 1 món canh/rau`;
+                
+                const prompt = `
+        Bạn là chuyên gia dinh dưỡng. Chọn ${mealRange} phù hợp cho BỮA ${servingTime.toUpperCase()}.
 
-**YÊU CẦU:**
-- Calories mục tiêu cho bữa này: ~${Math.round(targetCalories / 3)} kcal
-- Chế độ ăn: ${dietaryPreferences?.DietType_id}
-- Protein: ${nutritionGoals?.proteinPercentage}%
-- Carbs: ${nutritionGoals?.carbPercentage}%
-- Fat: ${nutritionGoals?.fatPercentage}%
+        **YÊU CẦU CƠ BẢN:**
+        - Calories mục tiêu cho bữa này: ~${Math.round(targetCalories / 3)} kcal
+        - Chế độ ăn: ${dietaryPreferences?.DietType_id}
+        - Protein: ${nutritionGoals?.proteinPercentage}%
+        - Carbs: ${nutritionGoals?.carbPercentage}%
+        - Fat: ${nutritionGoals?.fatPercentage}%
+        ${mealRequirements}
 
-**DANH SÁCH MÓN ĂN:**
-${JSON.stringify(meals.slice(0, 50).map(meal => ({
-    _id: meal._id,
-    name: meal.nameMeal,
-    description: meal.description,
-    popularity: meal.popularity
-})), null, 2)}
+        **DANH SÁCH MÓN ĂN:**
+        ${JSON.stringify(meals.slice(0, 50).map(meal => ({
+            _id: meal._id,
+            name: meal.nameMeal,
+            description: meal.description,
+            popularity: meal.popularity
+        })), null, 2)}
 
-**OUTPUT JSON (chỉ trả về meal_id):**
-{
-    "selectedMeals": [
-        {"meal_id": "id_thực_tế"},
-        {"meal_id": "id_thực_tế"}
-    ]
-}
-`;
+        **OUTPUT JSON (chỉ trả về meal_id):**
+        {
+            "selectedMeals": [
+                {"meal_id": "id_thực_tế"}${servingTime.toLowerCase() !== 'breakfast' ? `,
+                {"meal_id": "id_thực_tế"}` : ''}
+            ]
+        }
+        `;
 
         // Gọi Gemini API
         const text = await callGeminiAPI(prompt);
@@ -356,9 +374,10 @@ ${JSON.stringify(meals.slice(0, 50).map(meal => ({
         
     } catch (error) {
         console.error(`Error selecting meals for ${servingTime}:`, error);
-        // Fallback: chọn random 2 món
+        // Fallback: chọn random dựa trên bữa ăn
+        const numMeals = servingTime.toLowerCase() === 'breakfast' ? 1 : 2;
         const shuffled = meals.sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, 2).map(m => ({ meal_id: m._id }));
+        return shuffled.slice(0, numMeals).map(m => ({ meal_id: m._id }));
     }
 };
 

@@ -608,4 +608,194 @@ const getMealsByCategory = async (req, res) => {
     }
 };
 
-module.exports = { addMeal, updateMeal, deleteMeal, findByIdMeal, getListMeals, getTotalMeals, getMealsByCategory };
+// Lấy danh sách món ăn RANDOM (cho trang đề xuất/khám phá)
+const getRandomMeals = async (req, res) => {
+    try {
+        let { page = 1, limit = 10 } = req.query;
+        page = parseInt(page);
+        limit = parseInt(limit);
+        
+        // Đếm tổng số món ăn
+        const total = await MealModel.countDocuments();
+        
+        // Sử dụng MongoDB aggregation để random
+        const meals = await MealModel.aggregate([
+            { $sample: { size: limit } }, // Random lấy 'limit' documents
+            {
+                $lookup: {
+                    from: 'mealcategories', // Tên collection category
+                    localField: 'mealCategory',
+                    foreignField: '_id',
+                    as: 'categoryDetail'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$categoryDetail',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'diettypes', // Tên collection diet type
+                    localField: 'dietaryCompatibility',
+                    foreignField: '_id',
+                    as: 'dietDetails'
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    nameMeal: 1,
+                    description: 1,
+                    mealImage: 1,
+                    mealCategory: 1,
+                    'categoryDetail.title': 1,
+                    'categoryDetail.keyword': 1,
+                    portionSize: 1,
+                    dietaryCompatibility: 1,
+                    dietDetails: {
+                        _id: 1,
+                        title: 1,
+                        keyword: 1
+                    },
+                    ingredients: 1,
+                    recipe: 1,
+                    popularity: 1,
+                    isActive: 1,
+                    createdAt: 1,
+                    updatedAt: 1
+                }
+            }
+        ]);
+
+        return res.status(200).json({
+            stype: "meal",
+            message: "Lấy danh sách món ăn random thành công!",
+            status: true,
+            data: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                meals,
+                note: "Mỗi lần gọi API sẽ trả về món ăn khác nhau (random)"
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            stype: "meal",
+            message: "Lấy danh sách món ăn random thất bại!",
+            status: false,
+            error: error.message
+        });
+    }
+};
+
+// Lấy danh sách món ăn random theo category
+const getRandomMealsByCategory = async (req, res) => {
+    try {
+        const { meal_category_id } = req.params;
+        let { limit = 10 } = req.query;
+        limit = parseInt(limit);
+
+        // Kiểm tra category tồn tại
+        const categoryExists = await MealCategoryModel.findById(meal_category_id);
+        if (!categoryExists) {
+            return res.status(404).json({
+                stype: "meal",
+                message: "Danh mục món ăn không tồn tại",
+                status: false
+            });
+        }
+
+        const totalInCategory = await MealModel.countDocuments({ 
+            mealCategory: meal_category_id 
+        });
+
+        if (totalInCategory === 0) {
+            return res.status(404).json({
+                stype: "meal",
+                message: "Không tìm thấy món ăn nào trong danh mục này",
+                status: false
+            });
+        }
+
+        // Random món ăn trong category
+        const meals = await MealModel.aggregate([
+            { $match: { mealCategory: mongoose.Types.ObjectId(meal_category_id) } },
+            { $sample: { size: Math.min(limit, totalInCategory) } },
+            {
+                $lookup: {
+                    from: 'mealcategories',
+                    localField: 'mealCategory',
+                    foreignField: '_id',
+                    as: 'categoryDetail'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$categoryDetail',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: 'diettypes',
+                    localField: 'dietaryCompatibility',
+                    foreignField: '_id',
+                    as: 'dietDetails'
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    nameMeal: 1,
+                    description: 1,
+                    mealImage: 1,
+                    categoryDetail: 1,
+                    portionSize: 1,
+                    dietDetails: 1,
+                    ingredients: 1,
+                    recipe: 1,
+                    popularity: 1,
+                    isActive: 1,
+                    createdAt: 1,
+                    updatedAt: 1
+                }
+            }
+        ]);
+
+        return res.status(200).json({
+            stype: "meal",
+            message: "Lấy món ăn random theo danh mục thành công!",
+            status: true,
+            data: {
+                category: categoryExists,
+                total: totalInCategory,
+                limit,
+                meals,
+                note: "Mỗi lần gọi API sẽ trả về món ăn khác nhau (random)"
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            stype: "meal",
+            message: "Lấy món ăn random theo danh mục thất bại!",
+            status: false,
+            error: error.message
+        });
+    }
+};
+
+module.exports = { 
+    addMeal, 
+    updateMeal, 
+    deleteMeal, 
+    findByIdMeal, 
+    getListMeals, 
+    getTotalMeals, 
+    getMealsByCategory,
+    getRandomMeals, // ✅ Export API mới
+    getRandomMealsByCategory // ✅ Export API mới
+};

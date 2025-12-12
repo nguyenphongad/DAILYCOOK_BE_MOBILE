@@ -16,7 +16,8 @@ const {
     deleteMeal,
     getTotalMeals,
     getMealsByCategory,
-    findByIdMeal
+    findByIdMeal,
+    getRandomMeals // ✅ Thêm import
 } = require('../controllers/MealController');
 
 const { 
@@ -82,6 +83,13 @@ router.get(
     "/total",
     MealMiddleware,
     getTotalMeals
+);
+
+// ✅ Thêm route lấy món ăn random (đặt trước route động)
+router.get(
+    '/random',
+    MealMiddleware,
+    getRandomMeals
 );
 
 // Lấy món ăn theo danh mục với phân trang

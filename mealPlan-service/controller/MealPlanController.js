@@ -923,7 +923,6 @@ const toggleMealEatenStatus = async (req, res) => {
     try {
         const { date, servingTime, mealId, action } = req.body;
         const userId = req.user_id;
-        const redis = req.app.locals.redis;
 
         if (!date || !servingTime || !mealId || !action) {
             return res.status(400).json({
@@ -941,12 +940,17 @@ const toggleMealEatenStatus = async (req, res) => {
             });
         }
 
-        const normalizedDate = new Date(date).toISOString().split('T')[0];
+        // FIX: Parse date đúng cách (YYYY-MM-DD)
+        const [year, month, day] = date.split('-').map(Number);
+        const normalizedDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+
+        console.log('📅 Date received:', date);
+        console.log('📅 Date normalized (UTC):', normalizedDate.toISOString());
 
         // ============= LẤY MEAL PLAN TỪ DATABASE =============
         let dbMealPlan = await MealPlan.findOne({
             user_id: userId,
-            date: new Date(normalizedDate)
+            date: normalizedDate
         });
 
         if (!dbMealPlan) {
@@ -979,6 +983,13 @@ const toggleMealEatenStatus = async (req, res) => {
         }
 
         // ============= UPDATE HOẶC CREATE HISTORY EVENT =============
+        // FIX: Lưu timestamp với ngày người dùng chọn (date received), không phải ngày hiện tại
+        const historyTimestamp = new Date(Date.UTC(year, month - 1, day, 
+            new Date().getUTCHours(), 
+            new Date().getUTCMinutes(), 
+            new Date().getUTCSeconds()
+        ));
+
         const historyEvent = await MealPlanHistory.findOneAndUpdate(
             {
                 user_id: userId,
@@ -990,15 +1001,17 @@ const toggleMealEatenStatus = async (req, res) => {
                     servingTime: servingTime,
                     lastAction: action,
                     portionSize: meal.portionSize,
-                    timestamp: new Date()
+                    timestamp: historyTimestamp // Sử dụng timestamp với ngày đúng
                 }
             },
             {
-                upsert: true, // Tạo mới nếu chưa có
-                new: true, // Trả về document sau khi update
+                upsert: true,
+                new: true,
                 setDefaultsOnInsert: true
             }
         );
+
+        console.log('✅ History saved with timestamp:', historyTimestamp.toISOString());
 
         // ============= CẬP NHẬT TRẠNG THÁI TRONG DB =============
         const mealInDb = dbMealPlan.mealPlan
@@ -1008,27 +1021,6 @@ const toggleMealEatenStatus = async (req, res) => {
         if (mealInDb) {
             mealInDb.isEaten = action === 'EAT';
             await dbMealPlan.save();
-        }
-
-        // ============= ĐỒNG BỘ VÀO REDIS (OPTIONAL) =============
-        try {
-            const token = req.headers.authorization?.replace('Bearer ', '');
-            const allMeals = await fetchAllMeals(token);
-            
-            const enrichedMealPlan = { ...mealPlanData };
-            for (const section of enrichedMealPlan.mealPlan) {
-                for (const mealItem of section.meals) {
-                    const mealData = allMeals.data?.meals?.find(m => m._id === mealItem.meal_id.toString());
-                    if (mealData) {
-                        const detailedMeals = await getMultipleMealsWithDetails([mealData], token);
-                        mealItem.mealDetail = detailedMeals[0] || null;
-                    }
-                }
-            }
-
-            await saveMealPlanToRedis(redis, userId, normalizedDate, enrichedMealPlan);
-        } catch (error) {
-            console.warn('⚠️  Không thể sync vào Redis:', error.message);
         }
 
         res.json({
