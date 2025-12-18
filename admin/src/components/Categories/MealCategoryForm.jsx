@@ -24,6 +24,7 @@ const MealCategoryForm = ({
                 ...values,
                 keyword: values.keyword.trim(),
                 title: values.title.trim(),
+                title_en: values.title_en.trim(),
                 description: values.description?.trim() || "",
             };
             onFinish(categoryData);
@@ -80,6 +81,15 @@ const MealCategoryForm = ({
                             rules={[{ required: true, message: 'Vui lòng nhập tên danh mục' }]}
                         >
                             <Input placeholder="Ví dụ: Bữa chính, bữa phụ..." />
+                        </Form.Item>
+
+                        {/* Title English */}
+                        <Form.Item
+                            name="title_en"
+                            label="Tên danh mục (English)"
+                            rules={[{ required: true, message: 'Vui lòng nhập tên danh mục tiếng Anh' }]}
+                        >
+                            <Input placeholder="Example: Main Dish, Side Dish..." />
                         </Form.Item>
 
                         {/* Description */}

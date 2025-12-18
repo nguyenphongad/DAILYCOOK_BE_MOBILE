@@ -1,6 +1,6 @@
-const DietTypeModel = require("../model/DietTypeModel");
-const MealCategoryModel = require("../model/MealCategoryModel");
-const MealModel = require("../model/MealModel");
+const DietTypeModel = require("../models/DietTypeModel");
+const MealCategoryModel = require("../models/MealCategoryModel");
+const MealModel = require("../models/MealModel");
 const { getIngredientById } = require("../services/IngredientService");
 // const { getIngredientById } = require("./services/ingredientService");
 const { addRecipe, updateRecipe } = require("../services/RecipeService");
@@ -10,15 +10,25 @@ const addMeal = async (req, res) => {
     try {
         // Lấy dữ liệu từ body request
         const {
+            code,
             nameMeal,
+            name_en,
             description,
-            mealCategory,
-            mealImage,
-            portionSize,
-            dietaryCompatibility,
+            image,
+            total_energy,
+            category_id,
+            category_name,
+            category_name_en,
+            category_description,
+            food_area_id,
+            popularity, // ✅ Thêm popularity
+            nutritional_components,
             ingredients,
-            recipe,
-            popularity,
+            dish_components,
+            prepTimeMinutes,
+            cookTimeMinutes,
+            difficulty,
+            steps,
             isActive
         } = req.body;
 
@@ -33,160 +43,114 @@ const addMeal = async (req, res) => {
             });
         }
 
-        // Kiểm tra chi tiết các trường bắt buộc và trả về thông báo cụ thể
+        // Kiểm tra chi tiết các trường bắt buộc
         const missingFields = [];
 
         if (!nameMeal) missingFields.push("nameMeal");
-        if (!mealCategory) missingFields.push("mealCategory");
+        if (!category_id) missingFields.push("category_id");
 
-        // Kiểm tra nguyên liệu
-        if (!ingredients) {
-            missingFields.push("ingredients");
-        } else if (!Array.isArray(ingredients)) {
-            return res.status(400).json({
-                stype: "meal",
-                message: "Trường 'ingredients' phải là một mảng",
-                status: false
-            });
-        } else if (ingredients.length === 0) {
-            return res.status(400).json({
-                stype: "meal",
-                message: "Danh sách nguyên liệu không thể để trống",
-                status: false
-            });
-        }
-
-        // Kiểm tra công thức
-        if (!recipe) {
-            missingFields.push("recipe");
-        } else {
-            if (!recipe.steps || !Array.isArray(recipe.steps) || recipe.steps.length === 0) {
+        // Kiểm tra nguyên liệu (ingredients hoặc dish_components)
+        if (!ingredients && !dish_components) {
+            missingFields.push("ingredients hoặc dish_components");
+        } else if (ingredients) {
+            if (!Array.isArray(ingredients)) {
                 return res.status(400).json({
                     stype: "meal",
-                    message: "Công thức phải chứa ít nhất một bước (recipe.steps)",
+                    message: "Trường 'ingredients' phải là một mảng",
                     status: false
                 });
             }
+            // Kiểm tra ingredients từ Ingredient Service
+            for (const ingredient of ingredients) {
+                if (!ingredient.ingredient_id || !ingredient.quantity || !ingredient.unit) {
+                    return res.status(400).json({
+                        stype: "meal",
+                        message: "Mỗi ingredient cần có ingredient_id, quantity và unit",
+                        status: false
+                    });
+                }
+                // Kiểm tra ingredient tồn tại
+                try {
+                    const ingredientExists = await getIngredientById(ingredient.ingredient_id, token);
+                    if (!ingredientExists) {
+                        return res.status(400).json({
+                            stype: "meal",
+                            message: `Nguyên liệu ${ingredient.ingredient_id} không tồn tại`,
+                            status: false
+                        });
+                    }
+                } catch (error) {
+                    return res.status(400).json({
+                        stype: "meal",
+                        message: "Lỗi khi kiểm tra nguyên liệu",
+                        status: false,
+                        error: error.message
+                    });
+                }
+            }
+        }
 
-            // Kiểm tra các bước trong công thức
-            for (let i = 0; i < recipe.steps.length; i++) {
-                const step = recipe.steps[i];
+        // Kiểm tra các bước nấu (nếu có)
+        if (steps && Array.isArray(steps)) {
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
                 if (!step.title || !step.description) {
                     return res.status(400).json({
                         stype: "meal",
-                        message: `Bước ${i + 1} trong công thức thiếu title hoặc description`,
+                        message: `Bước ${i + 1} thiếu title hoặc description`,
                         status: false
                     });
                 }
             }
         }
 
-        // Nếu có trường bắt buộc bị thiếu, trả về thông báo lỗi với danh sách các trường
+        // Nếu có trường bắt buộc bị thiếu
         if (missingFields.length > 0) {
             return res.status(400).json({
                 stype: "meal",
-                message: `Thiếu các trường bắt buộc : ${missingFields.join(', ')}`,
+                message: `Thiếu các trường bắt buộc: ${missingFields.join(', ')}`,
                 status: false
             });
         }
 
-        // Kiểm tra danh mục bữa ăn
-        const mealCategoryExists = await MealCategoryModel.findOne({
-            $or: [
-                { keyword: { $regex: new RegExp(`^${mealCategory}$`, 'i') } },
-                { title: { $regex: new RegExp(`^${mealCategory}$`, 'i') } }
-            ]
-        });
-        if (!mealCategoryExists) {
-            return res.status(400).json({
-                stype: "meal",
-                message: "Danh mục bữa ăn không tồn tại",
-                status: false
-            });
-        }
-
-        // Kiểm tra chế độ ăn uống
-        let dietTypeIds = [];
-        for (const diet of dietaryCompatibility) {
-            const dietTypeExists = await DietTypeModel.findOne({
-                $or: [
-                    { keyword: { $regex: new RegExp(`^${diet}$`, 'i') } },
-                    { title: { $regex: new RegExp(`^${diet}$`, 'i') } }
-                ]
-            });
-            if (!dietTypeExists) {
-                return res.status(400).json({
-                    stype: "meal",
-                    message: `Chế độ ăn uống '${diet}' không tồn tại`,
-                    status: false
-                });
-            }
-            dietTypeIds.push(dietTypeExists._id);
-        }
-
-        // Kiểm tra nguyên liệu
-        for (const ingredient of ingredients) {
-            let ingredientExists = null;
-            try {
-                ingredientExists = await getIngredientById(ingredient.ingredient_id, token);
-                if (!ingredientExists) {
-                    return res.status(400).json({
-                        stype: "meal",
-                        message: "Nguyên liệu không tồn tại",
-                        status: false,
-                        error: error.message
-                    });
-                }
-            } catch (error) {
-                return res.status(400).json({
-                    stype: "meal",
-                    message: "Lỗi khi kiểm tra nguyên liệu",
-                    status: false,
-                    error: error.message
-                });
-            }
-        }
-
-        const recipeCreated = await addRecipe(recipe, token);
-
-        // Lấy cookingEffect từ request body
-        const { cookingEffect } = recipe;
-
-        // Kiểm tra popularity
+        // Validate popularity nếu có
         if (popularity !== undefined) {
-            if (!Number.isInteger(popularity) || popularity < 1 || popularity > 5) {
+            if (popularity < 1 || popularity > 5) {
                 return res.status(400).json({
                     stype: "meal",
-                    message: "Độ phổ biến phải là số nguyên từ 1 đến 5",
+                    message: "Popularity phải từ 1 đến 5",
                     status: false
                 });
             }
         }
 
         const newMeal = new MealModel({
+            code,
             nameMeal,
+            name_en,
             description,
-            mealCategory: mealCategoryExists._id,
-            mealImage,
-            portionSize,
-            dietaryCompatibility: dietTypeIds,
-            ingredients: ingredients.map(item => ({
-                ingredient_id: item.ingredient_id,
-                quantity: item.quantity || 0,
-                unit: item.unit || ""
-            })),
-            recipe: {
-                recipe_id: recipeCreated?.data?._id || null,
-                cookingEffect: cookingEffect || {}
-            },
-            popularity: popularity || 1,
-            isActive
+            image,
+            total_energy,
+            category_id,
+            category_name,
+            category_name_en,
+            category_description,
+            food_area_id,
+            popularity: popularity || 1, // ✅ Mặc định là 1 nếu không có
+            nutritional_components,
+            ingredients: ingredients || [],
+            dish_components: dish_components || [],
+            prepTimeMinutes,
+            cookTimeMinutes,
+            difficulty,
+            steps: steps || [],
+            isActive: isActive !== undefined ? isActive : true
         });
 
         const result = await newMeal.save();
         return res.status(201).json({
             stype: "meal",
-            message: "Thêm bữa ăn thành công!",
+            message: "Thêm món ăn thành công!",
             status: true,
             data: result
         });
@@ -206,15 +170,25 @@ const updateMeal = async (req, res) => {
     try {
         const { meal_id } = req.params;
         const {
+            code,
             nameMeal,
+            name_en,
             description,
-            mealCategory,
-            mealImage,
-            portionSize,
-            dietaryCompatibility,
-            ingredients,
-            recipe,
+            image,
+            total_energy,
+            category_id,
+            category_name,
+            category_name_en,
+            category_description,
+            food_area_id,
             popularity,
+            nutritional_components,
+            ingredients,
+            dish_components,
+            prepTimeMinutes,
+            cookTimeMinutes,
+            difficulty,
+            steps,
             isActive
         } = req.body;
 
@@ -224,7 +198,7 @@ const updateMeal = async (req, res) => {
         if (!token) {
             return res.status(401).json({
                 stype: "meal",
-                message: "Unauthorized : No token provided",
+                message: "Unauthorized: No token provided",
                 status: false
             });
         }
@@ -238,91 +212,50 @@ const updateMeal = async (req, res) => {
             });
         }
 
-        // Kiểm tra mealCategory
-        if (mealCategory) {
-            const mealCategoryExists = await MealCategoryModel.findOne({
-                $or: [
-                    { keyword: { $regex: new RegExp(`^${mealCategory}$`, 'i') } },
-                    { title: { $regex: new RegExp(`^${mealCategory}$`, 'i') } }
-                ]
-            });
-            if (!mealCategoryExists) {
-                return res.status(400).json({
-                    stype: "meal",
-                    message: "Danh mục bữa ăn không tồn tại",
-                    status: false
-                });
-            }
-            meal.mealCategory = mealCategoryExists._id;
-        }
-
-        // Kiểm tra popularity nếu có trong request
-        if (popularity !== undefined) {
-            if (!Number.isInteger(popularity) || popularity < 1 || popularity > 5) {
-                return res.status(400).json({
-                    stype: "meal",
-                    message: "Độ phổ biến phải là số nguyên từ 1 đến 5",
-                    status: false
-                });
-            }
-        }
-
-        // Gom field cần update
+        // ============= KHAI BÁO updateFields TRƯỚC KHI SỬ DỤNG =============
         const updateFields = {};
-        if (nameMeal) updateFields.nameMeal = nameMeal;
-        if (description) updateFields.description = description;
-        if (mealImage) updateFields.mealImage = mealImage;
-        if (portionSize) updateFields.portionSize = portionSize;
-        if (Array.isArray(dietaryCompatibility)) updateFields.dietaryCompatibility = dietaryCompatibility;
 
+        // Validate popularity nếu có
+        if (popularity !== undefined) {
+            if (popularity < 1 || popularity > 5) {
+                return res.status(400).json({
+                    stype: "meal",
+                    message: "Popularity phải từ 1 đến 5",
+                    status: false
+                });
+            }
+            updateFields.popularity = popularity;
+        }
+
+        // Gom các field cần update
+        if (code !== undefined) updateFields.code = code;
+        if (nameMeal) updateFields.nameMeal = nameMeal;
+        if (name_en !== undefined) updateFields.name_en = name_en;
+        if (description !== undefined) updateFields.description = description;
+        if (image !== undefined) updateFields.image = image;
+        if (total_energy !== undefined) updateFields.total_energy = total_energy;
+        if (category_id) updateFields.category_id = category_id;
+        if (category_name !== undefined) updateFields.category_name = category_name;
+        if (category_name_en !== undefined) updateFields.category_name_en = category_name_en;
+        if (category_description !== undefined) updateFields.category_description = category_description;
+        if (food_area_id !== undefined) updateFields.food_area_id = food_area_id;
+        if (Array.isArray(nutritional_components)) updateFields.nutritional_components = nutritional_components;
+        
         // Xử lý ingredients
         if (Array.isArray(ingredients)) {
             updateFields.ingredients = ingredients.map(item => ({
                 ingredient_id: item.ingredient_id,
-                quantity: item.quantity || 0,
-                unit: item.unit || ""
+                quantity: item.quantity,
+                unit: item.unit
             }));
         }
-
-        if (typeof popularity === 'number') updateFields.popularity = popularity;
+        
+        if (Array.isArray(dish_components)) updateFields.dish_components = dish_components;
+        if (prepTimeMinutes !== undefined) updateFields.prepTimeMinutes = prepTimeMinutes;
+        if (cookTimeMinutes !== undefined) updateFields.cookTimeMinutes = cookTimeMinutes;
+        if (difficulty !== undefined) updateFields.difficulty = difficulty;
+        if (Array.isArray(steps)) updateFields.steps = steps;
         if (typeof isActive === 'boolean') updateFields.isActive = isActive;
-
-        // Cập nhật recipe nếu có thay đổi - CHỈ UPDATE NẾU THÀNH CÔNG
-        let recipeUpdateSuccess = false;
-        if (recipe && meal.recipe && meal.recipe.recipe_id) {
-            try {
-                console.log("=== UPDATE RECIPE ATTEMPT ===");
-                console.log("Recipe ID:", meal.recipe.recipe_id);
-                console.log("Recipe Data:", JSON.stringify(recipe, null, 2));
-                
-                const result = await updateRecipe(meal.recipe.recipe_id.toString(), recipe, token);
-
-                console.log("=== UPDATE RECIPE SUCCESS ===");
-                console.log("Result:", result);
-
-                // Chỉ cập nhật recipe field nếu update thành công
-                if (result && result.status === 'success') {
-                    updateFields.recipe = {
-                        recipe_id: meal.recipe.recipe_id,
-                        cookingEffect: recipe.cookingEffect || meal.recipe.cookingEffect
-                    };
-                    recipeUpdateSuccess = true;
-                }
-            } catch (recipeError) {
-                console.log("=== UPDATE RECIPE FAILED ===");
-                console.log("Error message:", recipeError.message);
-                console.log("Error details:", recipeError.response?.data);
-                
-                // KHÔNG cập nhật meal nếu recipe update fail
-                return res.status(500).json({
-                    stype: "meal",
-                    message: "Không thể cập nhật công thức. Vui lòng kiểm tra Recipe Service.",
-                    status: false,
-                    error: recipeError.message,
-                    details: recipeError.response?.data || "Recipe service không phản hồi"
-                });
-            }
-        }
 
         // Kiểm tra xem có trường nào được cập nhật không
         if (Object.keys(updateFields).length === 0) {
@@ -343,18 +276,12 @@ const updateMeal = async (req, res) => {
         if (updatedMeal) {
             return res.status(200).json({
                 stype: "meal",
-                message: recipeUpdateSuccess 
-                    ? "Cập nhật bữa ăn và công thức thành công!" 
-                    : "Cập nhật bữa ăn thành công!",
+                message: "Cập nhật món ăn thành công!",
                 status: true,
                 data: updatedMeal
             });
         }
     } catch (error) {
-        console.log("=== UPDATE MEAL FAILED ===");
-        console.log("Error message:", error.message);
-        console.log("Error stack:", error.stack);
-
         return res.status(500).json({
             stype: "meal",
             message: "Lỗi server, vui lòng thử lại sau!",
@@ -401,9 +328,7 @@ const findByIdMeal = async (req, res) => {
         const tokenHeader = req.headers.authorization || "";
         const token = tokenHeader.startsWith("Bearer ") ? tokenHeader.split(" ")[1] : tokenHeader;
 
-        const meal = await MealModel.findById(meal_id)
-            .populate('mealCategory', 'keyword title description')
-            .populate('dietaryCompatibility', 'keyword title description');
+        const meal = await MealModel.findById(meal_id);
 
         if (!meal) {
             return res.status(404).json({
@@ -434,17 +359,15 @@ const findByIdMeal = async (req, res) => {
                             detail: {
                                 _id: ingredientDetail.data._id,
                                 nameIngredient: ingredientDetail.data.nameIngredient,
+                                name_en: ingredientDetail.data.name_en,
                                 description: ingredientDetail.data.description,
                                 ingredientImage: ingredientDetail.data.ingredientImage,
                                 ingredientCategory: ingredientDetail.data.ingredientCategory,
-                                nutrition: ingredientDetail.data.nutrition,
-                                allergenInfo: ingredientDetail.data.allergenInfo,
-                                storageInstructions: ingredientDetail.data.storageInstructions,
-                                shelfLife: ingredientDetail.data.shelfLife
+                                energy: ingredientDetail.data.energy,
+                                nutrition: ingredientDetail.data.nutrition
                             }
                         });
                     } else {
-                        // Nếu không lấy được detail, giữ nguyên info cơ bản
                         ingredientsWithDetails.push({
                             ingredient_id: ingredient.ingredient_id,
                             quantity: ingredient.quantity,
@@ -454,7 +377,6 @@ const findByIdMeal = async (req, res) => {
                     }
                 } catch (error) {
                     console.error(`Error fetching ingredient ${ingredient.ingredient_id}:`, error.message);
-                    // Nếu có lỗi, vẫn giữ info cơ bản
                     ingredientsWithDetails.push({
                         ingredient_id: ingredient.ingredient_id,
                         quantity: ingredient.quantity,

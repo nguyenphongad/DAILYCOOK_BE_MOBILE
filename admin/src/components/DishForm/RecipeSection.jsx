@@ -217,285 +217,151 @@ const RecipeSection = ({
         </Select>
       </div>
 
-      {/* Thông tin dinh dưỡng */}
+      {/* Các bước thực hiện */}
       <div style={{ marginBottom: 16 }}>
-        <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
-          Tỉ lệ dinh dưỡng sau chế biến (%)
+        <label style={{ display: 'block', marginBottom: 8, fontWeight: 600, fontSize: '14px' }}>
+          Các bước thực hiện
         </label>
-        <Row gutter={12}>
-          <Col span={12}>
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>
-                Calories (%)
-                {renderNutritionIcon(formData.recipe.nutrition.calories)}
-              </label>
-              <InputNumber
-                min={0}
-                max={999}
-                value={formData.recipe.nutrition.calories}
-                onChange={(value) => updateRecipeData('nutrition', {
-                  ...formData.recipe.nutrition,
-                  calories: value || 100
-                })}
-                style={{ 
-                  width: '100%',
-                  borderColor: formData.recipe.nutrition.calories > 100 ? '#52c41a' : 
-                             formData.recipe.nutrition.calories < 100 ? '#ff4d4f' : '#d9d9d9'
-                }}
-                placeholder="100"
-              />
-            </div>
-          </Col>
-          <Col span={12}>
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>
-                Protein (%)
-                {renderNutritionIcon(formData.recipe.nutrition.protein)}
-              </label>
-              <InputNumber
-                min={0}
-                max={999}
-                value={formData.recipe.nutrition.protein}
-                onChange={(value) => updateRecipeData('nutrition', {
-                  ...formData.recipe.nutrition,
-                  protein: value || 100
-                })}
-                style={{ 
-                  width: '100%',
-                  borderColor: formData.recipe.nutrition.protein > 100 ? '#52c41a' : 
-                             formData.recipe.nutrition.protein < 100 ? '#ff4d4f' : '#d9d9d9'
-                }}
-                placeholder="100"
-              />
-            </div>
-          </Col>
-        </Row>
-        <Row gutter={12}>
-          <Col span={12}>
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>
-                Carbs (%)
-                {renderNutritionIcon(formData.recipe.nutrition.carbs)}
-              </label>
-              <InputNumber
-                min={0}
-                max={999}
-                value={formData.recipe.nutrition.carbs}
-                onChange={(value) => updateRecipeData('nutrition', {
-                  ...formData.recipe.nutrition,
-                  carbs: value || 100
-                })}
-                style={{ 
-                  width: '100%',
-                  borderColor: formData.recipe.nutrition.carbs > 100 ? '#52c41a' : 
-                             formData.recipe.nutrition.carbs < 100 ? '#ff4d4f' : '#d9d9d9'
-                }}
-                placeholder="100"
-              />
-            </div>
-          </Col>
-          <Col span={12}>
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>
-                Fat (%)
-                {renderNutritionIcon(formData.recipe.nutrition.fat)}
-              </label>
-              <InputNumber
-                min={0}
-                max={999}
-                value={formData.recipe.nutrition.fat}
-                onChange={(value) => updateRecipeData('nutrition', {
-                  ...formData.recipe.nutrition,
-                  fat: value || 100
-                })}
-                style={{ 
-                  width: '100%',
-                  borderColor: formData.recipe.nutrition.fat > 100 ? '#52c41a' : 
-                             formData.recipe.nutrition.fat < 100 ? '#ff4d4f' : '#d9d9d9'
-                }}
-                placeholder="100"
-              />
-            </div>
-          </Col>
-        </Row>
-      </div>
-
-      <Divider>Các bước thực hiện</Divider>
-
-      <div style={{ marginBottom: 16 }}>
-        <Button
-          type="dashed"
-          icon={<PlusOutlined />}
-          onClick={handleAddStep}
-          block
-        >
-          Thêm bước mới
-        </Button>
-      </div>
-
-      {recipeSteps.map((step, index) => (
-        <Card
-          key={index}
-          size="small"
-          title={`Bước ${step.stepNumber}`}
-          extra={
-            <Button
-              danger
+        
+        <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+          {recipeSteps.map((step, index) => (
+            <Card
+              key={index}
               size="small"
-              icon={<DeleteOutlined />}
-              onClick={() => handleRemoveStep(index)}
-            />
-          }
-          style={{ marginBottom: 12 }}
-        >
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: 'block', marginBottom: 4 }}>Tiêu đề bước</label>
-            <Input
-              placeholder="Tiêu đề bước"
-              value={step.title}
-              onChange={(e) => handleStepChange(index, 'title', e.target.value)}
-            />
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: 'block', marginBottom: 4 }}>Mô tả</label>
-            <TextArea
-              rows={3}
-              placeholder="Mô tả chi tiết bước thực hiện"
-              value={step.description}
-              onChange={(e) => handleStepChange(index, 'description', e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', marginBottom: 4 }}>Hình ảnh minh họa</label>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              {/* Khu vực dán ảnh */}
-              <div style={{ 
-                flex: 1,
-                border: "2px dashed #d9d9d9", 
-                borderRadius: 6, 
-                padding: 8,
-                textAlign: "center",
-                backgroundColor: pastedStepImages[index] ? "#f6ffed" : "#fafafa",
-                borderColor: pastedStepImages[index] ? "#52c41a" : "#d9d9d9"
-              }}>
-                <div style={{ marginBottom: 4, color: "#666", fontSize: 10 }}>
-                  📋 Dán (Ctrl+V)
-                </div>
-                <input
-                  type="text"
-                  placeholder="Click và Ctrl+V"
-                  style={{
-                    width: "100%",
-                    padding: "4px 6px",
-                    border: "1px solid #d9d9d9",
-                    borderRadius: 3,
-                    outline: "none",
-                    fontSize: 10
-                  }}
-                  onPaste={(e) => handleStepImagePaste(e, index)}
-                  readOnly
+              style={{ marginBottom: 12 }}
+              title={
+                <span style={{ fontWeight: 500, fontSize: '13px' }}>
+                  Bước {step.stepNumber}
+                </span>
+              }
+              extra={
+                <Button
+                  danger
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  onClick={() => handleRemoveStep(index)}
                 />
-                {pastedStepImages[index] && (
-                  <div style={{ marginTop: 4 }}>
-                    <span style={{ color: "#52c41a", fontSize: 9 }}>
-                      ✅ Đã dán! 
-                    </span>
-                    <Button 
-                      type="link" 
-                      size="small" 
-                      onClick={() => clearPastedStepImage(index)}
-                      style={{ padding: 0, marginLeft: 2, fontSize: 9 }}
-                    >
-                      Xóa
-                    </Button>
+              }
+            >
+              {/* Tiêu đề bước */}
+              <div style={{ marginBottom: 8 }}>
+                <Input
+                  placeholder="Tiêu đề bước"
+                  value={step.title}
+                  onChange={(e) => handleStepChange(index, 'title', e.target.value)}
+                  size="small"
+                />
+              </div>
+
+              {/* Mô tả bước */}
+              <div style={{ marginBottom: 8 }}>
+                <TextArea
+                  rows={2}
+                  placeholder="Mô tả chi tiết"
+                  value={step.description}
+                  onChange={(e) => handleStepChange(index, 'description', e.target.value)}
+                  size="small"
+                />
+              </div>
+
+              {/* Upload ảnh cho bước */}
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                {/* Khu vực dán ảnh */}
+                <div style={{ 
+                  flex: 1,
+                  border: '2px dashed #d9d9d9', 
+                  borderRadius: 6, 
+                  padding: 8,
+                  textAlign: 'center',
+                  backgroundColor: pastedStepImages[index] ? '#f6ffed' : '#fafafa',
+                  borderColor: pastedStepImages[index] ? '#52c41a' : '#d9d9d9'
+                }}>
+                  <div style={{ marginBottom: 6, color: '#666', fontSize: 11 }}>
+                    📋 Dán ảnh (Ctrl+V)
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Click và Ctrl+V"
+                    style={{
+                      width: '100%',
+                      padding: '4px 8px',
+                      border: '1px solid #d9d9d9',
+                      borderRadius: 4,
+                      outline: 'none',
+                      fontSize: 11
+                    }}
+                    onPaste={(e) => handleStepImagePaste(e, index)}
+                    readOnly
+                  />
+                  {pastedStepImages[index] && (
+                    <div style={{ marginTop: 4 }}>
+                      <span style={{ color: '#52c41a', fontSize: 10 }}>✅ Đã dán!</span>
+                      <Button 
+                        type="link" 
+                        size="small" 
+                        onClick={() => clearPastedStepImage(index)}
+                        style={{ padding: 0, marginLeft: 4, fontSize: 10 }}
+                      >
+                        Xóa
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ fontSize: 11, color: '#999' }}>hoặc</div>
+
+                {/* Upload từ device */}
+                <Upload
+                  listType="picture-card"
+                  fileList={stepImageFileLists[index] || []}
+                  beforeUpload={(file) => handleStepImageUpload(file, index)}
+                  onChange={({ fileList }) => handleStepImageChange({ fileList }, index)}
+                  maxCount={1}
+                  accept="image/*"
+                  disabled={pastedStepImages[index] !== undefined}
+                  style={{ width: 80, height: 80 }}
+                >
+                  {((stepImageFileLists[index] || []).length >= 1 || pastedStepImages[index]) ? null : uploadButton(uploadingStepImages[index])}
+                </Upload>
+
+                {/* Preview ảnh hiện tại */}
+                {!pastedStepImages[index] && !(stepImageFileLists[index] || []).length && step.recipeImage && (
+                  <div style={{ textAlign: 'center' }}>
+                    <img
+                      src={step.recipeImage}
+                      alt={`Step ${index + 1}`}
+                      style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6 }}
+                    />
+                    <p style={{ marginTop: 4, fontSize: 10, color: '#888' }}>Ảnh hiện tại</p>
+                  </div>
+                )}
+
+                {/* Preview ảnh đã dán */}
+                {pastedStepImages[index] && step.recipeImage && (
+                  <div style={{ textAlign: 'center' }}>
+                    <img
+                      src={step.recipeImage}
+                      alt={`Pasted ${index + 1}`}
+                      style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 6 }}
+                    />
+                    <p style={{ marginTop: 4, fontSize: 10, color: '#52c41a' }}>Ảnh đã dán</p>
                   </div>
                 )}
               </div>
+            </Card>
+          ))}
+        </div>
 
-              {/* Chữ "hoặc" */}
-              <div style={{ 
-                fontSize: 14, 
-                color: "#999", 
-                fontWeight: 500,
-                textAlign: "center",
-                minWidth: 40
-              }}>
-                hoặc
-              </div>
-
-              <div style={{ flex: 1 }}>
-                {/* Upload từ thiết bị */}
-                <Upload
-                  name={`stepImage${index}`}
-                  listType="picture-card"
-                  className="step-image-uploader"
-                  showUploadList={false}
-                  beforeUpload={(file) => handleStepImageUpload(file, index)}
-                  onChange={(info) => handleStepImageChange(info, index)}
-                  fileList={stepImageFileLists[index] || []}
-                  accept="image/*"
-                  disabled={pastedStepImages[index] !== undefined}
-                >
-                  {step.recipeImage ? (
-                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                      <Image
-                        src={step.recipeImage}
-                        alt={`step-${index}`}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        preview={false}
-                      />
-                      <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        opacity: 0,
-                        transition: 'opacity 0.3s',
-                        borderRadius: '8px'
-                      }}
-                      onMouseEnter={(e) => e.target.style.opacity = 1}
-                      onMouseLeave={(e) => e.target.style.opacity = 0}
-                      >
-                        <Button 
-                          type="primary" 
-                          danger 
-                          icon={<DeleteOutlined />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            clearStepImage(index);
-                          }}
-                          style={{ marginBottom: 2 }}
-                          size="small"
-                        >
-                          Xóa
-                        </Button>
-                        <Button 
-                          type="primary" 
-                          icon={<UploadOutlined />}
-                          onClick={(e) => e.stopPropagation()}
-                          size="small"
-                        >
-                          Đổi
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    uploadButton(uploadingStepImages[index])
-                  )}
-                </Upload>
-              </div>
-            </div>
-          </div>
-        </Card>
-      ))}
+        <Button
+          type="dashed"
+          onClick={handleAddStep}
+          block
+          icon={<PlusOutlined />}
+          style={{ marginTop: 12 }}
+        >
+          Thêm bước
+        </Button>
+      </div>
     </Card>
   );
 };

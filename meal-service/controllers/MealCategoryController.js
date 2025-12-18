@@ -1,15 +1,15 @@
 const mongoose = require("mongoose");
-const MealCategoryModel = require("../model/MealCategoryModel");
-const MealModel = require("../model/MealModel");
+const MealCategoryModel = require("../models/MealCategoryModel");
+const MealModel = require("../models/MealModel");
 
 // Thêm danh mục bữa ăn mới
 const addMealCategory = async (req, res) => {
     try {
-        const { keyword, title, description } = req.body;
-        if (!keyword || !title) {
+        const { keyword, title, title_en, description } = req.body;
+        if (!keyword || !title || !title_en) {
             return res.status(400).json({
                 stype: "meal",
-                message: "Thiếu thông tin bắt buộc (keyword, title)!",
+                message: "Thiếu thông tin bắt buộc (keyword, title, title_en)!",
                 status: false
             });
         }
@@ -25,6 +25,7 @@ const addMealCategory = async (req, res) => {
         const newMealCategory = new MealCategoryModel({
             keyword: keyword.toUpperCase(),
             title,
+            title_en,
             description
         });
         const result = await newMealCategory.save();
@@ -51,7 +52,7 @@ const addMealCategory = async (req, res) => {
 const updateMealCategory = async (req, res) => {
     try {
         const { meal_category_id } = req.params;
-        const { keyword, title, description } = req.body;
+        const { keyword, title, title_en, description } = req.body;
 
         const mealCategory = await MealCategoryModel.findById(meal_category_id);
         if (!mealCategory) {
@@ -82,6 +83,7 @@ const updateMealCategory = async (req, res) => {
         const updateFields = {};
         if (keyword) updateFields.keyword = keyword.toUpperCase();
         if (title) updateFields.title = title;
+        if (title_en) updateFields.title_en = title_en;
         if (description) updateFields.description = description;
 
         // Kiểm tra xem có trường nào được cập nhật không

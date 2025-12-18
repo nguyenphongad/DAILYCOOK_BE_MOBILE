@@ -27,6 +27,7 @@ const ENDPOINT = {
     GET_MEAL: 'meals/meal',
     GET_TOTAL_MEALS: 'meals/total',
     GET_MEALS_BY_CATEGORY: 'meals/category', // Endpoint base - sẽ thêm /:meal_category_id trong thunk
+    GET_PAGE_FOOD_DATA: 'meals/getPageFoodData', // Thêm endpoint tìm kiếm món ăn từ viendinhduong.vn
 
     // INGREDIENT CATEGORY
     ADD_INGREDIENT_CATEGORY: 'ingredients/add-ingredient-category',
@@ -45,6 +46,9 @@ const ENDPOINT = {
 
     // MEASUREMENT UNITS
     GET_LIST_MEASUREMENT_UNITS: 'ingredients/measurement-units',
+
+    // NUTRITION DATA FROM EXTERNAL API (qua proxy backend)
+    GET_NUTRITION_DATA: 'ingredients/nutrition-proxy',
 
     // RECIPE
     GET_RECIPE: 'recipes/',

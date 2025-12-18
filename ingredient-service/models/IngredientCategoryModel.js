@@ -8,10 +8,15 @@ const IngredientCategorySchema = new mongoose.Schema(
             required: true,
             unique: true
         },
-        // Tên hiển thị của danh mục
+        // Tên hiển thị của danh mục (tiếng Việt)
         title: {
             type: String,
             required: true
+        },
+        // Tên hiển thị của danh mục (tiếng Anh)
+        titleEn: {
+            type: String,
+            default: ""
         },
         // Mô tả thêm về danh mục
         description: {

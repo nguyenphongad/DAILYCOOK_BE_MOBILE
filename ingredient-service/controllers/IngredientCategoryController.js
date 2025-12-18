@@ -1,10 +1,10 @@
-const IngredientCategoryModel = require("../model/IngredientCategoryModel");
+const IngredientCategoryModel = require("../models/IngredientCategoryModel");
 const mongoose = require("mongoose");
 
 // Thêm danh mục nguyên liệu mới
 const addIngredientCategory = async (req, res) => {
     try {
-        const { keyword, title, description } = req.body;
+        const { keyword, title, titleEn, description } = req.body;
 
         // Kiểm tra thông tin bắt buộc
         if (!keyword || !title) {
@@ -26,7 +26,12 @@ const addIngredientCategory = async (req, res) => {
         }
 
         // Tạo mới danh mục nguyên liệu
-        const newIngredientCategory = new IngredientCategoryModel({ keyword, title, description });
+        const newIngredientCategory = new IngredientCategoryModel({ 
+            keyword, 
+            title, 
+            titleEn,
+            description 
+        });
         // Lưu vào database
         const result = await newIngredientCategory.save();
         if (result) {
@@ -38,6 +43,7 @@ const addIngredientCategory = async (req, res) => {
                     _id: result._id,
                     keyword: result.keyword.toUpperCase(),
                     title: result.title,
+                    titleEn: result.titleEn,
                     description: result.description,
                     createAt: result.createdAt,
                     updateAt: result.updatedAt
@@ -58,7 +64,7 @@ const addIngredientCategory = async (req, res) => {
 const updateIngredientCategory = async (req, res) => {
     try {
         const { ingredient_category_id } = req.params;
-        const { keyword, title, description } = req.body;
+        const { keyword, title, titleEn, description } = req.body;
 
         // Tìm danh mục theo id
         const ingredientCategory = await IngredientCategoryModel.findById(ingredient_category_id);
@@ -90,6 +96,7 @@ const updateIngredientCategory = async (req, res) => {
         const updateFields = {};
         if (keyword) updateFields.keyword = keyword;
         if (title) updateFields.title = title;
+        if (titleEn !== undefined) updateFields.titleEn = titleEn;
         if (description !== undefined) updateFields.description = description;
 
         // Kiểm tra xem có trường nào được cập nhật không
@@ -116,6 +123,7 @@ const updateIngredientCategory = async (req, res) => {
                 _id: updated._id,
                 keyword: updated.keyword.toUpperCase(),
                 title: updated.title,
+                titleEn: updated.titleEn,
                 description: updated.description,
                 createAt: updated.createdAt,
                 updateAt: updated.updatedAt

@@ -30,6 +30,10 @@ const {
     getTotalDietTypes
 } = require('../controllers/DietTypeController');
 
+const {
+    getMealDataVienDinhDuong
+} = require('../controllers/GetDataVienDinhDuongMeal');
+
 const router = express.Router();
 
 // Health check endpoint
@@ -183,5 +187,14 @@ router.get(
     MealMiddleware,
     findByIdDietType
 );
+
+/* ==========================   Get Data from VienDinhDuong   ========================== */
+// Lấy dữ liệu món ăn từ viendinhduong.vn
+router.get(
+    '/getPageFoodData',
+    MealMiddleware,
+    getMealDataVienDinhDuong
+);
+
 
 module.exports = router;
