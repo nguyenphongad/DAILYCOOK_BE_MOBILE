@@ -10,10 +10,16 @@ import {
     InputNumber,
     Divider,
     Card,
-    message
+    message,
+    Modal,
+    Table,
+    Space
 } from 'antd';
-import { PlusOutlined, DeleteOutlined, LoadingOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, LoadingOutlined, SearchOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { uploadImage, convertAntdUploadFileToFile } from '../../utils/cloudinaryUpload';
+import { useDispatch, useSelector } from 'react-redux';
+import { searchNutritionData } from '../../redux/thunks/nutritionThunk';
+import { clearSearchResults } from '../../redux/slices/nutritionSlice';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -27,13 +33,24 @@ const IngredientForm = ({
     allMeasureUnits = [],
     isEdit = false
 }) => {
+    const dispatch = useDispatch();
+    
+    // Redux state
+    const { searchResults: nutritionSearchResults, loading: searchingNutrition } = useSelector(
+        (state) => state.nutrition
+    );
+
     // ==================== STATE ====================
-    const [commonUses, setCommonUses] = useState(initialValues?.commonUses || []); // danh sách công dụng
-    const [newUse, setNewUse] = useState(''); // công dụng mới
-    const [submitting, setSubmitting] = useState(false); // trạng thái submit
-    const [fileList, setFileList] = useState([]); // danh sách file upload
-    const [imageUrl, setImageUrl] = useState(initialValues?.ingredientImage || ''); // URL ảnh hiện tại
-    const [pastedImage, setPastedImage] = useState(null); // ảnh được dán từ clipboard
+    const [commonUses, setCommonUses] = useState(initialValues?.commonUses || []);
+    const [newUse, setNewUse] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [fileList, setFileList] = useState([]);
+    const [imageUrl, setImageUrl] = useState(initialValues?.ingredientImage || '');
+    const [pastedImage, setPastedImage] = useState(null);
+    
+    // State cho modal tìm kiếm dinh dưỡng
+    const [nutritionModalVisible, setNutritionModalVisible] = useState(false);
+    const [nutritionSearchKeyword, setNutritionSearchKeyword] = useState('');
 
     // ==================== HÀM XỬ LÝ ====================
 
@@ -92,6 +109,63 @@ const IngredientForm = ({
         setImageUrl(initialValues?.ingredientImage || '');
     };
 
+    // Tìm kiếm thông tin dinh dưỡng từ API qua Redux
+    const handleSearchNutrition = async () => {
+        if (!nutritionSearchKeyword.trim()) {
+            message.warning('Vui lòng nhập tên thực phẩm để tìm kiếm');
+            return;
+        }
+
+        try {
+            const result = await dispatch(searchNutritionData({
+                keyword: nutritionSearchKeyword.trim(),
+                page: 1,
+                pageSize: 15
+            })).unwrap();
+            
+            if (result && result.length > 0) {
+                message.success(`Tìm thấy ${result.length} kết quả`);
+            }
+        } catch (error) {
+            // Error được handle trong thunk
+            console.error('Search error:', error);
+        }
+    };
+
+    // Chọn thực phẩm từ kết quả tìm kiếm
+    const handleSelectNutritionData = (foodData) => {
+        // Xử lý nutrition data: chuyển null/undefined thành 0
+        const processedNutrition = (foodData.nutrition || []).map(item => ({
+            name: item.name || '',
+            name_en: item.name_en || '',
+            value: item.value !== null && item.value !== undefined ? item.value : 0,
+            unit: item.unit || ''
+        }));
+
+        // Điền thông tin vào form
+        form.setFieldsValue({
+            code: foodData.code || '',
+            nameIngredient: foodData.name_vi || '',
+            name_en: foodData.name_en || '',
+            energy: foodData.energy !== null && foodData.energy !== undefined ? foodData.energy : 0,
+            nutrition: processedNutrition
+        });
+
+        // Đóng modal và clear kết quả
+        setNutritionModalVisible(false);
+        dispatch(clearSearchResults());
+        setNutritionSearchKeyword('');
+        
+        message.success('Đã tự động điền thông tin dinh dưỡng!');
+    };
+
+    // Đóng modal và clear search results
+    const handleCloseNutritionModal = () => {
+        setNutritionModalVisible(false);
+        dispatch(clearSearchResults());
+        setNutritionSearchKeyword('');
+    };
+
     // Xử lý submit form
     const handleSubmit = async (values) => {
         setSubmitting(true);
@@ -116,11 +190,14 @@ const IngredientForm = ({
             const ingredientData = {
                 ...values,
                 nameIngredient: values.nameIngredient.trim(),
+                name_en: values.name_en?.trim() || '',
+                code: values.code?.trim() || '',
                 description: values.description?.trim() || 'Không có mô tả',
                 ingredientCategory: values.ingredientCategory,
                 defaultAmount: values.defaultAmount,
                 defaultUnit: values.defaultUnit,
-                nutrition: values.nutrition || {},
+                energy: values.energy || 0,
+                nutrition: values.nutrition || [],
                 commonUses,
                 ingredientImage: values.ingredientImage || null
             };
@@ -178,32 +255,100 @@ const IngredientForm = ({
         </div>
     );
 
+    // Columns cho bảng tìm kiếm dinh dưỡng
+    const nutritionSearchColumns = [
+        {
+            title: 'Mã',
+            dataIndex: 'code',
+            key: 'code',
+            width: 100
+        },
+        {
+            title: 'Tên tiếng Việt',
+            dataIndex: 'name_vi',
+            key: 'name_vi',
+            width: 200
+        },
+        {
+            title: 'Tên tiếng Anh',
+            dataIndex: 'name_en',
+            key: 'name_en',
+            width: 200
+        },
+        {
+            title: 'Năng lượng',
+            dataIndex: 'energy',
+            key: 'energy',
+            width: 100,
+            render: (val) => `${val || 0} kcal`
+        },
+        {
+            title: 'Hành động',
+            key: 'action',
+            width: 120,
+            fixed: 'right',
+            render: (_, record) => (
+                <Button type="primary" size="small" onClick={() => handleSelectNutritionData(record)}>
+                    Chọn
+                </Button>
+            )
+        }
+    ];
+
     // ==================== RENDER ====================
     return (
         <Form
             form={form}
             layout="vertical"
             onFinish={handleSubmit}
-            initialValues={initialValues}
+            initialValues={{
+                ...initialValues,
+                nutrition: initialValues?.nutrition || []
+            }}
             className="ingredient-form"
         >
+            {/* Nút lấy thông tin dinh dưỡng */}
+            <div style={{ marginBottom: 16, textAlign: 'right' }}>
+                <Button
+                    type="dashed"
+                    icon={<SearchOutlined />}
+                    onClick={() => setNutritionModalVisible(true)}
+                >
+                    Lấy thông tin dinh dưỡng từ viendinhduong.vn
+                </Button>
+            </div>
+
             <Row gutter={24}>
                 {/* ================== CỘT TRÁI: Thông tin cơ bản ================== */}
                 <Col span={14}>
                     <Card title={<strong>Thông tin nguyên liệu</strong>} variant="bordered">
-                        {/* Tên nguyên liệu */}
-                        <Form.Item
-                            name="nameIngredient"
-                            label="Tên nguyên liệu"
-                            rules={[{ required: true, message: 'Vui lòng nhập tên nguyên liệu' }]}
-                        >
-                            <Input placeholder="Nhập tên nguyên liệu" />
+                        {/* Mã nguyên liệu */}
+                        <Form.Item name="code" label="Mã nguyên liệu">
+                            <Input placeholder="Nhập mã nguyên liệu (tùy chọn)" />
                         </Form.Item>
 
-                        {/* Danh mục */}
+                        {/* Tên nguyên liệu */}
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="nameIngredient"
+                                    label="Tên nguyên liệu (VI)"
+                                    rules={[{ required: true, message: 'Vui lòng nhập tên nguyên liệu' }]}
+                                >
+                                    <Input placeholder="Nhập tên tiếng Việt" />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item name="name_en" label="Tên nguyên liệu (EN)">
+                                    <Input placeholder="Nhập tên tiếng Anh" />
+                                </Form.Item>
+                            </Col>
+                        </Row>
+
+                        {/* Danh mục hệ thống */}
                         <Form.Item
                             name="ingredientCategory"
-                            label="Danh mục"
+                            label="Danh mục hệ thống"
                             rules={[{ required: true, message: 'Vui lòng chọn danh mục' }]}
                         >
                             <Select placeholder="Chọn danh mục nguyên liệu">
@@ -215,30 +360,35 @@ const IngredientForm = ({
                             </Select>
                         </Form.Item>
 
-                        {/* Số lượng & đơn vị */}
+                        {/* Số lượng & đơn vị & năng lượng */}
                         <Row gutter={16}>
-                            <Col span={12}>
+                            <Col span={8}>
                                 <Form.Item
                                     name="defaultAmount"
                                     label="Số lượng mặc định"
-                                    rules={[{ required: true, message: 'Vui lòng nhập số lượng mặc định' }]}
+                                    rules={[{ required: true, message: 'Vui lòng nhập số lượng' }]}
                                 >
-                                    <InputNumber style={{ width: '100%' }} min={0} placeholder="Nhập số lượng mặc định" />
+                                    <InputNumber style={{ width: '100%' }} min={0} placeholder="100" value={100}/>
                                 </Form.Item>
                             </Col>
-                            <Col span={12}>
+                            <Col span={8}>
                                 <Form.Item
                                     name="defaultUnit"
-                                    label="Đơn vị đo lường"
-                                    rules={[{ required: true, message: 'Vui lòng chọn đơn vị đo lường' }]}
+                                    label="Đơn vị"
+                                    rules={[{ required: true, message: 'Vui lòng chọn đơn vị' }]}
                                 >
                                     <Select placeholder="Chọn đơn vị">
                                         {allMeasureUnits.map(unit => (
-                                            <Option key={unit.key} value={unit.key}>
-                                                {unit.label} ({unit.key})
+                                            <Option key={unit.key} value={unit.key} selected={unit.key === 'g'}>
+                                                {unit.label}
                                             </Option>
                                         ))}
                                     </Select>
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item name="energy" label="Năng lượng (kcal)">
+                                    <InputNumber style={{ width: '100%' }} min={0} placeholder="0" />
                                 </Form.Item>
                             </Col>
                         </Row>
@@ -345,32 +495,78 @@ const IngredientForm = ({
 
                 {/* ================== CỘT PHẢI: Dinh dưỡng + Công dụng ================== */}
                 <Col span={10}>
-                    {/* Thông tin dinh dưỡng */}
-                    <Card title={<strong>Thông tin dinh dưỡng (tùy chọn)</strong>} variant="bordered">
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item name={['nutrition', 'calories']} label="Calories">
-                                    <InputNumber min={0} style={{ width: '100%' }} />
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item name={['nutrition', 'protein']} label="Protein (g)">
-                                    <InputNumber min={0} style={{ width: '100%' }} />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Row gutter={16}>
-                            <Col span={12}>
-                                <Form.Item name={['nutrition', 'carbs']} label="Carbs (g)">
-                                    <InputNumber min={0} style={{ width: '100%' }} />
-                                </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                                <Form.Item name={['nutrition', 'fat']} label="Fat (g)">
-                                    <InputNumber min={0} style={{ width: '100%' }} />
-                                </Form.Item>
-                            </Col>
-                        </Row>
+                    {/* Thông tin dinh dưỡng chi tiết */}
+                    <Card title={<strong>Thông tin dinh dưỡng chi tiết</strong>} variant="bordered">
+                        <Form.List name="nutrition">
+                            {(fields, { add, remove }) => (
+                                <>
+                                    <div style={{ maxHeight: '400px', overflowY: 'auto', marginBottom: 12 }}>
+                                        {fields.map(({ key, name, ...restField }) => (
+                                            <Card key={key} size="small" style={{ marginBottom: 8 }}>
+                                                <Row gutter={8}>
+                                                    <Col span={11}>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, 'name']}
+                                                            rules={[{ required: true, message: 'Nhập tên' }]}
+                                                        >
+                                                            <Input placeholder="Tên (VI)" size="small" />
+                                                        </Form.Item>
+                                                    </Col>
+                                                    <Col span={11}>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, 'name_en']}
+                                                        >
+                                                            <Input placeholder="Tên (EN)" size="small" />
+                                                        </Form.Item>
+                                                    </Col>
+                                                    <Col span={2}>
+                                                        <MinusCircleOutlined 
+                                                            onClick={() => remove(name)}
+                                                            style={{ color: 'red', fontSize: 16 }}
+                                                        />
+                                                    </Col>
+                                                </Row>
+                                                <Row gutter={8}>
+                                                    <Col span={12}>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, 'value']}
+                                                            rules={[{ required: true, message: 'Nhập giá trị' }]}
+                                                        >
+                                                            <InputNumber 
+                                                                placeholder="Giá trị" 
+                                                                style={{ width: '100%' }} 
+                                                                size="small"
+                                                                min={0}
+                                                            />
+                                                        </Form.Item>
+                                                    </Col>
+                                                    <Col span={12}>
+                                                        <Form.Item
+                                                            {...restField}
+                                                            name={[name, 'unit']}
+                                                            rules={[{ required: true, message: 'Nhập đơn vị' }]}
+                                                        >
+                                                            <Input placeholder="Đơn vị (g, mg, mcg)" size="small" />
+                                                        </Form.Item>
+                                                    </Col>
+                                                </Row>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                    <Button
+                                        type="dashed"
+                                        onClick={() => add()}
+                                        block
+                                        icon={<PlusOutlined />}
+                                    >
+                                        Thêm thành phần dinh dưỡng
+                                    </Button>
+                                </>
+                            )}
+                        </Form.List>
                     </Card>
 
                     <Divider />
@@ -426,6 +622,46 @@ const IngredientForm = ({
                     {isEdit ? 'Lưu thay đổi' : 'Thêm nguyên liệu'}
                 </Button>
             </div>
+
+            {/* ================== MODAL TÌM KIẾM DINH DƯỠNG ================== */}
+            <Modal
+                title="Tìm kiếm thông tin dinh dưỡng"
+                open={nutritionModalVisible}
+                onCancel={handleCloseNutritionModal}
+                width={1200}
+                footer={null}
+            >
+                <Space.Compact style={{ width: '100%', marginBottom: 16 }}>
+                    <Input
+                        placeholder="Nhập tên thực phẩm để tìm kiếm..."
+                        value={nutritionSearchKeyword}
+                        onChange={(e) => setNutritionSearchKeyword(e.target.value)}
+                        onPressEnter={handleSearchNutrition}
+                    />
+                    <Button 
+                        type="primary" 
+                        icon={<SearchOutlined />}
+                        onClick={handleSearchNutrition}
+                        loading={searchingNutrition}
+                    >
+                        Tìm kiếm
+                    </Button>
+                </Space.Compact>
+
+                <Table
+                    columns={nutritionSearchColumns}
+                    dataSource={Array.isArray(nutritionSearchResults) ? nutritionSearchResults : []}
+                    rowKey="_id"
+                    loading={searchingNutrition}
+                    pagination={{ pageSize: 10 }}
+                    scroll={{ x: 900, y: 400 }}
+                    locale={{
+                        emptyText: nutritionSearchKeyword 
+                            ? 'Không tìm thấy kết quả phù hợp' 
+                            : 'Nhập từ khóa để tìm kiếm'
+                    }}
+                />
+            </Modal>
         </Form>
     );
 };

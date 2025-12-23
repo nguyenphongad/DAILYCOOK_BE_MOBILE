@@ -16,7 +16,8 @@ const {
     deleteMeal,
     getTotalMeals,
     getMealsByCategory,
-    findByIdMeal
+    findByIdMeal,
+    getRandomMeals // ✅ Thêm import
 } = require('../controllers/MealController');
 
 const { 
@@ -28,6 +29,10 @@ const {
     findByKeywordDietType,
     getTotalDietTypes
 } = require('../controllers/DietTypeController');
+
+const {
+    getMealDataVienDinhDuong
+} = require('../controllers/GetDataVienDinhDuongMeal');
 
 const router = express.Router();
 
@@ -82,6 +87,13 @@ router.get(
     "/total",
     MealMiddleware,
     getTotalMeals
+);
+
+// ✅ Thêm route lấy món ăn random (đặt trước route động)
+router.get(
+    '/random',
+    MealMiddleware,
+    getRandomMeals
 );
 
 // Lấy món ăn theo danh mục với phân trang
@@ -175,5 +187,14 @@ router.get(
     MealMiddleware,
     findByIdDietType
 );
+
+/* ==========================   Get Data from VienDinhDuong   ========================== */
+// Lấy dữ liệu món ăn từ viendinhduong.vn
+router.get(
+    '/getPageFoodData',
+    MealMiddleware,
+    getMealDataVienDinhDuong
+);
+
 
 module.exports = router;

@@ -1,21 +1,45 @@
 const mongoose = require("mongoose");
 const MeasurementUnits = require("../util/MeasurementUnits");
 
-// Schema riêng cho giá trị dinh dưỡng
+// Schema cho thành phần dinh dưỡng
 const NutritionSchema = new mongoose.Schema({
-    calories: { type: Number, default: 0 }, // năng lượng (kcal)
-    protein: { type: Number, default: 0 },  // protein (g)
-    carbs: { type: Number, default: 0 },    // carbohydrate (g)
-    fat: { type: Number, default: 0 }       // chất béo (g)
+    name: {
+        type: String,
+        required: true
+        // Tên tiếng Việt (VD: Protein, Carbohydrate by difference)
+    },
+    name_en: {
+        type: String
+        // Tên tiếng Anh (VD: Protein, Carbohydrate by difference)
+    },
+    value: {
+        type: Number,
+        default: 0
+        // Giá trị dinh dưỡng
+    },
+    unit: {
+        type: String
+        // Đơn vị đo (VD: g, mg, mcg)
+    }
 });
 
 // Schema chính cho nguyên liệu
 const IngredientSchema = new mongoose.Schema(
     {
-        // Tên nguyên liệu
+        code: {
+            type: String,
+            unique: true,
+            sparse: true
+            // Mã nguyên liệu (VD: 10001)
+        },
+        // Tên nguyên liệu tiếng Việt
         nameIngredient: {
             type: String,
             required: true
+        },
+        // Tên nguyên liệu tiếng Anh
+        name_en: {
+            type: String
         },
         // Mô tả ngắn
         description: {
@@ -25,8 +49,7 @@ const IngredientSchema = new mongoose.Schema(
         // Tham chiếu đến danh mục nguyên liệu
         ingredientCategory: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "IngredientCategory",
-            required: true
+            ref: "IngredientCategory"
         },
         // Ảnh minh họa
         ingredientImage: {
@@ -41,14 +64,16 @@ const IngredientSchema = new mongoose.Schema(
         // Đơn vị mặc định (lấy từ MeasurementUnits)
         defaultUnit: {
             type: String,
-            enum: Object.keys(MeasurementUnits), // dùng tất cả giá trị trong MeasurementUnits
+            enum: Object.keys(MeasurementUnits),
             default: MeasurementUnits.GRAM
         },
-        // Thông tin dinh dưỡng
-        nutrition: {
-            type: NutritionSchema,
-            default: () => ({})
+        // Năng lượng (Kcal)
+        energy: {
+            type: Number,
+            default: 0
         },
+        // Danh sách thành phần dinh dưỡng chi tiết
+        nutrition: [NutritionSchema],
         // Các cách sử dụng phổ biến (ví dụ: xào, nấu canh, ăn sống…)
         commonUses: {
             type: [String],

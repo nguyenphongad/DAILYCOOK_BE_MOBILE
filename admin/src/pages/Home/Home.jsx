@@ -32,7 +32,6 @@ const Home = () => {
     { id: 3, name: 'Ingredient Service', status: 'checking', url: 'http://localhost:5000/api/ingredients/health' },
     { id: 4, name: 'Meal Service', status: 'checking', url: 'http://localhost:5000/api/meals/health' },
     { id: 5, name: 'MealPlan Service', status: 'checking', url: 'http://localhost:5000/api/mealplans/health' },
-    { id: 6, name: 'Recipe Service', status: 'checking', url: 'http://localhost:5000/api/recipes/health' },
     { id: 8, name: 'Survey Service', status: 'checking', url: 'http://localhost:5000/api/surveys/health' }
   ])
 

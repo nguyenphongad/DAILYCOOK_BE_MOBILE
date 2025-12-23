@@ -9,6 +9,8 @@ import measurementUnitsReducer from './slices/measurementUnitsSlice'
 import recipeReducer from './slices/recipeSlice'
 import userReducer from './slices/userSlice'
 import surveyReducer from './slices/surveySlice'
+import nutritionReducer from './slices/nutritionSlice'
+import mealSearchReducer from './slices/mealSearchSlice'
 
 
 const store = configureStore({
@@ -22,7 +24,9 @@ const store = configureStore({
     measurementUnits: measurementUnitsReducer,
     recipes: recipeReducer,
     users: userReducer,
-    survey: surveyReducer
+    survey: surveyReducer,
+    nutrition: nutritionReducer,
+    mealSearch: mealSearchReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

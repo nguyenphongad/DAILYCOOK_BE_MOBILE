@@ -67,11 +67,12 @@ const Dishes = () => {
     }
   }, [dispatch, selectedCategory, currentPage]);
 
-  // --- Tìm kiếm + Sắp xếp --- (cập nhật để không lọc category nữa vì đã fetch theo category)
+  // --- Tìm kiếm + Sắp xếp ---
   const filteredMeals = meals.filter((meal) => {
-    const matchesSearch = (meal.nameMeal || '').toLowerCase().includes(searchKeyword.toLowerCase());
+    const mealName = meal.nameMeal || meal.name_vi || '';
+    const matchesSearch = mealName.toLowerCase().includes(searchKeyword.toLowerCase());
     const matchesPopularity = !selectedPopularity || meal.popularity === parseInt(selectedPopularity);
-    return matchesSearch && matchesPopularity; // Bỏ matchesCategory vì đã fetch theo category
+    return matchesSearch && matchesPopularity;
   });
 
   // Debug: Log dữ liệu meals
@@ -82,8 +83,11 @@ const Dishes = () => {
   console.log('Selected category:', selectedCategory);
 
   const sortedMeals = [...filteredMeals].sort((a, b) => {
-    if (sortOrder === 'name_asc') return a.nameMeal.localeCompare(b.nameMeal);
-    if (sortOrder === 'name_desc') return b.nameMeal.localeCompare(a.nameMeal);
+    const nameA = a.nameMeal || a.name_vi || '';
+    const nameB = b.nameMeal || b.name_vi || '';
+    
+    if (sortOrder === 'name_asc') return nameA.localeCompare(nameB);
+    if (sortOrder === 'name_desc') return nameB.localeCompare(nameA);
     if (sortOrder === 'popularity_desc') return (b.popularity || 0) - (a.popularity || 0);
     if (sortOrder === 'popularity_asc') return (a.popularity || 0) - (b.popularity || 0);
     return 0;
@@ -106,6 +110,16 @@ const Dishes = () => {
     }
     
     return 'Chưa phân loại';
+  };
+
+  // Helper để lấy image URL
+  const getMealImageUrl = (meal) => {
+    return meal.image || meal.mealImage || 'https://via.placeholder.com/50';
+  };
+
+  // Helper để lấy tên món
+  const getMealName = (meal) => {
+    return meal.nameMeal || meal.name_vi || 'Không có tên';
   };
 
   // --- Mở modal thêm món ăn ---
@@ -304,20 +318,20 @@ const Dishes = () => {
                           <td className="text-left">{index + 1 + (pagination.page - 1) * pagination.limit}</td>
                           <td className="dish-image-cell text-left">
                             <img 
-                              src={meal.mealImage || 'https://via.placeholder.com/50'} 
-                              alt={meal.nameMeal} 
+                              src={getMealImageUrl(meal)} 
+                              alt={getMealName(meal)} 
                               className="dish-thumbnail"
                             />
                           </td>
                           <td>
-                            <div className="dish-name">{meal.nameMeal}</div>
+                            <div className="dish-name">{getMealName(meal)}</div>
                             {meal.description && (
                               <div className="dish-description">{meal.description.slice(0, 60)}...</div>
                             )}
                           </td>
                           <td>
                             <span className="category-badge">
-                              {getCategoryTitle(meal.mealCategory)}
+                              {getCategoryTitle(meal.category_id || meal.mealCategory)}
                             </span>
                           </td>
                           <td>

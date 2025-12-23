@@ -11,7 +11,8 @@ import {
     Card,
     List,
     Button,
-    Form
+    Form,
+    Empty
 } from 'antd';
 import {
     EditOutlined,
@@ -29,13 +30,13 @@ const { Title, Paragraph } = Typography;
  * 2. Chỉnh sửa (edit)
  */
 const IngredientDetailModal = ({
-    isVisible,                  // Trạng thái mở/đóng modal
-    onClose,                    // Hàm đóng modal
-    ingredient,                 // Nguyên liệu được chọn
-    onEdit,                     // Hàm cập nhật nguyên liệu
-    onDelete,                   // Hàm xóa nguyên liệu
-    allIngredientCategories,    // Danh sách tất cả danh mục
-    allMeasureUnits             // Danh sách đơn vị đo lường
+    isVisible,
+    onClose,
+    ingredient,
+    onEdit,
+    onDelete,
+    allIngredientCategories,
+    allMeasureUnits
 }) => {
     const [isEditing, setIsEditing] = useState(false); // Chế độ edit
     const [form] = Form.useForm();
@@ -163,56 +164,66 @@ const IngredientDetailModal = ({
                             <Title level={4} style={{ marginTop: 16 }}>
                                 {ingredient?.nameIngredient || 'Không rõ'}
                             </Title>
+                            {ingredient?.name_en && (
+                                <Paragraph italic style={{ color: '#666' }}>
+                                    {ingredient.name_en}
+                                </Paragraph>
+                            )}
                             <Tag color="#4CAF50" style={{ marginBottom: 16 }}>
                                 {category ? category.title : 'Không rõ danh mục'}
                             </Tag>
+                            {ingredient?.code && (
+                                <Paragraph>
+                                    <strong>Mã:</strong> {ingredient.code}
+                                </Paragraph>
+                            )}
                             <Paragraph>{ingredient?.description || 'Không có mô tả'}</Paragraph>
                             <Descriptions column={1} size="small">
                                 <Descriptions.Item label={<strong>Khối lượng mặc định</strong>}>
                                     {ingredient?.defaultAmount || 0} {getMeasureUnitLabel(ingredient?.defaultUnit)}
                                 </Descriptions.Item>
+                                {ingredient?.energy && (
+                                    <Descriptions.Item label={<strong>Năng lượng</strong>}>
+                                        {ingredient.energy} kcal
+                                    </Descriptions.Item>
+                                )}
                             </Descriptions>
                         </Col>
 
-                        {/* Cột phải: thông tin dinh dưỡng + công dụng */}
+                        {/* Cột phải: thông tin dinh dưỡng chi tiết + công dụng */}
                         <Col span={14}>
                             <Divider>
-                                Thông tin dinh dưỡng trên {ingredient?.defaultAmount || 0} {getMeasureUnitLabel(ingredient?.defaultUnit)}
+                                Thông tin dinh dưỡng chi tiết
                             </Divider>
 
-                            <Row gutter={16}>
-                                <Col span={12}>
-                                    <Card size="small" title="Calories">
-                                        <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
-                                            {ingredient.nutrition?.calories || 0} kcal
-                                        </div>
-                                    </Card>
-                                </Col>
-                                <Col span={12}>
-                                    <Card size="small" title="Protein">
-                                        <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
-                                            {ingredient.nutrition?.protein || 0} g
-                                        </div>
-                                    </Card>
-                                </Col>
-                            </Row>
-
-                            <Row gutter={16} style={{ marginTop: 16 }}>
-                                <Col span={12}>
-                                    <Card size="small" title="Carbs">
-                                        <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
-                                            {ingredient.nutrition?.carbs || 0} g
-                                        </div>
-                                    </Card>
-                                </Col>
-                                <Col span={12}>
-                                    <Card size="small" title="Fat">
-                                        <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold' }}>
-                                            {ingredient.nutrition?.fat || 0} g
-                                        </div>
-                                    </Card>
-                                </Col>
-                            </Row>
+                            {Array.isArray(ingredient?.nutrition) && ingredient.nutrition.length > 0 ? (
+                                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                    <List
+                                        dataSource={ingredient.nutrition}
+                                        renderItem={item => (
+                                            <List.Item>
+                                                <List.Item.Meta
+                                                    title={
+                                                        <span>
+                                                            {item.name}
+                                                            {item.name_en && item.name_en !== item.name && (
+                                                                <span style={{ color: '#999', fontSize: '12px', marginLeft: 8 }}>
+                                                                    ({item.name_en})
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                    }
+                                                />
+                                                <div style={{ fontWeight: 'bold' }}>
+                                                    {item.value} {item.unit}
+                                                </div>
+                                            </List.Item>
+                                        )}
+                                    />
+                                </div>
+                            ) : (
+                                <Empty description="Chưa có thông tin dinh dưỡng chi tiết" />
+                            )}
 
                             <Divider>Công dụng phổ biến</Divider>
                             <List
@@ -230,7 +241,7 @@ const IngredientDetailModal = ({
                 </Card>
             )}
 
-            {contextHolder} {/* Dùng để hiển thị confirm modal */}
+            {contextHolder}
         </Modal>
     );
 };
