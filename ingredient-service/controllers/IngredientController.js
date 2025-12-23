@@ -1,47 +1,59 @@
-const IngredientCategoryModel = require("../model/IngredientCategoryModel");
-const IngredientModel = require("../model/IngredientModel");
+const IngredientCategoryModel = require("../models/IngredientCategoryModel");
+const IngredientModel = require("../models/IngredientModel");
 const mongoose = require("mongoose");
 
 // Thêm nguyên liệu mới
 const addIngredient = async (req, res) => {
     try {
         const {
+            code,
             nameIngredient,
+            name_en,
             description,
             ingredientCategory,
             ingredientImage,
             defaultAmount,
             defaultUnit,
+            energy,
             nutrition,
             commonUses
         } = req.body;
 
         // Kiểm tra thông tin bắt buộc
-        if (!nameIngredient || !ingredientCategory) {
+        if (!nameIngredient) {
             return res.status(400).json({
                 stype: "ingredient",
-                message: "Thiếu thông tin bắt buộc: nameIngredient hoặc ingredientCategory!",
+                message: "Thiếu thông tin bắt buộc: nameIngredient!",
                 status: false
             });
         }
 
-        // Tìm danh mục theo keyword hoặc title (không phân biệt chữ hoa thường)
-        // const category = await IngredientCategoryModel.findOne({
-        //     $or: [
-        //         { keyword: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } },
-        //         { title: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } }
-        //     ]
-        // });
-        const category = await IngredientCategoryModel.findById(ingredientCategory);
-        if (!category) {
-            return res.status(400).json({
-                stype: "ingredient",
-                message: "Danh mục nguyên liệu không tồn tại!",
-                status: false
-            });
+        // Kiểm tra trùng mã code nếu có
+        if (code) {
+            const existingCode = await IngredientModel.findOne({ code });
+            if (existingCode) {
+                return res.status(400).json({
+                    stype: "ingredient",
+                    message: "Mã nguyên liệu đã tồn tại!",
+                    status: false
+                });
+            }
         }
 
-        // Kiểm tra trùng tên nguyên liệu (không phân biệt chữ hoa thường)
+        // Xử lý category nếu có ingredientCategory ID
+        let categoryId = ingredientCategory;
+        if (ingredientCategory) {
+            const categoryExists = await IngredientCategoryModel.findById(ingredientCategory);
+            if (!categoryExists) {
+                return res.status(400).json({
+                    stype: "ingredient",
+                    message: "Danh mục nguyên liệu không tồn tại!",
+                    status: false
+                });
+            }
+        }
+
+        // Kiểm tra trùng tên nguyên liệu
         const existingIngredient = await IngredientModel.findOne({
             nameIngredient: { $regex: new RegExp(`^${nameIngredient}$`, 'i') }
         });
@@ -55,12 +67,15 @@ const addIngredient = async (req, res) => {
 
         // Tạo mới nguyên liệu
         const newIngredient = new IngredientModel({
+            code,
             nameIngredient,
+            name_en,
             description,
-            ingredientCategory: category._id,
+            ingredientCategory: categoryId,
             ingredientImage,
             defaultAmount,
             defaultUnit,
+            energy,
             nutrition,
             commonUses
         });
@@ -71,25 +86,13 @@ const addIngredient = async (req, res) => {
                 stype: "ingredient",
                 message: "Thêm nguyên liệu thành công!",
                 status: true,
-                data: {
-                    _id: result._id,
-                    nameIngredient: result.nameIngredient,
-                    description: result.description,
-                    ingredientCategory: result.ingredientCategory,
-                    ingredientImage: result.ingredientImage,
-                    defaultAmount: result.defaultAmount,
-                    defaultUnit: result.defaultUnit,
-                    nutrition: result.nutrition,
-                    commonUses: result.commonUses,
-                    createAt: result.createdAt,
-                    updateAt: result.updatedAt
-                }
+                data: result
             });
         }
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Thêm nguyên liệu thất bại!" + error.message,
+            message: "Thêm nguyên liệu thất bại!",
             status: false,
             error: error.message
         });
@@ -101,12 +104,15 @@ const updateIngredient = async (req, res) => {
     try {
         const { ingredient_id } = req.params;
         const {
+            code,
             nameIngredient,
+            name_en,
             description,
             ingredientCategory,
             ingredientImage,
             defaultAmount,
             defaultUnit,
+            energy,
             nutrition,
             commonUses
         } = req.body;
@@ -121,12 +127,27 @@ const updateIngredient = async (req, res) => {
             });
         }
 
-        // Kiểm tra tên nguyên liệu đã tồn tại chưa
+        // Kiểm tra mã code nếu thay đổi
+        if (code && code !== ingredient.code) {
+            const existingCode = await IngredientModel.findOne({
+                code,
+                _id: { $ne: ingredient_id }
+            });
+            if (existingCode) {
+                return res.status(400).json({
+                    stype: "ingredient",
+                    message: "Mã nguyên liệu đã tồn tại!",
+                    status: false
+                });
+            }
+        }
+
+        // Kiểm tra tên nguyên liệu nếu thay đổi
         if (nameIngredient && nameIngredient !== ingredient.nameIngredient) {
             const existingNameIngredient = await IngredientModel.findOne({
-                nameIngredient: { $regex: new RegExp(`^${nameIngredient}`, 'i') },
+                nameIngredient: { $regex: new RegExp(`^${nameIngredient}$`, 'i') },
                 _id: { $ne: ingredient_id }
-            })
+            });
             if (existingNameIngredient) {
                 return res.status(400).json({
                     stype: "ingredient",
@@ -138,33 +159,30 @@ const updateIngredient = async (req, res) => {
 
         // Chuẩn bị object cập nhật
         const updateFields = {};
+        if (code !== undefined) updateFields.code = code;
         if (nameIngredient) updateFields.nameIngredient = nameIngredient;
-        if (description) updateFields.description = description;
+        if (name_en !== undefined) updateFields.name_en = name_en;
+        if (description !== undefined) updateFields.description = description;
 
-        // Xử lý category nếu có
+        // Xử lý category ID nếu có
         if (ingredientCategory) {
-            // const category = await IngredientCategoryModel.findOne({
-            //     $or: [
-            //         { keyword: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } },
-            //         { title: { $regex: new RegExp(`^${ingredientCategory}$`, 'i') } }
-            //     ]
-            // });
-            const category = await IngredientCategoryModel.findById(ingredientCategory);
-            if (!category) {
+            const categoryExists = await IngredientCategoryModel.findById(ingredientCategory);
+            if (!categoryExists) {
                 return res.status(400).json({
                     stype: "ingredient",
                     message: "Danh mục nguyên liệu không tồn tại!",
                     status: false
                 });
             }
-            updateFields.ingredientCategory = category._id;
+            updateFields.ingredientCategory = ingredientCategory;
         }
 
-        if (ingredientImage) updateFields.ingredientImage = ingredientImage;
-        if (defaultAmount) updateFields.defaultAmount = defaultAmount;
-        if (defaultUnit) updateFields.defaultUnit = defaultUnit;
-        if (nutrition) updateFields.nutrition = nutrition;
-        if (commonUses) updateFields.commonUses = commonUses;
+        if (ingredientImage !== undefined) updateFields.ingredientImage = ingredientImage;
+        if (defaultAmount !== undefined) updateFields.defaultAmount = defaultAmount;
+        if (defaultUnit !== undefined) updateFields.defaultUnit = defaultUnit;
+        if (energy !== undefined) updateFields.energy = energy;
+        if (nutrition !== undefined) updateFields.nutrition = nutrition;
+        if (commonUses !== undefined) updateFields.commonUses = commonUses;
 
         // Thực hiện cập nhật
         const updated = await IngredientModel.findByIdAndUpdate(
@@ -177,24 +195,12 @@ const updateIngredient = async (req, res) => {
             stype: "ingredient",
             message: "Cập nhật nguyên liệu thành công!",
             status: true,
-            data: {
-                _id: updated._id,
-                nameIngredient: updated.nameIngredient,
-                description: updated.description,
-                ingredientCategory: updated.ingredientCategory,
-                ingredientImage: updated.ingredientImage,
-                defaultAmount: updated.defaultAmount,
-                defaultUnit: updated.defaultUnit,
-                nutrition: updated.nutrition,
-                commonUses: updated.commonUses,
-                createAt: updated.createdAt,
-                updateAt: updated.updatedAt
-            }
+            data: updated
         });
     } catch (error) {
         return res.status(500).json({
             stype: "ingredient",
-            message: "Cập nhật nguyên liệu thất bại!" + error.message,
+            message: "Cập nhật nguyên liệu thất bại!",
             status: false,
             error: error.message
         });
@@ -341,15 +347,13 @@ const getRandomIngredients = async (req, res) => {
         page = parseInt(page);
         limit = parseInt(limit);
         
-        // Đếm tổng số nguyên liệu
         const total = await IngredientModel.countDocuments();
         
-        // Sử dụng MongoDB aggregation để random
         const ingredients = await IngredientModel.aggregate([
-            { $sample: { size: limit } }, // Random lấy 'limit' documents
+            { $sample: { size: limit } },
             {
                 $lookup: {
-                    from: 'ingredientcategories', // Tên collection category
+                    from: 'ingredientcategories',
                     localField: 'ingredientCategory',
                     foreignField: '_id',
                     as: 'categoryDetail'
@@ -364,14 +368,19 @@ const getRandomIngredients = async (req, res) => {
             {
                 $project: {
                     _id: 1,
+                    code: 1,
                     nameIngredient: 1,
+                    name_en: 1,
                     description: 1,
+                    category: 1,
+                    categoryEn: 1,
                     ingredientImage: 1,
                     ingredientCategory: 1,
                     'categoryDetail.title': 1,
                     'categoryDetail.keyword': 1,
                     defaultAmount: 1,
                     defaultUnit: 1,
+                    energy: 1,
                     nutrition: 1,
                     commonUses: 1,
                     createdAt: 1,
@@ -410,7 +419,6 @@ const getRandomIngredientsByCategory = async (req, res) => {
         let { limit = 10 } = req.query;
         limit = parseInt(limit);
 
-        // Kiểm tra category tồn tại
         const categoryExists = await IngredientModel.countDocuments({ 
             ingredientCategory: category_id 
         });
@@ -423,7 +431,6 @@ const getRandomIngredientsByCategory = async (req, res) => {
             });
         }
 
-        // Random nguyên liệu trong category
         const ingredients = await IngredientModel.aggregate([
             { $match: { ingredientCategory: mongoose.Types.ObjectId(category_id) } },
             { $sample: { size: limit } },
@@ -439,6 +446,23 @@ const getRandomIngredientsByCategory = async (req, res) => {
                 $unwind: {
                     path: '$categoryDetail',
                     preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    code: 1,
+                    nameIngredient: 1,
+                    name_en: 1,
+                    category: 1,
+                    categoryEn: 1,
+                    ingredientImage: 1,
+                    energy: 1,
+                    nutrition: 1,
+                    defaultAmount: 1,
+                    defaultUnit: 1,
+                    'categoryDetail.title': 1,
+                    'categoryDetail.keyword': 1
                 }
             }
         ]);
@@ -464,6 +488,62 @@ const getRandomIngredientsByCategory = async (req, res) => {
     }
 };
 
+// Lấy danh sách nguyên liệu theo category với pagination
+const getIngredientsByCategory = async (req, res) => {
+    try {
+        const { category_id } = req.params;
+        let { page = 1, limit = 10 } = req.query;
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        // Kiểm tra category tồn tại
+        const categoryExists = await IngredientCategoryModel.findById(category_id);
+        if (!categoryExists) {
+            return res.status(404).json({
+                stype: "ingredient",
+                message: "Danh mục nguyên liệu không tồn tại",
+                status: false
+            });
+        }
+
+        const skip = (page - 1) * limit;
+
+        // Đếm tổng số nguyên liệu trong category
+        const total = await IngredientModel.countDocuments({ 
+            ingredientCategory: category_id 
+        });
+
+        // Lấy danh sách nguyên liệu theo category
+        const ingredients = await IngredientModel.find({ 
+            ingredientCategory: category_id 
+        })
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1, _id: -1 });
+
+        return res.status(200).json({
+            stype: "ingredient",
+            message: "Lấy danh sách nguyên liệu theo danh mục thành công!",
+            status: true,
+            data: {
+                category: categoryExists,
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                ingredients
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            stype: "ingredient",
+            message: "Lấy danh sách nguyên liệu theo danh mục thất bại!",
+            status: false,
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     addIngredient,
     updateIngredient,
@@ -471,6 +551,7 @@ module.exports = {
     getListIngredient,
     findByIdIngredient,
     getTotalIngredients,
-    getRandomIngredients, // ✅ Export API mới
-    getRandomIngredientsByCategory // ✅ Export API mới
+    getRandomIngredients,
+    getRandomIngredientsByCategory,
+    getIngredientsByCategory
 };

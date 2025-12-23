@@ -17,9 +17,11 @@ const {
     getListIngredient,
     getTotalIngredients,
     getRandomIngredients, // Import API mới
-    getRandomIngredientsByCategory // Import API mới
+    getRandomIngredientsByCategory, // Import API mới
+    getIngredientsByCategory // ✅ Import function mới
 } = require('../controllers/IngredientController');
 const { getAllMeasurementUnits } = require('../controllers/MeasurementUnitsController');
+const { getNutritionData } = require('../controllers/NutritionProxyController');
 
 const router = express.Router();
 
@@ -31,6 +33,14 @@ router.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+/* ==========================   Nutrition Proxy API   ========================== */
+// API proxy để lấy dữ liệu dinh dưỡng từ viendinhduong.vn (tránh CORS)
+router.get(
+    '/nutrition-proxy',
+    IngredientMiddleware,
+    getNutritionData
+);
 
 /* ==========================    Ingredient Categories   ========================== */
 router.post(
@@ -77,6 +87,13 @@ router.get(
     '/random/category/:category_id',
     IngredientMiddleware,
     getRandomIngredientsByCategory
+);
+
+// ✅ API lấy Ingredients theo Category (pagination)
+router.get(
+    '/category/:category_id',
+    IngredientMiddleware,
+    getIngredientsByCategory
 );
 
 router.post(

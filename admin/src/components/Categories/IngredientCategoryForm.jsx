@@ -24,6 +24,7 @@ const IngredientCategoryForm = ({
                 ...values,
                 keyword: values.keyword.trim(),
                 title: values.title.trim(),
+                titleEn: values.titleEn?.trim() || "",
                 description: values.description?.trim() || "",
             };
             onFinish(categoryData);
@@ -74,13 +75,25 @@ const IngredientCategoryForm = ({
                         </Form.Item>
 
                         {/* Title */}
-                        <Form.Item
-                            name="title"
-                            label="Tên danh mục"
-                            rules={[{ required: true, message: 'Vui lòng nhập tên danh mục' }]}
-                        >
-                            <Input placeholder="Ví dụ: Rau, Trái cây, Thịt..." />
-                        </Form.Item>
+                        <Row gutter={16}>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="title"
+                                    label="Tên danh mục (Tiếng Việt)"
+                                    rules={[{ required: true, message: 'Vui lòng nhập tên danh mục' }]}
+                                >
+                                    <Input placeholder="Ví dụ: Rau, Trái cây, Thịt..." />
+                                </Form.Item>
+                            </Col>
+                            <Col span={12}>
+                                <Form.Item
+                                    name="titleEn"
+                                    label="Tên danh mục (Tiếng Anh)"
+                                >
+                                    <Input placeholder="Ví dụ: Vegetables, Fruits, Meat..." />
+                                </Form.Item>
+                            </Col>
+                        </Row>
 
                         {/* Description */}
                         <Form.Item name="description" label="Mô tả">

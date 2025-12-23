@@ -1,31 +1,26 @@
-const axios = require('axios');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require('dotenv').config();
 
-// Helper function gọi Gemini API bằng fetch/axios
+// Khởi tạo Google Generative AI SDK
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Helper function gọi Gemini API bằng SDK
 const callGeminiAPI = async (prompt) => {
     try {
-        const apiUrl = `${process.env.GEMINI_API_URL}?key=${process.env.GEMINI_API_KEY}`;
-        
-        const response = await axios.post(apiUrl, {
-            contents: [{
-                parts: [{
-                    text: prompt
-                }]
-            }],
-            generationConfig: {
+        const model = genAI.getGenerativeModel({ 
+            model: process.env.GEMINI_MODEL,
+            generationConfig: { 
+                responseMimeType: "application/json",
                 temperature: 0.7,
                 topK: 40,
                 topP: 0.95,
                 maxOutputTokens: 2048,
             }
-        }, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            timeout: 30000 // 30 seconds
         });
 
-        // Extract text từ response
-        const text = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
         
         if (!text) {
             throw new Error('No text in Gemini API response');
@@ -33,13 +28,13 @@ const callGeminiAPI = async (prompt) => {
 
         return text;
     } catch (error) {
-        console.error('Gemini API Error:', error.response?.data || error.message);
+        console.error('Gemini SDK Error:', error.message);
         throw error;
     }
 };
 
 // Initialize Gemini AI
-const genAI = {
+const genAIUtils = {
     getGenerativeModel: ({ model }) => {
         return {
             generateContent: async (prompt) => {
@@ -165,7 +160,7 @@ ${JSON.stringify(filteredMeals.slice(0, 50).map(meal => ({
 
 Chọn 2-3 món mỗi bữa từ danh sách trên.`;
 
-        const model = genAI.getGenerativeModel({ 
+        const model = genAIUtils.getGenerativeModel({ 
             model: process.env.GEMINI_MODEL || "gemini-1.5-flash"
         });
         
@@ -250,30 +245,28 @@ const analyzeDietaryNeedsWithAI = async ({ userProfile, ingredientCategories, me
         })), null, 2)}
 
         **YÊU CẦU:**
-        1. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA SÁNG
-        2. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA TRƯA
-        3. Chọn 1-2 danh mục món ăn phù hợp nhất cho BỮA TỐI
-        4. Dựa trên chế độ ăn ${dietaryPreferences?.DietType_id}, mục tiêu calories ${nutritionGoals?.caloriesPerDay} kcal
-        5. Tránh danh mục có nguyên liệu dị ứng hoặc không thích
+        1. Chỉ chọn 1 danh mục món ăn phù hợp nhất cho BỮA SÁNG (tức buổi sáng chỉ một món)
+        2. Chọn 1-4 danh mục món ăn phù hợp nhất cho BỮA TRƯA
+        3. Chọn 1-4 danh mục món ăn phù hợp nhất cho BỮA TỐI
+        4. Các món ăn cùng một bữa không nằm cùng danh mục, giả sử không thể có 2 canh trong một bữa 
+        5. Nhớ rằng mỗi bữa ăn sáng hoặc trưa hay tối không có món nào trùng nhau
+        6. Dựa trên chế độ ăn ${dietaryPreferences?.DietType_id}, mục tiêu calories ${nutritionGoals?.caloriesPerDay} kcal
+        7. Tránh danh mục có nguyên liệu dị ứng hoặc không thích
 
         **OUTPUT JSON (không thêm text khác):**
         {
-            "breakfast": ["category_id_1", "category_id_2"],
+            "breakfast": ["category_id_1"],
             "lunch": ["category_id_1", "category_id_2"],
             "dinner": ["category_id_1", "category_id_2"],
             "reasoning": "Giải thích ngắn gọn lý do chọn"
         }
         `;
 
-        // Gọi Gemini API
+        // Gọi Gemini API qua SDK
         const text = await callGeminiAPI(prompt);
         
-        // Clean và parse JSON
-        let cleanText = text.trim();
-        cleanText = cleanText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        cleanText = cleanText.replace(/^[^{]*({[\s\S]*})[^}]*$/, '$1');
-        
-        const parsedResponse = JSON.parse(cleanText);
+        // Parse JSON response
+        const parsedResponse = JSON.parse(text);
         return parsedResponse;
         
     } catch (error) {
@@ -317,15 +310,29 @@ const selectMealsWithAI = async ({ servingTime, meals, userProfile, targetCalori
     try {
         const { dietaryPreferences, nutritionGoals } = userProfile;
         
+        const numMeals = servingTime.toLowerCase() === 'breakfast' ? 1 : 2;
+        const mealRange = servingTime.toLowerCase() === 'breakfast' ? '1 món' : '2-3 món';
+        
+        const mealRequirements = servingTime.toLowerCase() === 'breakfast' 
+            ? 'Chọn 1 món đủ dinh dưỡng, có thể là món chính hoặc món ăn sáng nhẹ'
+            : `
+**YÊU CẦU BỔ SUNG CHO BỮA ${servingTime.toUpperCase()}:**
+- Trong 2-3 món, BẮT BUỘC phải có ít nhất 1 MÓN CHÍNH (món có thịt/cá/tôm)
+- Món chính nên là: món kho (thịt kho, cá kho), món chiên (gà chiên, cá chiên), món xào có thịt
+- Các món còn lại có thể là: canh, rau xào, món phụ
+- TUYỆT ĐỐI KHÔNG chọn toàn món canh hoặc toàn món rau
+- Ưu tiên cân bằng: 1 món chính + 1 món canh/rau`;
+        
         const prompt = `
-Bạn là chuyên gia dinh dưỡng. Chọn 2-3 món ăn phù hợp cho BỮA ${servingTime.toUpperCase()}.
+Bạn là chuyên gia dinh dưỡng. Chọn ${mealRange} phù hợp cho BỮA ${servingTime.toUpperCase()}.
 
-**YÊU CẦU:**
+**YÊU CẦU CƠ BẢN:**
 - Calories mục tiêu cho bữa này: ~${Math.round(targetCalories / 3)} kcal
 - Chế độ ăn: ${dietaryPreferences?.DietType_id}
 - Protein: ${nutritionGoals?.proteinPercentage}%
 - Carbs: ${nutritionGoals?.carbPercentage}%
 - Fat: ${nutritionGoals?.fatPercentage}%
+${mealRequirements}
 
 **DANH SÁCH MÓN ĂN:**
 ${JSON.stringify(meals.slice(0, 50).map(meal => ({
@@ -338,27 +345,22 @@ ${JSON.stringify(meals.slice(0, 50).map(meal => ({
 **OUTPUT JSON (chỉ trả về meal_id):**
 {
     "selectedMeals": [
-        {"meal_id": "id_thực_tế"},
-        {"meal_id": "id_thực_tế"}
+        {"meal_id": "id_thực_tế"}${servingTime.toLowerCase() !== 'breakfast' ? `,
+        {"meal_id": "id_thực_tế"}` : ''}
     ]
 }
 `;
 
-        // Gọi Gemini API
+        // Gọi Gemini API qua SDK
         const text = await callGeminiAPI(prompt);
-        
-        let cleanText = text.trim();
-        cleanText = cleanText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        cleanText = cleanText.replace(/^[^{]*({[\s\S]*})[^}]*$/, '$1');
-        
-        const parsedResponse = JSON.parse(cleanText);
+        const parsedResponse = JSON.parse(text);
         return parsedResponse.selectedMeals || [];
         
     } catch (error) {
         console.error(`Error selecting meals for ${servingTime}:`, error);
-        // Fallback: chọn random 2 món
+        const numMeals = servingTime.toLowerCase() === 'breakfast' ? 1 : 2;
         const shuffled = meals.sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, 2).map(m => ({ meal_id: m._id }));
+        return shuffled.slice(0, numMeals).map(m => ({ meal_id: m._id }));
     }
 };
 
@@ -403,14 +405,9 @@ ${JSON.stringify(allMeals.slice(0, 100).map(meal => ({
 }
 `;
 
-        // Gọi Gemini API
+        // Gọi Gemini API qua SDK
         const text = await callGeminiAPI(prompt);
-        
-        let cleanText = text.trim();
-        cleanText = cleanText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-        cleanText = cleanText.replace(/^[^{]*({[\s\S]*})[^}]*$/, '$1');
-        
-        const parsedResponse = JSON.parse(cleanText);
+        const parsedResponse = JSON.parse(text);
         return parsedResponse.similarMeals || [];
         
     } catch (error) {
@@ -440,11 +437,146 @@ ${JSON.stringify(allMeals.slice(0, 100).map(meal => ({
     }
 };
 
+// Fallback meal selection khi AI lỗi
+const getFallbackMealsByCategory = async ({ servingTime, mealCategories, getMealsByCategoryFn, token, isFamily }) => {
+    try {
+        // Định nghĩa danh mục ID cho từng bữa ăn (dựa trên data thực tế)
+        const categoryMapping = {
+            breakfast: [
+                '69427f553f8654bb5b6c2b6c', // Các loại bánh
+                '69427f0c3f8654bb5b6c2b5a', // Bánh đa, bún, phở
+                '69427efc3f8654bb5b6c2b57', // Bánh canh, hủ tiếu, miến, mỳ
+                '69427f173f8654bb5b6c2b5d', // Cơm, cháo, xôi
+                '69427f233f8654bb5b6c2b60', // Burger, pizza
+                '69427f3e3f8654bb5b6c2b66', // Giải khát
+                '69427f323f8654bb5b6c2b63'  // Chè, các loại giải khát
+            ],
+            lunch: [
+                '69427ece3f8654bb5b6c2b4e', // Cơm các loại
+                '69427f173f8654bb5b6c2b5d', // Cơm, cháo, xôi
+                '69427f5e3f8654bb5b6c2b6f', // Các món khác
+                '6944520c3ff1cb9255d2c89f', // Món canh
+                '69427f483f8654bb5b6c2b69', // Ngao, ốc
+                '69427f3e3f8654bb5b6c2b66'  // Giải khát
+            ],
+            dinner: [
+                '69427ece3f8654bb5b6c2b4e', // Cơm các loại
+                '69427eea3f8654bb5b6c2b54', // Bún, cơm, xôi, cháo
+                '69427efc3f8654bb5b6c2b57', // Bánh canh, hủ tiếu, miến, mỳ
+                '6944520c3ff1cb9255d2c89f', // Món canh
+                '69427f483f8654bb5b6c2b69', // Ngao, ốc
+                '69427f3e3f8654bb5b6c2b66'  // Giải khát
+            ]
+        };
+
+        const requiredCategoryIds = categoryMapping[servingTime] || [];
+
+        // ✅ FIX: Convert ObjectId sang String trước khi so sánh
+        const matchedCategories = mealCategories.filter(cat => 
+            requiredCategoryIds.includes(cat._id.toString())
+        );
+
+        console.log(`📋 Tìm thấy ${matchedCategories.length} danh mục phù hợp cho ${servingTime}`);
+
+        // ✅ Xác định số lượng món: breakfast = 1, lunch/dinner = 2-4
+        let numMeals;
+        if (servingTime === 'breakfast') {
+            numMeals = isFamily ? 3 : 1;
+        } else {
+            // Lunch và Dinner: random từ 2-4 món
+            const baseNum = Math.floor(Math.random() * 3) + 2; // Random 2, 3, hoặc 4
+            numMeals = isFamily ? baseNum * 2 : baseNum; // Nếu family thì gấp đôi
+        }
+
+        console.log(`🎲 Số món cần lấy: ${numMeals}`);
+
+        // ============= RANDOM DANH MỤC BAN ĐẦU =============
+        const shuffledCategories = [...matchedCategories].sort(() => Math.random() - 0.5);
+
+        // ============= LẤY MÓN TỪ CÁC DANH MỤC CHO ĐẾN KHI ĐỦ =============
+        let collectedMeals = [];
+        let attemptedCategories = new Set();
+
+        for (const category of shuffledCategories) {
+            // Nếu đã đủ món thì dừng
+            if (collectedMeals.length >= numMeals) break;
+
+            // ✅ FIX: Convert ObjectId sang String khi lưu vào Set
+            attemptedCategories.add(category._id.toString());
+
+            try {
+                console.log(`🔍 Đang lấy món từ danh mục: ${category.title}`);
+                const mealsResponse = await getMealsByCategoryFn(category._id, token, 50);
+                const meals = mealsResponse.data?.meals || [];
+
+                if (meals.length > 0) {
+                    console.log(`✓ Tìm thấy ${meals.length} món từ danh mục ${category.title}`);
+                    collectedMeals.push(...meals.map(m => ({ ...m, categoryTitle: category.title })));
+                } else {
+                    console.log(`⚠️  Danh mục ${category.title} không có món, tiếp tục tìm...`);
+                }
+            } catch (error) {
+                console.warn(`⚠️  Lỗi khi lấy món từ category ${category.title}:`, error.message);
+            }
+        }
+
+        // ============= NẾU VẪN CHƯA ĐỦ MÓN, LẤY TỪ TẤT CẢ DANH MỤC KHÁC =============
+        if (collectedMeals.length < numMeals) {
+            console.log(`⚠️  Chỉ có ${collectedMeals.length}/${numMeals} món, tìm thêm từ các danh mục khác...`);
+
+            // ✅ FIX: Convert ObjectId sang String khi filter
+            const remainingCategories = mealCategories
+                .filter(cat => !attemptedCategories.has(cat._id.toString()))
+                .sort(() => Math.random() - 0.5); // Random
+
+            for (const category of remainingCategories) {
+                if (collectedMeals.length >= numMeals) break;
+
+                try {
+                    console.log(`🔍 Đang lấy món từ danh mục dự phòng: ${category.title}`);
+                    const mealsResponse = await getMealsByCategoryFn(category._id, token, 50);
+                    const meals = mealsResponse.data?.meals || [];
+
+                    if (meals.length > 0) {
+                        console.log(`✓ Tìm thấy ${meals.length} món từ danh mục ${category.title}`);
+                        collectedMeals.push(...meals.map(m => ({ ...m, categoryTitle: category.title })));
+                    }
+                } catch (error) {
+                    console.warn(`⚠️  Lỗi khi lấy món từ category ${category.title}:`, error.message);
+                }
+            }
+        }
+
+        // ============= KIỂM TRA CÓ ĐỦ MÓN KHÔNG =============
+        if (collectedMeals.length === 0) {
+            throw new Error(`Không tìm thấy món nào cho ${servingTime} sau khi thử tất cả danh mục`);
+        }
+
+        console.log(`📦 Tổng cộng thu thập được ${collectedMeals.length} món`);
+
+        // ============= RANDOM CHỌN MÓN =============
+        const shuffledMeals = collectedMeals.sort(() => Math.random() - 0.5);
+        const finalMeals = shuffledMeals.slice(0, Math.min(numMeals, shuffledMeals.length));
+
+        console.log(`✅ Đã chọn ${finalMeals.length} món cho ${servingTime}`);
+
+        return finalMeals.map(meal => ({
+            meal_id: meal._id,
+            reason: `Được chọn từ danh mục: ${meal.categoryTitle}`
+        }));
+
+    } catch (error) {
+        console.error(`❌ Lỗi getFallbackMealsByCategory cho ${servingTime}:`, error);
+        throw error;
+    }
+};
+
 module.exports = {
     generateSimpleMealPlan,
     generateAIBasedMealPlan,
     analyzeDietaryNeedsWithAI,
     selectMealsWithAI,
-    selectSimilarMealsWithAI, // Export function mới
-    callGeminiAPI // Export để test
+    selectSimilarMealsWithAI,
+    callGeminiAPI,
+    getFallbackMealsByCategory
 };

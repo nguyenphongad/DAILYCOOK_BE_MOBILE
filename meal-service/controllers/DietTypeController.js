@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const DietTypeModel = require("../model/DietTypeModel");
+const DietTypeModel = require("../models/DietTypeModel");
 
 // Thêm Loại chế độ ăn uống mới
 const addDietType = async (req, res) => {
