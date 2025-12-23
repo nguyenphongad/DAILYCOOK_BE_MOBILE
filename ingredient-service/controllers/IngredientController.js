@@ -488,6 +488,62 @@ const getRandomIngredientsByCategory = async (req, res) => {
     }
 };
 
+// Lấy danh sách nguyên liệu theo category với pagination
+const getIngredientsByCategory = async (req, res) => {
+    try {
+        const { category_id } = req.params;
+        let { page = 1, limit = 10 } = req.query;
+        page = parseInt(page);
+        limit = parseInt(limit);
+
+        // Kiểm tra category tồn tại
+        const categoryExists = await IngredientCategoryModel.findById(category_id);
+        if (!categoryExists) {
+            return res.status(404).json({
+                stype: "ingredient",
+                message: "Danh mục nguyên liệu không tồn tại",
+                status: false
+            });
+        }
+
+        const skip = (page - 1) * limit;
+
+        // Đếm tổng số nguyên liệu trong category
+        const total = await IngredientModel.countDocuments({ 
+            ingredientCategory: category_id 
+        });
+
+        // Lấy danh sách nguyên liệu theo category
+        const ingredients = await IngredientModel.find({ 
+            ingredientCategory: category_id 
+        })
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1, _id: -1 });
+
+        return res.status(200).json({
+            stype: "ingredient",
+            message: "Lấy danh sách nguyên liệu theo danh mục thành công!",
+            status: true,
+            data: {
+                category: categoryExists,
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                ingredients
+            }
+        });
+    } catch (error) {
+        return res.status(500).json({
+            stype: "ingredient",
+            message: "Lấy danh sách nguyên liệu theo danh mục thất bại!",
+            status: false,
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     addIngredient,
     updateIngredient,
@@ -496,5 +552,6 @@ module.exports = {
     findByIdIngredient,
     getTotalIngredients,
     getRandomIngredients,
-    getRandomIngredientsByCategory
+    getRandomIngredientsByCategory,
+    getIngredientsByCategory
 };

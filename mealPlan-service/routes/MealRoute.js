@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const MealPlanController = require('../controller/MealPlanController');
+const FallbackMealPlanController = require('../controller/FallbackMealPlanController');
+const CacheMealPlanController = require('../controller/CacheMealPlanController'); // ✅ Import mới
 const { authenticateUser, validateApiKey } = require('../middleware/MealPlanMiddleware');
 
 // Health check endpoint
@@ -22,6 +24,9 @@ router.post('/generate', MealPlanController.generateMealPlan);
 // Tạo thực đơn bằng AI dựa trên user profile
 router.post('/generate-ai', MealPlanController.generateAIMealPlan);
 
+// ✅ Tạo thực đơn bằng Fallback (không dùng AI) - delay 4s
+router.post('/generate-fallback', FallbackMealPlanController.generateFallbackMealPlan);
+
 // Lấy thực đơn từ REDIS (cache) - nhanh nhưng có thể không có
 router.post('/get-from-cache', MealPlanController.getMealPlanFromCache);
 
@@ -37,6 +42,9 @@ router.put('/replace-meal', MealPlanController.replaceMeal);
 
 // Xóa món khỏi thực đơn
 router.delete('/remove-meal', MealPlanController.removeMeal);
+
+// ✅ Lưu meal plan vào cache (trước khi save vào DB)
+router.post('/cache', CacheMealPlanController.cacheMealPlan);
 
 // Lưu thực đơn vào database
 router.post('/save', MealPlanController.saveMealPlan);

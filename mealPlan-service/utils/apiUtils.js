@@ -1,5 +1,8 @@
 const axios = require('axios');
 
+// ✅ Thêm API_KEY từ env
+const API_KEY = process.env.API_KEY;
+
 // Base configuration for API calls
 const createApiClient = (baseURL) => {
     return axios.create({
@@ -234,22 +237,33 @@ const getMealsByCategory = async (categoryId, token = null) => {
 };
 
 // Lấy món ăn theo category với pagination
-const getMealsByCategoryWithLimit = async (categoryId, token = null, limit = 200) => {
+const getMealsByCategoryWithLimit = async (categoryId, token, limit = 50) => {
     try {
-        const headers = {
-            'x-api-key': process.env.API_KEY
-        };
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
+        console.log(`🔍 Query meals with category_id: ${categoryId}, limit: ${limit}`);
         
-        const response = await axios.get(
-            `${process.env.MEAL_BY_CATEGORY_URL}/${categoryId}?page=1&limit=${limit}`, 
-            { headers }
-        );
+        // ✅ Sử dụng MEAL_BY_CATEGORY_URL từ env
+        const url = process.env.MEAL_BY_CATEGORY_URL.replace(':meal_category_id', categoryId);
+        
+        const response = await axios.get(url, {
+            params: { limit },
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'x-api-key': API_KEY // ✅ Đã khai báo ở trên
+            }
+        });
+        
+        console.log(`✅ Response from Meal Service:`, {
+            status: response.status,
+            mealsCount: response.data?.data?.meals?.length || 0
+        });
+        
         return response.data;
     } catch (error) {
-        handleApiError(error, 'Meal Service');
+        console.error(`❌ Error getMealsByCategoryWithLimit (category: ${categoryId}):`, {
+            message: error.message,
+            status: error.response?.status
+        });
+        throw error;
     }
 };
 

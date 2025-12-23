@@ -18,7 +18,8 @@ const {
 const {
     analyzeDietaryNeedsWithAI,
     selectMealsWithAI,
-    selectSimilarMealsWithAI
+    selectSimilarMealsWithAI,
+    getFallbackMealsByCategory // ✅ Import function mới
 } = require('../utils/genAIUtils');
 const mongoose = require('mongoose'); // Thêm import
 
@@ -683,7 +684,6 @@ const generateAIMealPlanController = async (req, res) => {
             return res.status(400).json({ error: 'Ngày không được để trống' });
         }
 
-        // ============= XÓA CACHE CŨ TRƯỚC KHI GENERATE MỚI =============
         console.log('🗑️  Xóa meal plan cũ trong Redis (nếu có)...');
         await deleteMealPlanFromRedis(redis, userId, date);
         
@@ -701,7 +701,6 @@ const generateAIMealPlanController = async (req, res) => {
             dietType: userProfile.dietaryPreferences?.DietType_id
         });
 
-        // Validate nutrition goals
         if (!userProfile.nutritionGoals?.caloriesPerDay) {
             return res.status(400).json({
                 error: 'Chưa có mục tiêu dinh dưỡng. Vui lòng gọi API /nutrition-goals/calculate trước.'
@@ -716,7 +715,6 @@ const generateAIMealPlanController = async (req, res) => {
         console.log('=== BƯỚC 3: Lấy danh mục món ăn ===');
         const mealCategoriesResponse = await getAllMealCategories(token);
         
-        // FIX: Extract mảng từ response structure
         let mealCategories = [];
         if (Array.isArray(mealCategoriesResponse.data)) {
             mealCategories = mealCategoriesResponse.data;
@@ -741,6 +739,8 @@ const generateAIMealPlanController = async (req, res) => {
 
         console.log('=== BƯỚC 4: AI phân tích và chọn danh mục phù hợp ===');
         let categoryRecommendations;
+        let useAI = true;
+        
         try {
             categoryRecommendations = await analyzeDietaryNeedsWithAI({
                 userProfile,
@@ -749,112 +749,129 @@ const generateAIMealPlanController = async (req, res) => {
             });
             console.log('✓ AI gợi ý danh mục:', categoryRecommendations);
         } catch (aiError) {
-            console.warn('⚠️  AI lỗi, sử dụng tất cả danh mục làm fallback');
-            // FIX: Nếu AI lỗi, dùng TẤT CẢ danh mục thay vì chỉ 3 danh mục cố định
-            const allCategoryIds = mealCategories.map(cat => cat._id);
-            categoryRecommendations = {
-                breakfast: allCategoryIds,
-                lunch: allCategoryIds,
-                dinner: allCategoryIds,
-                reasoning: 'Sử dụng tất cả danh mục do lỗi AI'
-            };
+            console.warn('⚠️  AI lỗi, chuyển sang chế độ FALLBACK');
+            useAI = false;
         }
 
-        console.log('=== BƯỚC 5: Lấy món ăn từ các danh mục được chọn ===');
+        console.log('=== BƯỚC 5: Lấy món ăn và tạo thực đơn ===');
         const mealsByServingTime = {};
-        const targetCalories = userProfile.nutritionGoals.caloriesPerDay;
         const portionAmount = userProfile.isFamily 
             ? (userProfile.familyInfo?.children || 0) + (userProfile.familyInfo?.teenagers || 0) + (userProfile.familyInfo?.adults || 0) + (userProfile.familyInfo?.elderly || 0) || 2
             : 1;
 
-        // FIX: Nếu không có món từ danh mục đã chọn, lấy TẤT CẢ món ăn
-        const allMeals = await fetchAllMeals(token);
-        if (!allMeals?.data?.meals || allMeals.data.meals.length === 0) {
-            return res.status(404).json({ 
-                error: 'Không tìm thấy món ăn nào trong hệ thống' 
-            });
-        }
-
-        for (const servingTime of ['breakfast', 'lunch', 'dinner']) {
-            const categoryIds = categoryRecommendations[servingTime] || [];
-            let allMealsForTime = [];
-
-            // Thử lấy món theo danh mục
-            for (const categoryId of categoryIds) {
+        // ============= NẾU AI LỖI: DÙNG FALLBACK =============
+        if (!useAI) {
+            console.log('🔄 Sử dụng FALLBACK: Chọn món theo danh mục cố định');
+            
+            for (const servingTime of ['breakfast', 'lunch', 'dinner']) {
                 try {
-                    const mealsResponse = await getMealsByCategoryWithLimit(categoryId, token, 200);
-                    const meals = mealsResponse.data?.meals || [];
-                    allMealsForTime.push(...meals);
+                    const selectedMeals = await getFallbackMealsByCategory({
+                        servingTime,
+                        mealCategories,
+                        getMealsByCategoryFn: getMealsByCategoryWithLimit,
+                        token,
+                        isFamily: userProfile.isFamily
+                    });
+
+                    mealsByServingTime[servingTime] = selectedMeals.map(m => ({
+                        meal_id: m.meal_id,
+                        portionSize: {
+                            amount: portionAmount,
+                            unit: "portion"
+                        }
+                    }));
+
+                    console.log(`✅ ${servingTime}: Chọn được ${selectedMeals.length} món (fallback)`);
                 } catch (error) {
-                    console.warn(`⚠️  Không thể lấy món từ category ${categoryId}:`, error.message);
+                    console.error(`❌ Lỗi fallback cho ${servingTime}:`, error);
+                    return res.status(500).json({
+                        error: `Không thể tạo thực đơn cho ${servingTime}`,
+                        details: error.message
+                    });
                 }
             }
-
-            console.log(`✓ ${servingTime}: Lấy được ${allMealsForTime.length} món từ danh mục`);
-
-            // FIX: Nếu không có món từ danh mục, dùng TẤT CẢ món làm fallback
-            if (allMealsForTime.length === 0) {
-                console.warn(`⚠️  Không có món từ danh mục cho ${servingTime}, dùng tất cả món làm fallback`);
-                allMealsForTime = allMeals.data.meals;
-            }
-
-            // Lọc món ăn (loại bỏ dị ứng & không thích)
-            const filteredMeals = allMealsForTime.filter(meal => {
-                const allergies = userProfile.dietaryPreferences?.allergies || [];
-                const dislikeIngredients = userProfile.dietaryPreferences?.dislikeIngredients || [];
-                
-                if (!meal.ingredients) return true;
-                
-                const hasAllergen = meal.ingredients.some(ing => 
-                    allergies.includes(ing.ingredient_id) || allergies.includes(ing.name)
-                );
-                const hasDisliked = meal.ingredients.some(ing => 
-                    dislikeIngredients.includes(ing.ingredient_id) || dislikeIngredients.includes(ing.name)
-                );
-                
-                return !hasAllergen && !hasDisliked;
-            });
-
-            console.log(`✓ ${servingTime}: Còn ${filteredMeals.length} món sau khi lọc`);
-
-            // FIX: Nếu không còn món sau khi lọc, báo lỗi
-            if (filteredMeals.length === 0) {
-                return res.status(400).json({
-                    error: `Không tìm thấy món ăn phù hợp cho ${servingTime} sau khi lọc dị ứng/không thích. Vui lòng điều chỉnh dietary preferences.`
+        } else {
+            // ============= DÙNG AI BÌNH THƯỜNG =============
+            const allMeals = await fetchAllMeals(token);
+            if (!allMeals?.data?.meals || allMeals.data.meals.length === 0) {
+                return res.status(404).json({ 
+                    error: 'Không tìm thấy món ăn nào trong hệ thống' 
                 });
             }
 
-            // AI chọn món cụ thể (hoặc random nếu AI lỗi)
-            let selectedMeals;
-            try {
-                selectedMeals = await selectMealsWithAI({
-                    servingTime,
-                    meals: filteredMeals,
-                    userProfile,
-                    targetCalories
+            for (const servingTime of ['breakfast', 'lunch', 'dinner']) {
+                const categoryIds = categoryRecommendations[servingTime] || [];
+                let allMealsForTime = [];
+
+                for (const categoryId of categoryIds) {
+                    try {
+                        const mealsResponse = await getMealsByCategoryWithLimit(categoryId, token, 200);
+                        const meals = mealsResponse.data?.meals || [];
+                        allMealsForTime.push(...meals);
+                    } catch (error) {
+                        console.warn(`⚠️  Không thể lấy món từ category ${categoryId}:`, error.message);
+                    }
+                }
+
+                if (allMealsForTime.length === 0) {
+                    console.warn(`⚠️  Không có món từ danh mục cho ${servingTime}, dùng tất cả món làm fallback`);
+                    allMealsForTime = allMeals.data.meals;
+                }
+
+                const filteredMeals = allMealsForTime.filter(meal => {
+                    const allergies = userProfile.dietaryPreferences?.allergies || [];
+                    const dislikeIngredients = userProfile.dietaryPreferences?.dislikeIngredients || [];
+                    
+                    if (!meal.ingredients) return true;
+                    
+                    const hasAllergen = meal.ingredients.some(ing => 
+                        allergies.includes(ing.ingredient_id) || allergies.includes(ing.name)
+                    );
+                    const hasDisliked = meal.ingredients.some(ing => 
+                        dislikeIngredients.includes(ing.ingredient_id) || dislikeIngredients.includes(ing.name)
+                    );
+                    
+                    return !hasAllergen && !hasDisliked;
                 });
-            } catch (aiError) {
-                console.warn(`⚠️  AI lỗi khi chọn món cho ${servingTime}, chọn random`);
-                // Random chọn 2-3 món
-                const numMeals = Math.min(3, filteredMeals.length);
-                const shuffled = [...filteredMeals].sort(() => Math.random() - 0.5);
-                selectedMeals = shuffled.slice(0, numMeals).map(meal => ({
-                    meal_id: meal._id,
-                    reason: 'Được chọn ngẫu nhiên do AI không khả dụng'
+
+                if (filteredMeals.length === 0) {
+                    return res.status(400).json({
+                        error: `Không tìm thấy món ăn phù hợp cho ${servingTime} sau khi lọc dị ứng/không thích.`
+                    });
+                }
+
+                let selectedMeals;
+                try {
+                    selectedMeals = await selectMealsWithAI({
+                        servingTime,
+                        meals: filteredMeals,
+                        userProfile,
+                        targetCalories: userProfile.nutritionGoals.caloriesPerDay
+                    });
+                } catch (aiError) {
+                    console.warn(`⚠️  AI lỗi khi chọn món cho ${servingTime}, chọn random`);
+                    const numMeals = Math.min(3, filteredMeals.length);
+                    const shuffled = [...filteredMeals].sort(() => Math.random() - 0.5);
+                    selectedMeals = shuffled.slice(0, numMeals).map(meal => ({
+                        meal_id: meal._id,
+                        reason: 'Được chọn ngẫu nhiên do AI không khả dụng'
+                    }));
+                }
+
+                mealsByServingTime[servingTime] = selectedMeals.map(m => ({
+                    meal_id: m.meal_id,
+                    portionSize: {
+                        amount: portionAmount,
+                        unit: "portion"
+                    }
                 }));
             }
-
-            mealsByServingTime[servingTime] = selectedMeals.map(m => ({
-                meal_id: m.meal_id,
-                portionSize: {
-                    amount: portionAmount,
-                    unit: "portion"
-                }
-            }));
         }
 
         console.log('=== BƯỚC 6: Lấy chi tiết đầy đủ của các món đã chọn ===');
+        const allMeals = await fetchAllMeals(token);
         const mealPlan = [];
+        
         for (const [servingTime, selectedMeals] of Object.entries(mealsByServingTime)) {
             const mealsToGet = [];
             
@@ -883,7 +900,7 @@ const generateAIMealPlanController = async (req, res) => {
             date: new Date(date),
             mealPlan,
             forFamily: userProfile.isFamily,
-            generatedByAI: true,
+            generatedByAI: useAI,
             aiMetadata: {
                 userProfile: {
                     dietType: userProfile.dietaryPreferences?.DietType_id,
@@ -892,21 +909,24 @@ const generateAIMealPlanController = async (req, res) => {
                     targetCalories: userProfile.nutritionGoals?.caloriesPerDay
                 },
                 generatedAt: new Date(),
-                categoryRecommendations: categoryRecommendations,
-                regenerationCount: 1
+                categoryRecommendations: useAI ? categoryRecommendations : 'Fallback mode',
+                regenerationCount: 1,
+                usedFallback: !useAI
             }
         };
 
-        // Lưu vào Redis với TTL
         await saveMealPlanToRedis(redis, userId, date, newMealPlan);
 
-        console.log('=== HOÀN THÀNH: Tạo thực đơn AI mới thành công ===');
+        console.log('=== HOÀN THÀNH: Tạo thực đơn thành công ===');
         res.json({ 
             success: true, 
             data: newMealPlan, 
             fromCache: false,
             regenerated: true,
-            message: 'Thực đơn mới được tạo bởi AI với các món ăn khác nhau!'
+            usedAI: useAI,
+            message: useAI 
+                ? 'Thực đơn được tạo bởi AI với các món ăn khác nhau!'
+                : 'Thực đơn được tạo bằng chế độ fallback (AI không khả dụng)'
         });
     } catch (error) {
         console.error('=== LỖI: Tạo thực đơn AI thất bại ===');
@@ -917,6 +937,7 @@ const generateAIMealPlanController = async (req, res) => {
         });
     }
 };
+
 
 // Toggle trạng thái món ăn (tick/untick "Đã ăn") - UPDATE HOẶC CREATE
 const toggleMealEatenStatus = async (req, res) => {
@@ -940,14 +961,14 @@ const toggleMealEatenStatus = async (req, res) => {
             });
         }
 
-        // FIX: Parse date đúng cách (YYYY-MM-DD)
+        // Parse date đúng cách (YYYY-MM-DD)
         const [year, month, day] = date.split('-').map(Number);
         const normalizedDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 
         console.log('📅 Date received:', date);
         console.log('📅 Date normalized (UTC):', normalizedDate.toISOString());
 
-        // ============= LẤY MEAL PLAN TỪ DATABASE =============
+        // Lấy meal plan từ database
         let dbMealPlan = await MealPlan.findOne({
             user_id: userId,
             date: normalizedDate
@@ -982,8 +1003,7 @@ const toggleMealEatenStatus = async (req, res) => {
             });
         }
 
-        // ============= UPDATE HOẶC CREATE HISTORY EVENT =============
-        // FIX: Lưu timestamp với ngày người dùng chọn (date received), không phải ngày hiện tại
+        // Lưu timestamp với ngày người dùng chọn
         const historyTimestamp = new Date(Date.UTC(year, month - 1, day, 
             new Date().getUTCHours(), 
             new Date().getUTCMinutes(), 
@@ -1001,7 +1021,7 @@ const toggleMealEatenStatus = async (req, res) => {
                     servingTime: servingTime,
                     lastAction: action,
                     portionSize: meal.portionSize,
-                    timestamp: historyTimestamp // Sử dụng timestamp với ngày đúng
+                    timestamp: historyTimestamp
                 }
             },
             {
@@ -1013,7 +1033,7 @@ const toggleMealEatenStatus = async (req, res) => {
 
         console.log('✅ History saved with timestamp:', historyTimestamp.toISOString());
 
-        // ============= CẬP NHẬT TRẠNG THÁI TRONG DB =============
+        // Cập nhật trạng thái trong DB
         const mealInDb = dbMealPlan.mealPlan
             .find(mp => mp.servingTime === servingTime)
             ?.meals.find(m => m.meal_id.toString() === mealId);
@@ -1059,12 +1079,12 @@ const getMealHistory = async (req, res) => {
             limit = 50
         } = req.query;
 
-        // ============= BUILD FILTER =============
+        // Build filter
         const baseFilter = { 
             user_id: mongoose.Types.ObjectId.isValid(userId) 
                 ? new mongoose.Types.ObjectId(userId) 
                 : userId,
-            lastAction: "EAT" // CHỈ LẤY MÓN ĐÃ ĂN
+            lastAction: "EAT"
         };
 
         if (date) {
@@ -1082,7 +1102,7 @@ const getMealHistory = async (req, res) => {
             baseFilter.servingTime = servingTime;
         }
 
-        // ============= QUERY DATABASE =============
+        // Query database
         const total = await MealPlanHistory.countDocuments(baseFilter);
         const skip = (parseInt(page) - 1) * parseInt(limit);
         
@@ -1092,7 +1112,7 @@ const getMealHistory = async (req, res) => {
             .limit(parseInt(limit))
             .lean();
 
-        // ============= LẤY CHI TIẾT MÓN ĂN =============
+        // Lấy chi tiết món ăn
         const token = req.headers.authorization?.replace('Bearer ', '');
         const enrichedHistory = [];
 
@@ -1148,7 +1168,7 @@ const getMealHistory = async (req, res) => {
             }
         }
 
-        // ============= THỐNG KÊ =============
+        // Thống kê
         let totalNutrition = { calories: 0, protein: 0, carbs: 0, fat: 0 };
 
         enrichedHistory.forEach(event => {
@@ -1211,7 +1231,6 @@ const getLastMealStatus = async (req, res) => {
             });
         }
 
-        // Tìm document duy nhất cho (user_id, meal_id)
         const lastEvent = await MealPlanHistory.findOne({
             user_id: userId,
             meal_id: meal_id
@@ -1256,7 +1275,7 @@ module.exports = {
     getMealPlanFromCache,
     getMealPlanFromDatabase,
     getSimilarMeals,
-    toggleMealEatenStatus,
-    getMealHistory,
-    getLastMealStatus, // ✅ Thêm lại vào exports
+    toggleMealEatenStatus, // ✅ Thêm lại
+    getMealHistory, // ✅ Thêm lại
+    getLastMealStatus, // ✅ Thêm lại
 };

@@ -437,11 +437,146 @@ ${JSON.stringify(allMeals.slice(0, 100).map(meal => ({
     }
 };
 
+// Fallback meal selection khi AI lỗi
+const getFallbackMealsByCategory = async ({ servingTime, mealCategories, getMealsByCategoryFn, token, isFamily }) => {
+    try {
+        // Định nghĩa danh mục ID cho từng bữa ăn (dựa trên data thực tế)
+        const categoryMapping = {
+            breakfast: [
+                '69427f553f8654bb5b6c2b6c', // Các loại bánh
+                '69427f0c3f8654bb5b6c2b5a', // Bánh đa, bún, phở
+                '69427efc3f8654bb5b6c2b57', // Bánh canh, hủ tiếu, miến, mỳ
+                '69427f173f8654bb5b6c2b5d', // Cơm, cháo, xôi
+                '69427f233f8654bb5b6c2b60', // Burger, pizza
+                '69427f3e3f8654bb5b6c2b66', // Giải khát
+                '69427f323f8654bb5b6c2b63'  // Chè, các loại giải khát
+            ],
+            lunch: [
+                '69427ece3f8654bb5b6c2b4e', // Cơm các loại
+                '69427f173f8654bb5b6c2b5d', // Cơm, cháo, xôi
+                '69427f5e3f8654bb5b6c2b6f', // Các món khác
+                '6944520c3ff1cb9255d2c89f', // Món canh
+                '69427f483f8654bb5b6c2b69', // Ngao, ốc
+                '69427f3e3f8654bb5b6c2b66'  // Giải khát
+            ],
+            dinner: [
+                '69427ece3f8654bb5b6c2b4e', // Cơm các loại
+                '69427eea3f8654bb5b6c2b54', // Bún, cơm, xôi, cháo
+                '69427efc3f8654bb5b6c2b57', // Bánh canh, hủ tiếu, miến, mỳ
+                '6944520c3ff1cb9255d2c89f', // Món canh
+                '69427f483f8654bb5b6c2b69', // Ngao, ốc
+                '69427f3e3f8654bb5b6c2b66'  // Giải khát
+            ]
+        };
+
+        const requiredCategoryIds = categoryMapping[servingTime] || [];
+
+        // ✅ FIX: Convert ObjectId sang String trước khi so sánh
+        const matchedCategories = mealCategories.filter(cat => 
+            requiredCategoryIds.includes(cat._id.toString())
+        );
+
+        console.log(`📋 Tìm thấy ${matchedCategories.length} danh mục phù hợp cho ${servingTime}`);
+
+        // ✅ Xác định số lượng món: breakfast = 1, lunch/dinner = 2-4
+        let numMeals;
+        if (servingTime === 'breakfast') {
+            numMeals = isFamily ? 3 : 1;
+        } else {
+            // Lunch và Dinner: random từ 2-4 món
+            const baseNum = Math.floor(Math.random() * 3) + 2; // Random 2, 3, hoặc 4
+            numMeals = isFamily ? baseNum * 2 : baseNum; // Nếu family thì gấp đôi
+        }
+
+        console.log(`🎲 Số món cần lấy: ${numMeals}`);
+
+        // ============= RANDOM DANH MỤC BAN ĐẦU =============
+        const shuffledCategories = [...matchedCategories].sort(() => Math.random() - 0.5);
+
+        // ============= LẤY MÓN TỪ CÁC DANH MỤC CHO ĐẾN KHI ĐỦ =============
+        let collectedMeals = [];
+        let attemptedCategories = new Set();
+
+        for (const category of shuffledCategories) {
+            // Nếu đã đủ món thì dừng
+            if (collectedMeals.length >= numMeals) break;
+
+            // ✅ FIX: Convert ObjectId sang String khi lưu vào Set
+            attemptedCategories.add(category._id.toString());
+
+            try {
+                console.log(`🔍 Đang lấy món từ danh mục: ${category.title}`);
+                const mealsResponse = await getMealsByCategoryFn(category._id, token, 50);
+                const meals = mealsResponse.data?.meals || [];
+
+                if (meals.length > 0) {
+                    console.log(`✓ Tìm thấy ${meals.length} món từ danh mục ${category.title}`);
+                    collectedMeals.push(...meals.map(m => ({ ...m, categoryTitle: category.title })));
+                } else {
+                    console.log(`⚠️  Danh mục ${category.title} không có món, tiếp tục tìm...`);
+                }
+            } catch (error) {
+                console.warn(`⚠️  Lỗi khi lấy món từ category ${category.title}:`, error.message);
+            }
+        }
+
+        // ============= NẾU VẪN CHƯA ĐỦ MÓN, LẤY TỪ TẤT CẢ DANH MỤC KHÁC =============
+        if (collectedMeals.length < numMeals) {
+            console.log(`⚠️  Chỉ có ${collectedMeals.length}/${numMeals} món, tìm thêm từ các danh mục khác...`);
+
+            // ✅ FIX: Convert ObjectId sang String khi filter
+            const remainingCategories = mealCategories
+                .filter(cat => !attemptedCategories.has(cat._id.toString()))
+                .sort(() => Math.random() - 0.5); // Random
+
+            for (const category of remainingCategories) {
+                if (collectedMeals.length >= numMeals) break;
+
+                try {
+                    console.log(`🔍 Đang lấy món từ danh mục dự phòng: ${category.title}`);
+                    const mealsResponse = await getMealsByCategoryFn(category._id, token, 50);
+                    const meals = mealsResponse.data?.meals || [];
+
+                    if (meals.length > 0) {
+                        console.log(`✓ Tìm thấy ${meals.length} món từ danh mục ${category.title}`);
+                        collectedMeals.push(...meals.map(m => ({ ...m, categoryTitle: category.title })));
+                    }
+                } catch (error) {
+                    console.warn(`⚠️  Lỗi khi lấy món từ category ${category.title}:`, error.message);
+                }
+            }
+        }
+
+        // ============= KIỂM TRA CÓ ĐỦ MÓN KHÔNG =============
+        if (collectedMeals.length === 0) {
+            throw new Error(`Không tìm thấy món nào cho ${servingTime} sau khi thử tất cả danh mục`);
+        }
+
+        console.log(`📦 Tổng cộng thu thập được ${collectedMeals.length} món`);
+
+        // ============= RANDOM CHỌN MÓN =============
+        const shuffledMeals = collectedMeals.sort(() => Math.random() - 0.5);
+        const finalMeals = shuffledMeals.slice(0, Math.min(numMeals, shuffledMeals.length));
+
+        console.log(`✅ Đã chọn ${finalMeals.length} món cho ${servingTime}`);
+
+        return finalMeals.map(meal => ({
+            meal_id: meal._id,
+            reason: `Được chọn từ danh mục: ${meal.categoryTitle}`
+        }));
+
+    } catch (error) {
+        console.error(`❌ Lỗi getFallbackMealsByCategory cho ${servingTime}:`, error);
+        throw error;
+    }
+};
+
 module.exports = {
     generateSimpleMealPlan,
     generateAIBasedMealPlan,
     analyzeDietaryNeedsWithAI,
     selectMealsWithAI,
     selectSimilarMealsWithAI,
-    callGeminiAPI
+    callGeminiAPI,
+    getFallbackMealsByCategory
 };

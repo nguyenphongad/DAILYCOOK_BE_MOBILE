@@ -134,13 +134,21 @@ const IngredientForm = ({
 
     // Chọn thực phẩm từ kết quả tìm kiếm
     const handleSelectNutritionData = (foodData) => {
+        // Xử lý nutrition data: chuyển null/undefined thành 0
+        const processedNutrition = (foodData.nutrition || []).map(item => ({
+            name: item.name || '',
+            name_en: item.name_en || '',
+            value: item.value !== null && item.value !== undefined ? item.value : 0,
+            unit: item.unit || ''
+        }));
+
         // Điền thông tin vào form
         form.setFieldsValue({
             code: foodData.code || '',
             nameIngredient: foodData.name_vi || '',
             name_en: foodData.name_en || '',
-            energy: foodData.energy || 0,
-            nutrition: foodData.nutrition || []
+            energy: foodData.energy !== null && foodData.energy !== undefined ? foodData.energy : 0,
+            nutrition: processedNutrition
         });
 
         // Đóng modal và clear kết quả
@@ -360,7 +368,7 @@ const IngredientForm = ({
                                     label="Số lượng mặc định"
                                     rules={[{ required: true, message: 'Vui lòng nhập số lượng' }]}
                                 >
-                                    <InputNumber style={{ width: '100%' }} min={0} placeholder="100" />
+                                    <InputNumber style={{ width: '100%' }} min={0} placeholder="100" value={100}/>
                                 </Form.Item>
                             </Col>
                             <Col span={8}>
@@ -371,7 +379,7 @@ const IngredientForm = ({
                                 >
                                     <Select placeholder="Chọn đơn vị">
                                         {allMeasureUnits.map(unit => (
-                                            <Option key={unit.key} value={unit.key}>
+                                            <Option key={unit.key} value={unit.key} selected={unit.key === 'g'}>
                                                 {unit.label}
                                             </Option>
                                         ))}

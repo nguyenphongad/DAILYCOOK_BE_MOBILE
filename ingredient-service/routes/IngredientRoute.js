@@ -17,7 +17,8 @@ const {
     getListIngredient,
     getTotalIngredients,
     getRandomIngredients, // Import API mới
-    getRandomIngredientsByCategory // Import API mới
+    getRandomIngredientsByCategory, // Import API mới
+    getIngredientsByCategory // ✅ Import function mới
 } = require('../controllers/IngredientController');
 const { getAllMeasurementUnits } = require('../controllers/MeasurementUnitsController');
 const { getNutritionData } = require('../controllers/NutritionProxyController');
@@ -86,6 +87,13 @@ router.get(
     '/random/category/:category_id',
     IngredientMiddleware,
     getRandomIngredientsByCategory
+);
+
+// ✅ API lấy Ingredients theo Category (pagination)
+router.get(
+    '/category/:category_id',
+    IngredientMiddleware,
+    getIngredientsByCategory
 );
 
 router.post(

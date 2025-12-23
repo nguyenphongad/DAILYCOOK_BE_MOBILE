@@ -450,7 +450,7 @@ const getTotalMeals = async (req, res) => {
         const recentMeals = await MealModel.find()
             .sort({ createdAt: -1 })
             .limit(5)
-            .select('nameMeal mealImage createdAt popularity');
+            .select('nameMeal image createdAt popularity');
 
         const result = {
             totalMeals: totalMeals,
@@ -496,13 +496,11 @@ const getMealsByCategory = async (req, res) => {
 
         const skip = (page - 1) * limit;
 
-        // Đếm tổng số món ăn trong danh mục
-        const total = await MealModel.countDocuments({ mealCategory: meal_category_id });
+        // ✅ FIX: Tìm theo category_id thay vì mealCategory
+        const total = await MealModel.countDocuments({ category_id: meal_category_id });
 
-        // Lấy danh sách món ăn theo danh mục
-        const meals = await MealModel.find({ mealCategory: meal_category_id })
-            .populate('mealCategory', 'keyword title')
-            .populate('dietaryCompatibility', 'keyword title')
+        // ✅ FIX: Lấy danh sách món ăn theo category_id
+        const meals = await MealModel.find({ category_id: meal_category_id })
             .skip(skip)
             .limit(limit)
             .sort({ createdAt: -1, _id: -1 });
@@ -570,7 +568,7 @@ const getRandomMeals = async (req, res) => {
                     _id: 1,
                     nameMeal: 1,
                     description: 1,
-                    mealImage: 1,
+                    image: 1,
                     mealCategory: 1,
                     'categoryDetail.title': 1,
                     'categoryDetail.keyword': 1,
@@ -674,7 +672,7 @@ const getRandomMealsByCategory = async (req, res) => {
                     _id: 1,
                     nameMeal: 1,
                     description: 1,
-                    mealImage: 1,
+                    image: 1,
                     categoryDetail: 1,
                     portionSize: 1,
                     dietDetails: 1,

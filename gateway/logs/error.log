@@ -221,3 +221,7 @@
 {"level":"error","message":"Proxy error (ingredients service): ","service":"api-gateway","timestamp":"2025-12-17 17:09:50"}
 {"level":"error","message":"Proxy error (recipe service): ","service":"api-gateway","timestamp":"2025-12-17 17:11:01"}
 {"level":"error","message":"Proxy error (recipe service): ","service":"api-gateway","timestamp":"2025-12-18 02:43:25"}
+{"level":"error","message":"Proxy error (recipe service): ","service":"api-gateway","timestamp":"2025-12-19 00:05:10"}
+{"level":"error","message":"Proxy error (recipe service): ","service":"api-gateway","timestamp":"2025-12-19 00:05:21"}
+{"level":"error","message":"Proxy error (recipe service): ","service":"api-gateway","timestamp":"2025-12-19 00:05:31"}
+{"level":"error","message":"Proxy error (meal service): ","service":"api-gateway","timestamp":"2025-12-19 01:08:01"}
